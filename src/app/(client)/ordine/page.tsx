@@ -18,6 +18,7 @@ export default function OrdinePage() {
   const [deliveryZone, setDeliveryZone] = useState("");
   const [pickupTime, setPickupTime] = useState("");
   const [notes, setNotes] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"CONTANTI" | "POS">("CONTANTI");
   const [slots, setSlots] = useState<{time: string, available: boolean, remaining: number}[]>([]);
 
   useEffect(() => {
@@ -35,16 +36,31 @@ export default function OrdinePage() {
     fetchSlots();
   }, []);
 
+  // Scroll Reveal Logic
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('active');
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    return () => observer.disconnect();
+  }, [slots]);
+
   const subtotal = getSubtotal();
-  const deliveryCost = orderType === "DELIVERY" ? 2.5 : 0; // placeholder
+  const deliveryCost = orderType === "DELIVERY" ? 2.5 : 0;
   const total = subtotal + deliveryCost;
 
   if (items.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-400 mb-4">Il carrello è vuoto.</p>
-        <button onClick={() => router.push("/menu")} className="text-orange-600 hover:underline">
-          Torna al menu
+      <div className="text-center py-24 px-6">
+        <div className="text-6xl mb-6 opacity-20">🛒</div>
+        <h2 className="text-2xl font-bold mb-4">Il carrello è vuoto</h2>
+        <button 
+          onClick={() => router.push("/menu")} 
+          className="px-8 py-3 bg-[#1d1d1f] text-white rounded-full font-semibold hover:scale-105 transition-transform"
+        >
+          Vai al Menu
         </button>
       </div>
     );
@@ -52,6 +68,10 @@ export default function OrdinePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!pickupTime) {
+      setError("Per favore seleziona un orario.");
+      return;
+    }
     setError("");
     setLoading(true);
 
@@ -69,11 +89,13 @@ export default function OrdinePage() {
           addressDetail: orderType === "DELIVERY" ? addressDetail : null,
           deliveryZone: orderType === "DELIVERY" ? deliveryZone : null,
           deliveryCost: orderType === "DELIVERY" ? deliveryCost : null,
-          pickupTime: pickupTime ? new Date(`${today}T${pickupTime}`).toISOString() : null,
-          estimatedTime: orderType === "DELIVERY" && pickupTime ? new Date(`${today}T${pickupTime}`).toISOString() : null,
+          pickupTime: new Date(`${today}T${pickupTime}`).toISOString(),
+          timeSlot: pickupTime,
+          estimatedTime: orderType === "DELIVERY" ? new Date(`${today}T${pickupTime}`).toISOString() : null,
           subtotal,
           total,
           notes: notes || null,
+          paymentMethod,
           items: items.map((item) => ({
             productId: item.productId,
             productName: item.productName,
@@ -100,121 +122,210 @@ export default function OrdinePage() {
   }
 
   return (
-    <div className="max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Completa il tuo ordine</h1>
+    <div className="max-w-2xl mx-auto pb-24 pt-8 px-4">
+      <header className="mb-12">
+        <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gradient mb-2">
+          Concludi l'Ordine
+        </h1>
+        <p className="text-gray-500 text-lg">
+          Compila i dettagli e preparati a gustare la nostra teglia.
+        </p>
+      </header>
 
-      {/* Riepilogo */}
-      <div className="bg-white rounded-xl shadow p-4 mb-6">
-        <h2 className="font-semibold mb-3">Riepilogo</h2>
-        <div className="space-y-2 text-sm">
-          {items.map((item) => (
-            <div key={item.id} className="flex justify-between">
-              <span>
-                {item.quantity}x {item.productName}
-                {item.variant && ` (${item.variant})`}
-              </span>
-              <span>{formatCurrency(item.totalPrice)}</span>
+      <form onSubmit={handleSubmit} className="space-y-12">
+        {/* SECTION 1: RIEPILOGO */}
+        <div className="reveal space-y-6">
+          <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-gray-400">Riepilogo Ordine</h2>
+          <div className="bg-gray-50/50 rounded-[2rem] p-8 border border-gray-100">
+            <div className="space-y-4">
+              {items.map((item) => (
+                <div key={item.id} className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <p className="font-bold text-[#1d1d1f]">
+                      {item.quantity}x {item.productName}
+                    </p>
+                    {item.variant && <p className="text-sm text-gray-500">{item.variant}</p>}
+                  </div>
+                  <span className="font-semibold">{formatCurrency(item.totalPrice)}</span>
+                </div>
+              ))}
             </div>
-          ))}
-          <div className="border-t pt-2 flex justify-between">
-            <span>Subtotale</span>
-            <span>{formatCurrency(subtotal)}</span>
-          </div>
-          {orderType === "DELIVERY" && (
-            <div className="flex justify-between text-gray-500">
-              <span>Consegna</span>
-              <span>{formatCurrency(deliveryCost)}</span>
+            
+            <div className="mt-8 pt-6 border-t border-gray-200/60 space-y-2">
+              <div className="flex justify-between text-gray-500">
+                <span>Subtotale</span>
+                <span>{formatCurrency(subtotal)}</span>
+              </div>
+              {orderType === "DELIVERY" && (
+                <div className="flex justify-between text-gray-500">
+                  <span>Consegna</span>
+                  <span>{formatCurrency(deliveryCost)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-2xl font-bold text-[#1d1d1f] pt-4">
+                <span>Totale</span>
+                <span className="text-orange-600">{formatCurrency(total)}</span>
+              </div>
             </div>
-          )}
-          <div className="flex justify-between font-bold text-lg border-t pt-2">
-            <span>Totale</span>
-            <span>{formatCurrency(total)}</span>
+
+            <div className="mt-6 flex justify-center">
+              <div className="px-4 py-1.5 bg-orange-100 text-orange-800 rounded-full text-xs font-bold uppercase tracking-wider">
+                {orderType === "ASPORTO" ? "Ritiro in Sede" : "Consegna a Domicilio"}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Tipo ordine badge */}
-      <div className="bg-orange-50 border border-orange-200 rounded-lg px-4 py-2 mb-6 text-center text-sm">
-        Ordine: <strong>{orderType === "ASPORTO" ? "Asporto" : "Delivery"}</strong>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
-          <input value={customerName} onChange={(e) => setCustomerName(e.target.value)} required
-            className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500" />
+        {/* SECTION 2: DATI CLIENTE */}
+        <div className="reveal space-y-6">
+          <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-gray-400">Dati Personali</h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-500 ml-4">NOME E COGNOME</label>
+              <input 
+                value={customerName} 
+                onChange={(e) => setCustomerName(e.target.value)} 
+                required
+                placeholder="Inserisci il tuo nome"
+                className="w-full px-6 py-4 bg-gray-50 border-none rounded-[1.5rem] focus:ring-2 focus:ring-orange-500 transition-all outline-none" 
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-500 ml-4">TELEFONO</label>
+              <input 
+                type="tel" 
+                value={customerPhone} 
+                onChange={(e) => setCustomerPhone(e.target.value)} 
+                required
+                placeholder="333 123 4567"
+                className="w-full px-6 py-4 bg-gray-50 border-none rounded-[1.5rem] focus:ring-2 focus:ring-orange-500 transition-all outline-none" 
+              />
+            </div>
+          </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Telefono *</label>
-          <input type="tel" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} required
-            className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500" />
-        </div>
-
+        {/* SECTION 3: INDIRIZZO (Solo Delivery) */}
         {orderType === "DELIVERY" && (
-          <>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Indirizzo *</label>
-              <input value={address} onChange={(e) => setAddress(e.target.value)} required
-                placeholder="Via, numero civico"
-                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500" />
+          <div className="reveal space-y-6">
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-gray-400">Dove Consegniamo?</h2>
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-500 ml-4">INDIRIZZO</label>
+                <input 
+                  value={address} 
+                  onChange={(e) => setAddress(e.target.value)} 
+                  required
+                  placeholder="Via, Piazza, Numero civico"
+                  className="w-full px-6 py-4 bg-gray-50 border-none rounded-[1.5rem] focus:ring-2 focus:ring-orange-500 outline-none" 
+                />
+              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 ml-4">CITOFONO / PIANO</label>
+                  <input 
+                    value={addressDetail} 
+                    onChange={(e) => setAddressDetail(e.target.value)}
+                    placeholder="Scala B, Piano 4..."
+                    className="w-full px-6 py-4 bg-gray-50 border-none rounded-[1.5rem] focus:ring-2 focus:ring-orange-500 outline-none" 
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 ml-4">ZONA CONSEGNA</label>
+                  <input 
+                    value={deliveryZone} 
+                    onChange={(e) => setDeliveryZone(e.target.value)}
+                    placeholder="Es. Quartiere..."
+                    className="w-full px-6 py-4 bg-gray-50 border-none rounded-[1.5rem] focus:ring-2 focus:ring-orange-500 outline-none" 
+                  />
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Citofono / Scala / Piano</label>
-              <input value={addressDetail} onChange={(e) => setAddressDetail(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Zona</label>
-              <input value={deliveryZone} onChange={(e) => setDeliveryZone(e.target.value)}
-                placeholder="Es. Centro, Zona Nord..."
-                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500" />
-            </div>
-          </>
+          </div>
         )}
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            {orderType === "ASPORTO" ? "Orario di ritiro preferito" : "Fascia oraria preferita"}
-          </label>
-          <div className="grid grid-cols-4 gap-2">
+        {/* SECTION 4: ORARIO */}
+        <div className="reveal space-y-6">
+          <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-gray-400">
+            {orderType === "ASPORTO" ? "Orario Ritiro" : "Orario Consegna"}
+          </h2>
+          <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
             {slots.map((slot) => (
               <button
                 key={slot.time}
                 type="button"
                 disabled={!slot.available}
                 onClick={() => setPickupTime(slot.time)}
-                className={`py-2 text-sm font-medium rounded-lg border transition-all ${
+                className={`py-3 text-xs font-bold rounded-2xl border transition-all ${
                   pickupTime === slot.time
-                    ? "bg-orange-600 border-orange-600 text-white shadow-md"
+                    ? "bg-[#1d1d1f] border-[#1d1d1f] text-white shadow-xl scale-105"
                     : slot.available
-                    ? "bg-white border-gray-200 text-gray-700 hover:border-orange-500"
-                    : "bg-gray-50 border-gray-100 text-gray-300 cursor-not-allowed"
+                    ? "bg-white border-gray-100 text-gray-600 hover:border-orange-200"
+                    : "bg-gray-50 border-transparent text-gray-300 cursor-not-allowed opacity-50"
                 }`}
               >
                 {slot.time}
               </button>
             ))}
           </div>
-          {slots.length === 0 && <p className="text-sm text-gray-400">Caricamento fasce orarie...</p>}
+          {slots.length === 0 && <p className="text-sm text-gray-400 text-center py-4">Caricamento disponibilità...</p>}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Note</label>
-          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
-            className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500" />
+        {/* SECTION 5: PAGAMENTO */}
+        <div className="reveal space-y-6">
+          <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-gray-400">Metodo di Pagamento</h2>
+          <div className="flex gap-4 p-2 bg-gray-100/50 rounded-[2rem]">
+            <button
+              type="button"
+              onClick={() => setPaymentMethod("CONTANTI")}
+              className={`flex-1 py-4 px-6 rounded-[1.6rem] transition-all flex items-center justify-center gap-3 font-bold ${
+                paymentMethod === "CONTANTI"
+                  ? "bg-white shadow-xl text-[#1d1d1f] scale-[1.02]"
+                  : "text-gray-400 hover:text-gray-600"
+              }`}
+            >
+              <span className="text-xl">💵</span>
+              Contanti
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod("POS")}
+              className={`flex-1 py-4 px-6 rounded-[1.6rem] transition-all flex items-center justify-center gap-3 font-bold ${
+                paymentMethod === "POS"
+                  ? "bg-white shadow-xl text-[#1d1d1f] scale-[1.02]"
+                  : "text-gray-400 hover:text-gray-600"
+              }`}
+            >
+              <span className="text-xl">💳</span>
+              POS / Carta
+            </button>
+          </div>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {/* SECTION 6: NOTE */}
+        <div className="reveal space-y-6">
+          <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-gray-400">Note Aggiuntive</h2>
+          <textarea 
+            value={notes} 
+            onChange={(e) => setNotes(e.target.value)} 
+            rows={3}
+            placeholder="Hai allergie o richieste particolari per il rider?"
+            className="w-full px-6 py-4 bg-gray-50 border-none rounded-[1.5rem] focus:ring-2 focus:ring-orange-500 outline-none resize-none" 
+          />
+        </div>
 
-        <button type="submit" disabled={loading}
-          className="w-full py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 disabled:opacity-50 transition-colors">
-          {loading ? "Invio in corso..." : "Invia ordine"}
-        </button>
-
-        <p className="text-xs text-gray-400 text-center">
-          Il pagamento avviene {orderType === "ASPORTO" ? "al ritiro" : "alla consegna"}
-        </p>
+        <div className="reveal pt-6">
+          {error && <p className="text-center text-red-500 mb-4 font-semibold">{error}</p>}
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="w-full py-5 bg-orange-600 text-white rounded-full font-bold text-xl shadow-2xl hover:bg-orange-700 active:scale-[0.98] transition-all disabled:opacity-50"
+          >
+            {loading ? "Elaborazione..." : "Conferma e Invia Ordine"}
+          </button>
+          <p className="text-center text-gray-400 text-sm mt-6">
+            Pagherai direttamente {orderType === "ASPORTO" ? "al bancone" : "alla consegna"}
+          </p>
+        </div>
       </form>
     </div>
   );

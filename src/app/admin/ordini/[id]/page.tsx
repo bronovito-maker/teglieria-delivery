@@ -120,6 +120,16 @@ export default function OrderDetailPage() {
                 {order.deliveryZone && <p className="text-gray-500">Zona: {order.deliveryZone}</p>}
               </div>
             )}
+            <div className="mt-2 pt-2 border-t col-span-2 flex items-center gap-2">
+              <p className="text-gray-500 italic">Pagamento:</p>
+              <span className={`font-bold px-2 py-0.5 rounded text-xs ${
+                order.paymentMethod === "POS" 
+                  ? "bg-blue-600 text-white" 
+                  : "bg-green-600 text-white"
+              }`}>
+                {order.paymentMethod === "POS" ? "💳 POS / CARTA" : "💵 CONTANTI"}
+              </span>
+            </div>
           </div>
 
           {order.notes && (

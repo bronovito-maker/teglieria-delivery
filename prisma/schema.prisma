@@ -84,6 +84,7 @@ model Order {
   subtotal       Decimal         @db.Decimal(10, 2)
   total          Decimal         @db.Decimal(10, 2)
   notes          String?
+  paymentMethod  PaymentMethod?  @default(CONTANTI)
   timeSlot       String?
   items          OrderItem[]
   statusHistory  OrderStatusLog[]
@@ -166,4 +167,9 @@ enum DeliveryStatus {
   PICKED_UP
   EN_ROUTE
   DELIVERED
+}
+
+enum PaymentMethod {
+  CONTANTI
+  POS
 }

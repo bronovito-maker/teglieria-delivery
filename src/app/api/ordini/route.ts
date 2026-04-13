@@ -44,10 +44,12 @@ export async function POST(request: Request) {
       deliveryKm: body.deliveryKm,
       deliveryCost: body.deliveryCost,
       pickupTime: body.pickupTime ? new Date(body.pickupTime) : null,
+      timeSlot: body.timeSlot,
       estimatedTime: body.estimatedTime ? new Date(body.estimatedTime) : null,
       subtotal: body.subtotal,
       total: body.total,
       notes: body.notes,
+      paymentMethod: body.paymentMethod || "CONTANTI",
       items: {
         createMany: {
           data: body.items.map((item: any) => ({

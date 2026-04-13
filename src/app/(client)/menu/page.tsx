@@ -8,53 +8,106 @@ import ProductModal from "@/components/client/ProductModal";
 import type { CategoryWithProducts, ProductWithRelations } from "@/types";
 
 export default function MenuPage() {
+  const { setOrderType } = useCartStore();
   const [categories, setCategories] = useState<CategoryWithProducts[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<ProductWithRelations | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const itemCount = useCartStore((s) => s.getItemCount());
 
   useEffect(() => {
+    // Handle order type from landing page
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get("type");
+    if (type === "DELIVERY" || type === "ASPORTO") {
+      setOrderType(type);
+    }
+
     fetch("/api/menu").then((r) => r.json()).then(setCategories);
-  }, []);
+  }, [setOrderType]);
+
+  // Scroll Reveal Logic
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("active");
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [categories]);
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Il nostro Menu</h1>
+    <div className="max-w-3xl mx-auto pb-24">
+      {/* HEADER SECTION */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 mt-8 px-4 gap-4">
+        <div>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-2 text-gradient">
+            Il Nostro Menu
+          </h1>
+          <p className="text-gray-500 text-lg">
+            Scegli la tua teglia preferita, preparata con passione.
+          </p>
+        </div>
+        
         <button
           onClick={() => setCartOpen(true)}
-          className="relative px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+          className="group relative px-6 py-3 bg-[#1d1d1f] text-white rounded-full font-semibold transition-all hover:scale-105 active:scale-95 shadow-xl flex items-center gap-2 w-fit"
         >
+          <span className="text-xl">🛒</span>
           Carrello
           {itemCount > 0 && (
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+            <span className="absolute -top-2 -right-1 bg-orange-600 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold border-2 border-white animate-scale-in">
               {itemCount}
             </span>
           )}
         </button>
       </div>
 
-      {categories.map((cat) => (
-        <div key={cat.id} className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-700 mb-3 border-b pb-2">
-            {cat.name}
-          </h2>
-          <div className="grid gap-3">
-            {cat.products.map((product) => (
+      {categories.map((cat, idx) => (
+        <div key={cat.id} className="mb-12">
+          {/* CATEGORY HEADER - Sticky Glass */}
+          <div className="sticky top-0 z-20 px-4 py-4 mb-4 glass-morphism -mx-4 md:mx-0 md:rounded-2xl border-b md:border border-white/40">
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-[#1d1d1f]">
+              {cat.name}
+            </h2>
+          </div>
+          
+          <div className="grid gap-4 px-4">
+            {cat.products.map((product, pIdx) => (
               <button
                 key={product.id}
                 onClick={() => setSelectedProduct(product)}
-                className="flex items-center justify-between bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow text-left w-full"
+                className="reveal group flex items-start justify-between bg-white border border-gray-100 rounded-3xl p-6 hover:shadow-2xl hover:border-orange-100 transition-all text-left w-full relative overflow-hidden"
+                style={{ transitionDelay: `${pIdx * 50}ms` }}
               >
-                <div className="flex-1">
-                  <p className="font-medium">{product.name}</p>
+                {/* Subtle Hover Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-50/0 to-orange-50/0 group-hover:from-orange-50/50 transition-colors pointer-events-none" />
+                
+                <div className="flex-1 relative z-10">
+                  <h3 className="text-xl font-bold mb-1 group-hover:text-orange-600 transition-colors">
+                    {product.name}
+                  </h3>
                   {product.description && (
-                    <p className="text-sm text-gray-500 mt-0.5">{product.description}</p>
+                    <p className="text-gray-500 text-sm leading-relaxed max-w-md">
+                      {product.description}
+                    </p>
                   )}
                 </div>
-                <span className="font-semibold text-orange-600 ml-4">
-                  {formatCurrency(Number(product.price))}
-                </span>
+                
+                <div className="flex flex-col items-end gap-2 relative z-10">
+                  <span className="font-bold text-lg text-[#1d1d1f]">
+                    {formatCurrency(Number(product.price))}
+                  </span>
+                  <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-orange-600 group-hover:text-white transition-all shadow-sm">
+                    +
+                  </div>
+                </div>
               </button>
             ))}
           </div>
@@ -62,7 +115,11 @@ export default function MenuPage() {
       ))}
 
       {categories.length === 0 && (
-        <p className="text-center text-gray-400 py-12">Menu non disponibile al momento.</p>
+        <div className="text-center py-20 px-6">
+          <div className="text-6xl mb-4 opacity-20">🍕</div>
+          <h3 className="text-xl font-semibold mb-2">Menu non disponibile</h3>
+          <p className="text-gray-400">Torna a trovarci tra poco!</p>
+        </div>
       )}
 
       {selectedProduct && (

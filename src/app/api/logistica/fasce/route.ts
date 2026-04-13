@@ -18,22 +18,21 @@ export async function GET(request: Request) {
   ];
 
   // 3. Get existing orders for this date and these slots
-  // Note: We'll match against the pickupTime (which is a string like "19:30")
   const orders = await prisma.order.groupBy({
-    by: ['pickupTime'],
+    by: ['timeSlot'],
     where: {
-      createdAt: {
+      pickupTime: {
         gte: new Date(dateStr),
         lt: new Date(new Date(dateStr).getTime() + 86400000)
       },
-      status: { not: "ANNULLATO" }
+      status: { not: "CANCELLED" }
     },
     _count: { id: true }
   });
 
   const orderCounts: Record<string, number> = {};
   orders.forEach(o => {
-    if (o.pickupTime) orderCounts[o.pickupTime] = o._count.id;
+    if (o.timeSlot) orderCounts[o.timeSlot] = o._count.id;
   });
 
   // 4. Build response with availability
