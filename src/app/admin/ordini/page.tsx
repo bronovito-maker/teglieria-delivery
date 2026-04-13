@@ -25,7 +25,7 @@ export default function OrdiniPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Ordini</h1>
         <Link href="/admin/ordini/nuovo"
-          className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+          className="px-4 py-2 tomato-glass border text-white rounded-xl font-semibold hover:brightness-105 transition-all">
           + Nuovo ordine
         </Link>
       </div>

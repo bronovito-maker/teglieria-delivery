@@ -26,21 +26,21 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-64 bg-gray-900 text-white min-h-screen flex flex-col">
-      <div className="p-4 border-b border-gray-700">
-        <h1 className="text-xl font-bold text-orange-400">La Teglieria</h1>
-        <p className="text-xs text-gray-400 mt-1">Gestionale</p>
+    <aside className="w-72 bg-white/70 border-r border-red-100/80 min-h-screen flex-col hidden md:flex backdrop-blur-xl">
+      <div className="p-4 border-b border-red-100/80 tomato-glass text-white">
+        <h1 className="text-xl font-bold tracking-tight">La Teglieria</h1>
+        <p className="text-xs text-white/80 mt-1 uppercase tracking-[0.12em]">Gestionale</p>
       </div>
-      <nav className="flex-1 p-3 space-y-1">
+      <nav className="flex-1 p-3 space-y-1.5">
         {navItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             className={cn(
-              "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+              "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
               pathname === item.href
-                ? "bg-orange-600 text-white"
-                : "text-gray-300 hover:bg-gray-800"
+                ? "tomato-glass border text-white shadow-[0_8px_18px_rgba(192,38,22,0.2)]"
+                : "text-gray-600 hover:bg-red-50/60 hover:text-[#cf2a1d]"
             )}
           >
             <span>{item.icon}</span>
@@ -48,10 +48,10 @@ export default function Sidebar() {
           </Link>
         ))}
       </nav>
-      <div className="p-3 border-t border-gray-700">
+      <div className="p-3 border-t border-red-100/80">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-red-50/60 hover:text-[#cf2a1d] transition-colors"
         >
           <span>🚪</span>
           Esci

@@ -108,24 +108,39 @@ export default function NuovoOrdinePage() {
   }
 
   return (
-    <div className="max-w-3xl">
-      <h1 className="text-2xl font-bold mb-6">Nuovo ordine manuale</h1>
+    <div className="max-w-5xl">
+      <div className="mb-6">
+        <p className="text-[11px] md:text-xs font-bold uppercase tracking-[0.22em] text-[#cf2a1d]/80 mb-2">
+          Ordini
+        </p>
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-[#1d1d1f]">
+          Nuovo ordine manuale
+        </h1>
+      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         {/* Tipo + Canale */}
-        <div className="flex gap-3">
-          <div className="flex rounded-lg border overflow-hidden">
+        <div className="flex flex-col md:flex-row gap-3">
+          <div className="flex rounded-xl border border-red-100/80 overflow-hidden bg-white">
             {(["ASPORTO", "DELIVERY"] as const).map((t) => (
               <button key={t} type="button" onClick={() => setType(t)}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${type === t ? "bg-orange-600 text-white" : "hover:bg-gray-50"}`}>
+                className={`px-4 py-2.5 text-sm font-semibold transition-colors ${
+                  type === t
+                    ? "tomato-glass text-white"
+                    : "text-gray-700 hover:bg-red-50/50"
+                }`}>
                 {t === "ASPORTO" ? "Asporto" : "Delivery"}
               </button>
             ))}
           </div>
-          <div className="flex rounded-lg border overflow-hidden">
+          <div className="flex rounded-xl border border-red-100/80 overflow-hidden bg-white">
             {(["PHONE", "COUNTER"] as const).map((c) => (
               <button key={c} type="button" onClick={() => setChannel(c)}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${channel === c ? "bg-gray-800 text-white" : "hover:bg-gray-50"}`}>
+                className={`px-4 py-2.5 text-sm font-semibold transition-colors ${
+                  channel === c
+                    ? "tomato-glass text-white"
+                    : "text-gray-700 hover:bg-red-50/50"
+                }`}>
                 {c === "PHONE" ? "Telefono" : "Banco"}
               </button>
             ))}
@@ -133,46 +148,46 @@ export default function NuovoOrdinePage() {
         </div>
 
         {/* Cliente */}
-        <div className="bg-white rounded-xl shadow p-4 grid grid-cols-2 gap-3">
+        <div className="bg-white/90 rounded-2xl border border-red-100/80 shadow-[0_10px_24px_rgba(31,38,135,0.05)] p-4 md:p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-gray-500 mb-1">Nome</label>
+            <label className="block text-xs text-gray-500 mb-1 uppercase tracking-[0.08em]">Nome</label>
             <input value={customerName} onChange={(e) => setCustomerName(e.target.value)} required
-              className="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-orange-500" />
+              className="w-full px-3 py-2 border border-red-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#cf2a1d]" />
           </div>
           <div>
-            <label className="block text-xs text-gray-500 mb-1">Telefono</label>
+            <label className="block text-xs text-gray-500 mb-1 uppercase tracking-[0.08em]">Telefono</label>
             <input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} required
-              className="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-orange-500" />
+              className="w-full px-3 py-2 border border-red-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#cf2a1d]" />
           </div>
           {type === "DELIVERY" && (
             <>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Indirizzo</label>
+                <label className="block text-xs text-gray-500 mb-1 uppercase tracking-[0.08em]">Indirizzo</label>
                 <input value={address} onChange={(e) => setAddress(e.target.value)} required
-                  className="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-orange-500" />
+                  className="w-full px-3 py-2 border border-red-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#cf2a1d]" />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Citofono/Piano</label>
+                <label className="block text-xs text-gray-500 mb-1 uppercase tracking-[0.08em]">Citofono/Piano</label>
                 <input value={addressDetail} onChange={(e) => setAddressDetail(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-orange-500" />
+                  className="w-full px-3 py-2 border border-red-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#cf2a1d]" />
               </div>
             </>
           )}
         </div>
 
         {/* Ricerca prodotti */}
-        <div className="bg-white rounded-xl shadow p-4">
-          <label className="block text-xs text-gray-500 mb-1">Cerca prodotto</label>
+        <div className="bg-white/90 rounded-2xl border border-red-100/80 shadow-[0_10px_24px_rgba(31,38,135,0.05)] p-4 md:p-5">
+          <label className="block text-xs text-gray-500 mb-1 uppercase tracking-[0.08em]">Cerca prodotto</label>
           <input value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="Digita per cercare..."
-            className="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-orange-500" />
+            className="w-full px-3 py-2 border border-red-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#cf2a1d]" />
           {filteredProducts.length > 0 && (
-            <div className="mt-2 border rounded-lg divide-y max-h-48 overflow-y-auto">
+            <div className="mt-2 border border-red-100 rounded-xl divide-y max-h-48 overflow-y-auto bg-white">
               {filteredProducts.map((p) => (
                 <button key={p.id} type="button" onClick={() => addProduct(p)}
-                  className="w-full flex justify-between px-3 py-2 text-sm hover:bg-orange-50 transition-colors text-left">
+                  className="w-full flex justify-between px-3 py-2 text-sm hover:bg-red-50/60 transition-colors text-left">
                   <span>{p.name}</span>
-                  <span className="text-orange-600">{formatCurrency(Number(p.price))}</span>
+                  <span className="text-[#cf2a1d] font-semibold">{formatCurrency(Number(p.price))}</span>
                 </button>
               ))}
             </div>
@@ -180,22 +195,22 @@ export default function NuovoOrdinePage() {
         </div>
 
         {/* Righe ordine */}
-        <div className="bg-white rounded-xl shadow p-4">
+        <div className="bg-white/90 rounded-2xl border border-red-100/80 shadow-[0_10px_24px_rgba(31,38,135,0.05)] p-4 md:p-5">
           <h2 className="font-semibold text-sm mb-3">Prodotti nell&apos;ordine</h2>
           {lines.length === 0 && <p className="text-gray-400 text-sm">Nessun prodotto aggiunto.</p>}
           <div className="space-y-2">
             {lines.map((line, i) => {
               const unitPrice = Number(line.product.price) + line.variantDelta + line.additions.reduce((s, a) => s + a.price, 0);
               return (
-                <div key={i} className="flex items-center gap-2 bg-gray-50 rounded-lg p-2">
-                  <div className="flex items-center border rounded text-sm">
-                    <button type="button" onClick={() => updateLine(i, { quantity: Math.max(1, line.quantity - 1) })} className="px-2 py-1">-</button>
+                <div key={i} className="flex items-center gap-2 bg-red-50/35 rounded-xl p-2.5 border border-red-100/70">
+                  <div className="flex items-center border border-red-100 rounded-lg text-sm bg-white">
+                    <button type="button" onClick={() => updateLine(i, { quantity: Math.max(1, line.quantity - 1) })} className="px-2 py-1 hover:bg-red-50/60">-</button>
                     <span className="px-2">{line.quantity}</span>
-                    <button type="button" onClick={() => updateLine(i, { quantity: line.quantity + 1 })} className="px-2 py-1">+</button>
+                    <button type="button" onClick={() => updateLine(i, { quantity: line.quantity + 1 })} className="px-2 py-1 hover:bg-red-50/60">+</button>
                   </div>
                   <span className="flex-1 text-sm font-medium">{line.product.name}</span>
                   <span className="text-sm font-semibold">{formatCurrency(unitPrice * line.quantity)}</span>
-                  <button type="button" onClick={() => removeLine(i)} className="text-red-500 text-xs">✕</button>
+                  <button type="button" onClick={() => removeLine(i)} className="text-red-500 text-xs font-semibold">✕</button>
                 </div>
               );
             })}
@@ -209,14 +224,14 @@ export default function NuovoOrdinePage() {
         </div>
 
         {/* Note */}
-        <div className="bg-white rounded-xl shadow p-4">
-          <label className="block text-xs text-gray-500 mb-1">Note</label>
+        <div className="bg-white/90 rounded-2xl border border-red-100/80 shadow-[0_10px_24px_rgba(31,38,135,0.05)] p-4 md:p-5">
+          <label className="block text-xs text-gray-500 mb-1 uppercase tracking-[0.08em]">Note</label>
           <input value={notes} onChange={(e) => setNotes(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-orange-500" />
+            className="w-full px-3 py-2 border border-red-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#cf2a1d]" />
         </div>
 
         <button type="submit" disabled={loading || lines.length === 0}
-          className="w-full py-3 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 disabled:opacity-50 transition-colors">
+          className="w-full py-3 tomato-glass border text-white rounded-xl font-semibold hover:brightness-105 disabled:opacity-50 transition-all">
           {loading ? "Salvataggio..." : "Crea ordine"}
         </button>
       </form>

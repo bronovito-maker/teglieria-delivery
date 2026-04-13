@@ -18,6 +18,50 @@ interface CartStore {
   getItemCount: () => number;
 }
 
+function normalizeText(value?: string): string {
+  return (value ?? "").trim();
+}
+
+function sameAdditions(a: CartItem["additions"], b: CartItem["additions"]): boolean {
+  if (a.length !== b.length) return false;
+  const sortedA = [...a].sort((x, y) => x.name.localeCompare(y.name));
+  const sortedB = [...b].sort((x, y) => x.name.localeCompare(y.name));
+  return sortedA.every(
+    (item, idx) => item.name === sortedB[idx].name && item.price === sortedB[idx].price
+  );
+}
+
+function sameRemovals(a: CartItem["removals"], b: CartItem["removals"]): boolean {
+  if (a.length !== b.length) return false;
+  const sortedA = [...a].map((x) => x.name).sort();
+  const sortedB = [...b].map((x) => x.name).sort();
+  return sortedA.every((name, idx) => name === sortedB[idx]);
+}
+
+function sameCartConfiguration(
+  existing: CartItem,
+  incoming: Omit<CartItem, "id">
+): boolean {
+  return (
+    existing.productId === incoming.productId &&
+    (existing.variant ?? "") === (incoming.variant ?? "") &&
+    existing.variantPriceDelta === incoming.variantPriceDelta &&
+    normalizeText(existing.notes) === normalizeText(incoming.notes) &&
+    sameAdditions(existing.additions, incoming.additions) &&
+    sameRemovals(existing.removals, incoming.removals)
+  );
+}
+
+function computeTotalPrice(item: {
+  unitPrice: number;
+  variantPriceDelta: number;
+  additions: CartItem["additions"];
+  quantity: number;
+}): number {
+  const additionsTotal = item.additions.reduce((sum, addition) => sum + addition.price, 0);
+  return (item.unitPrice + item.variantPriceDelta + additionsTotal) * item.quantity;
+}
+
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
@@ -27,12 +71,33 @@ export const useCartStore = create<CartStore>()(
       setOrderType: (type) => set({ orderType: type }),
 
       addItem: (item) =>
-        set((state) => ({
-          items: [
-            ...state.items,
-            { ...item, id: crypto.randomUUID() },
-          ],
-        })),
+        set((state) => {
+          const existingIndex = state.items.findIndex((existing) =>
+            sameCartConfiguration(existing, item)
+          );
+
+          if (existingIndex === -1) {
+            return {
+              items: [...state.items, { ...item, id: crypto.randomUUID() }],
+            };
+          }
+
+          const items = [...state.items];
+          const existing = items[existingIndex];
+          const nextQuantity = existing.quantity + item.quantity;
+          items[existingIndex] = {
+            ...existing,
+            quantity: nextQuantity,
+            totalPrice: computeTotalPrice({
+              unitPrice: existing.unitPrice,
+              variantPriceDelta: existing.variantPriceDelta,
+              additions: existing.additions,
+              quantity: nextQuantity,
+            }),
+          };
+
+          return { items };
+        }),
 
       removeItem: (id) =>
         set((state) => ({
@@ -49,11 +114,12 @@ export const useCartStore = create<CartStore>()(
                     ? {
                         ...i,
                         quantity,
-                        totalPrice:
-                          (i.unitPrice +
-                            i.variantPriceDelta +
-                            i.additions.reduce((s, a) => s + a.price, 0)) *
+                        totalPrice: computeTotalPrice({
+                          unitPrice: i.unitPrice,
+                          variantPriceDelta: i.variantPriceDelta,
+                          additions: i.additions,
                           quantity,
+                        }),
                       }
                     : i
                 ),

@@ -54,19 +54,6 @@ export default function MenuPage() {
             Scegli la tua teglia preferita, preparata con passione.
           </p>
         </div>
-        
-        <button
-          onClick={() => setCartOpen(true)}
-          className="group relative px-6 py-3 bg-[#1d1d1f] text-white rounded-full font-semibold transition-all hover:scale-105 active:scale-95 shadow-xl flex items-center gap-2 w-fit"
-        >
-          <span className="text-xl">🛒</span>
-          Carrello
-          {itemCount > 0 && (
-            <span className="absolute -top-2 -right-1 bg-orange-600 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold border-2 border-white animate-scale-in">
-              {itemCount}
-            </span>
-          )}
-        </button>
       </div>
 
       {categories.map((cat, idx) => (
@@ -128,6 +115,19 @@ export default function MenuPage() {
           onClose={() => setSelectedProduct(null)}
         />
       )}
+
+      <button
+        onClick={() => setCartOpen(true)}
+        className="fixed bottom-6 right-4 md:bottom-8 md:right-8 z-40 group tomato-glass border text-white rounded-full px-5 md:px-6 py-3.5 font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg flex items-center gap-2"
+      >
+        <span className="text-xl">🛒</span>
+        Carrello
+        {itemCount > 0 && (
+          <span className="absolute -top-1.5 -right-1.5 bg-white text-[#cf2a1d] text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold border border-red-100 animate-scale-in">
+            {itemCount}
+          </span>
+        )}
+      </button>
 
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </div>

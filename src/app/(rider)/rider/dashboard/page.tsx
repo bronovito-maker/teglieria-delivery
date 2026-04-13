@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export default function RiderDashboard() {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
@@ -22,7 +22,7 @@ export default function RiderDashboard() {
       }
     }
     checkAuth();
-  }, []);
+  }, [router, supabase]);
 
   async function fetchRiderOrders(authUserId: string) {
     const res = await fetch(`/api/rider/ordini?authUserId=${authUserId}`);
@@ -91,7 +91,7 @@ export default function RiderDashboard() {
         <h3 className="font-bold mb-1">Come funziona?</h3>
         <p className="text-sm opacity-90">
           Quando uno scontrino viene stampato, scansiona il QR code per assegnarti la consegna. 
-          L'ordine apparirà qui automaticamente.
+          L&apos;ordine apparirà qui automaticamente.
         </p>
       </div>
     </div>

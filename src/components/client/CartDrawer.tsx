@@ -11,7 +11,8 @@ interface Props {
 
 export default function CartDrawer({ open, onClose }: Props) {
   const router = useRouter();
-  const { items, removeItem, updateQuantity, getSubtotal, orderType, setOrderType } = useCartStore();
+  const { items, removeItem, updateQuantity, clearCart, getSubtotal, orderType, setOrderType } =
+    useCartStore();
 
   if (!open) return null;
 
@@ -23,23 +24,31 @@ export default function CartDrawer({ open, onClose }: Props) {
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex justify-end" onClick={onClose}>
       <div className="bg-white w-full max-w-md h-full flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="p-4 border-b flex items-center justify-between">
+        <div className="p-4 border-b border-red-300/35 bg-gradient-to-br from-[#d92d20] via-[#cf2a1d] to-[#bb2418] text-white shadow-[0_12px_24px_rgba(192,38,22,0.25)] backdrop-blur-xl flex items-center justify-between">
           <h2 className="text-lg font-bold">Il tuo ordine</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+          <button onClick={onClose} className="text-white/80 hover:text-white text-2xl">&times;</button>
         </div>
 
         {/* Tipo ordine */}
         <div className="p-4 border-b">
-          <div className="flex rounded-lg border overflow-hidden">
+          <div className="flex rounded-lg border border-red-200/70 overflow-hidden bg-white">
             <button
               onClick={() => setOrderType("ASPORTO")}
-              className={`flex-1 py-2 text-sm font-medium transition-colors ${orderType === "ASPORTO" ? "bg-orange-600 text-white" : "hover:bg-gray-50"}`}
+              className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                orderType === "ASPORTO"
+                  ? "bg-gradient-to-br from-[#d92d20] via-[#cf2a1d] to-[#bb2418] text-white"
+                  : "text-gray-700 hover:bg-red-50/50"
+              }`}
             >
               Asporto
             </button>
             <button
               onClick={() => setOrderType("DELIVERY")}
-              className={`flex-1 py-2 text-sm font-medium transition-colors ${orderType === "DELIVERY" ? "bg-orange-600 text-white" : "hover:bg-gray-50"}`}
+              className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                orderType === "DELIVERY"
+                  ? "bg-gradient-to-br from-[#d92d20] via-[#cf2a1d] to-[#bb2418] text-white"
+                  : "text-gray-700 hover:bg-red-50/50"
+              }`}
             >
               Delivery
             </button>
@@ -49,7 +58,15 @@ export default function CartDrawer({ open, onClose }: Props) {
         {/* Items */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {items.length === 0 && (
-            <p className="text-gray-400 text-center py-8">Il carrello è vuoto</p>
+            <div className="py-10 text-center">
+              <p className="text-gray-400 mb-4">Il carrello è vuoto</p>
+              <button
+                onClick={onClose}
+                className="inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold text-white tomato-glass border"
+              >
+                Torna a ordinare
+              </button>
+            </div>
           )}
           {items.map((item) => (
             <div key={item.id} className="bg-gray-50 rounded-lg p-3">
@@ -87,8 +104,14 @@ export default function CartDrawer({ open, onClose }: Props) {
               <span>{formatCurrency(getSubtotal())}</span>
             </div>
             <button
+              onClick={clearCart}
+              className="w-full py-2.5 rounded-lg border border-red-200 text-red-600 font-semibold hover:bg-red-50 transition-colors"
+            >
+              Svuota carrello
+            </button>
+            <button
               onClick={handleCheckout}
-              className="w-full py-3 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors"
+              className="w-full py-3 text-white rounded-lg font-medium bg-gradient-to-br from-[#d92d20] via-[#cf2a1d] to-[#bb2418] border border-red-300/35 shadow-[0_12px_24px_rgba(192,38,22,0.28)] backdrop-blur-xl hover:brightness-105 transition-all"
             >
               Procedi all&apos;ordine
             </button>

@@ -94,13 +94,13 @@ export default function OrderDetailPage() {
               <div className="flex border rounded overflow-hidden">
                 <button 
                   onClick={() => adjustTime(-15)}
-                  className="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-xs font-bold border-r">-15'</button>
+                  className="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-xs font-bold border-r">-15&apos;</button>
                 <button 
                   onClick={() => adjustTime(15)}
-                  className="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-xs font-bold border-r">+15'</button>
+                  className="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-xs font-bold border-r">+15&apos;</button>
                 <button 
                   onClick={() => adjustTime(30)}
-                  className="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-xs font-bold">+30'</button>
+                  className="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-xs font-bold">+30&apos;</button>
               </div>
             </div>
           </div>

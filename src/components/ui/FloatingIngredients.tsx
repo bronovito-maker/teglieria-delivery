@@ -1,49 +1,160 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
 const ingredients = [
-  { id: 1, icon: '🌿', size: '2.5rem', delay: '0s', left: '10%', top: '15%', speed: '6s' },
-  { id: 2, icon: '🍅', size: '3.5rem', delay: '1s', left: '80%', top: '25%', speed: '8s' },
-  { id: 3, icon: '🍄', size: '2.2rem', delay: '2s', left: '15%', top: '65%', speed: '7s' },
-  { id: 4, icon: '🥖', size: '3rem', delay: '0.5s', left: '75%', top: '75%', speed: '10s' },
-  { id: 5, icon: '🧄', size: '1.8rem', delay: '3s', left: '45%', top: '10%', speed: '9s' },
-  { id: 6, icon: '🧂', size: '1.5rem', delay: '1.5s', left: '90%', top: '60%', speed: '7s' },
-  { id: 7, icon: '🌿', size: '2rem', delay: '2.5s', left: '5%', top: '40%', speed: '8s' },
-  { id: 8, icon: '🍅', size: '2.8rem', delay: '4s', left: '40%', top: '85%', speed: '9s' },
+  {
+    id: 1,
+    icon: "🌿",
+    size: "2.7rem",
+    left: "10%",
+    top: "15%",
+    xDepth: -95,
+    yDepth: -160,
+    rotateDepth: -15,
+    opacity: 0.62,
+  },
+  {
+    id: 2,
+    icon: "🍅",
+    size: "3.8rem",
+    left: "80%",
+    top: "25%",
+    xDepth: 120,
+    yDepth: -210,
+    rotateDepth: 22,
+    opacity: 0.74,
+  },
+  {
+    id: 3,
+    icon: "🍄",
+    size: "2.4rem",
+    left: "16%",
+    top: "66%",
+    xDepth: -80,
+    yDepth: -120,
+    rotateDepth: -10,
+    opacity: 0.56,
+  },
+  {
+    id: 4,
+    icon: "🥖",
+    size: "3.2rem",
+    left: "74%",
+    top: "76%",
+    xDepth: 115,
+    yDepth: -140,
+    rotateDepth: 14,
+    opacity: 0.65,
+  },
+  {
+    id: 5,
+    icon: "🧄",
+    size: "2rem",
+    left: "45%",
+    top: "10%",
+    xDepth: 65,
+    yDepth: -170,
+    rotateDepth: 26,
+    opacity: 0.58,
+  },
+  {
+    id: 6,
+    icon: "🧂",
+    size: "1.7rem",
+    left: "90%",
+    top: "60%",
+    xDepth: -75,
+    yDepth: -105,
+    rotateDepth: -18,
+    opacity: 0.54,
+  },
+  {
+    id: 7,
+    icon: "🌿",
+    size: "2.2rem",
+    left: "6%",
+    top: "42%",
+    xDepth: 102,
+    yDepth: -165,
+    rotateDepth: 18,
+    opacity: 0.6,
+  },
+  {
+    id: 8,
+    icon: "🍅",
+    size: "3rem",
+    left: "40%",
+    top: "84%",
+    xDepth: -130,
+    yDepth: -235,
+    rotateDepth: -24,
+    opacity: 0.7,
+  },
 ];
 
 const FloatingIngredients = () => {
-  const [offset, setOffset] = useState(0);
+  const [scrollY, setScrollY] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(900);
+  const [viewportWidth, setViewportWidth] = useState(1280);
 
   useEffect(() => {
+    let ticking = false;
+
     const handleScroll = () => {
-      setOffset(window.pageYOffset);
+      if (ticking) return;
+      ticking = true;
+
+      requestAnimationFrame(() => {
+        setScrollY(window.scrollY);
+        ticking = false;
+      });
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    const handleResize = () => {
+      setViewportHeight(window.innerHeight || 900);
+      setViewportWidth(window.innerWidth || 1280);
+    };
+
+    handleResize();
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
-  // Fade out based on scroll
-  const opacity = Math.max(0, 1 - offset / 500);
+  const heroRange = Math.max(480, Math.floor(viewportHeight * 0.95));
+  const rawProgress = Math.min(1, scrollY / heroRange);
+  const easedProgress = 1 - Math.pow(1 - rawProgress, 1.55);
 
-  if (opacity <= 0) return null;
+  const depthScale =
+    viewportWidth < 640 ? 0.48 : viewportWidth < 1024 ? 0.72 : 1.18;
+  const rotationScale =
+    viewportWidth < 640 ? 0.55 : viewportWidth < 1024 ? 0.78 : 1.05;
+  const scaleBoost = viewportWidth < 640 ? 0.04 : viewportWidth < 1024 ? 0.06 : 0.1;
+  const containerOpacity = Math.max(0, 0.96 - rawProgress * 1.02);
+
+  if (containerOpacity <= 0) return null;
 
   return (
-    <div 
+    <div
       className="absolute inset-0 overflow-hidden pointer-events-none z-0"
-      style={{ opacity }}
+      style={{ opacity: containerOpacity }}
     >
       {ingredients.map((ing) => (
         <div
           key={ing.id}
-          className="absolute animate-float opacity-40 filter grayscale-[0.1]"
+          className="absolute ingredient-parallax will-change-transform"
           style={{
             left: ing.left,
             top: ing.top,
             fontSize: ing.size,
-            animationDelay: ing.delay,
-            animationDuration: ing.speed,
+            opacity: ing.opacity,
+            transform: `translate3d(${easedProgress * ing.xDepth * depthScale}px, ${easedProgress * ing.yDepth * depthScale}px, 0) rotate(${easedProgress * ing.rotateDepth * rotationScale}deg) scale(${1 + easedProgress * scaleBoost})`,
           }}
         >
           {ing.icon}

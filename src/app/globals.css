@@ -10,6 +10,10 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply antialiased text-[#1d1d1f] bg-white selection:bg-orange-100;
     font-feature-settings: "ss01", "ss02", "cv01", "cv02";
@@ -37,13 +41,14 @@
 /* Scroll Reveal Animations */
 .reveal {
   opacity: 0;
-  transform: translateY(30px);
-  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translate3d(0, 22px, 0);
+  transition: opacity 0.55s ease-out, transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
 }
 
 .reveal.active {
   opacity: 1;
-  transform: translateY(0);
+  transform: translate3d(0, 0, 0);
 }
 
 .glass-morphism {
@@ -54,11 +59,44 @@
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
 }
 
+.tomato-glass {
+  background: linear-gradient(
+    135deg,
+    rgba(217, 45, 32, 0.84) 0%,
+    rgba(207, 42, 29, 0.8) 52%,
+    rgba(187, 36, 24, 0.84) 100%
+  );
+  backdrop-filter: blur(16px) saturate(145%);
+  -webkit-backdrop-filter: blur(16px) saturate(145%);
+  border-color: rgba(254, 202, 202, 0.35);
+  box-shadow: 0 5px 12px rgba(192, 38, 22, 0.16);
+}
+
 .text-gradient {
   background: linear-gradient(180deg, #1d1d1f 0%, #434345 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.ingredient-parallax {
+  transition: transform 120ms linear;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ingredient-parallax {
+    transition: none;
+    transform: none !important;
+  }
 }
 
 @keyframes floating {

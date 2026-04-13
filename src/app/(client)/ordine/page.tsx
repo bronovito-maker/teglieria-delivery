@@ -125,7 +125,7 @@ export default function OrdinePage() {
     <div className="max-w-2xl mx-auto pb-24 pt-8 px-4">
       <header className="mb-12">
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gradient mb-2">
-          Concludi l'Ordine
+          Concludi l&apos;Ordine
         </h1>
         <p className="text-gray-500 text-lg">
           Compila i dettagli e preparati a gustare la nostra teglia.

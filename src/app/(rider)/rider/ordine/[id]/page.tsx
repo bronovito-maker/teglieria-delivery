@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatCurrency, formatTime } from "@/lib/utils";
@@ -8,11 +8,20 @@ import { formatCurrency, formatTime } from "@/lib/utils";
 export default function RiderOrderPage() {
   const { id } = useParams();
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
   const [user, setUser] = useState<any>(null);
+
+  const fetchOrder = useCallback(async () => {
+    const res = await fetch(`/api/ordini/${id}`);
+    if (res.ok) {
+      const data = await res.json();
+      setOrder(data);
+    }
+    setLoading(false);
+  }, [id]);
 
   useEffect(() => {
     async function checkAuth() {
@@ -25,16 +34,7 @@ export default function RiderOrderPage() {
       }
     }
     checkAuth();
-  }, [id]);
-
-  async function fetchOrder() {
-    const res = await fetch(`/api/ordini/${id}`);
-    if (res.ok) {
-      const data = await res.json();
-      setOrder(data);
-    }
-    setLoading(false);
-  }
+  }, [fetchOrder, id, router, supabase]);
 
   async function handleAssign() {
     if (!user) return;
@@ -89,7 +89,7 @@ export default function RiderOrderPage() {
           <section>
             <h2 className="text-xs font-bold text-gray-400 uppercase mb-2">Punto di Consegna</h2>
             <p className="font-semibold">{order.address}</p>
-            {order.addressDetail && <p className="text-sm text-gray-500 italic">"{order.addressDetail}"</p>}
+            {order.addressDetail && <p className="text-sm text-gray-500 italic">&quot;{order.addressDetail}&quot;</p>}
             {order.deliveryZone && <p className="text-xs text-gray-400 mt-1 uppercase">Zona: {order.deliveryZone}</p>}
           </section>
 
@@ -107,7 +107,7 @@ export default function RiderOrderPage() {
           {order.notes && (
             <section className="bg-yellow-50 p-4 rounded-xl border border-yellow-100">
                <h2 className="text-xs font-bold text-yellow-600 uppercase mb-1">Note Ordine</h2>
-               <p className="text-sm italic">"{order.notes}"</p>
+               <p className="text-sm italic">&quot;{order.notes}&quot;</p>
             </section>
           )}
         </div>
