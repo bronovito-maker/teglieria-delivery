@@ -18,8 +18,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Rider not found" }, { status: 404 });
   }
 
-  // Fetch orders assigned to this rider or available orders (PRONTO)
-  // For the dashboard, we focus on assigned ones that are not completed yet + completed today
+  // Fetch orders assigned to this rider.
+  // Status values follow Prisma enum (RECEIVED, CONFIRMED, PREPARING, READY, OUT, DELIVERED, CANCELLED).
   const orders = await prisma.order.findMany({
     where: {
       riderId: rider.id,

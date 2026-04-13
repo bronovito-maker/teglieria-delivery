@@ -23,6 +23,9 @@ function getStatusBadgeClass(status: string) {
 
 export default function DashboardPage() {
   const [orders, setOrders] = useState<OrderWithItems[]>([]);
+  const [confirmingOrder, setConfirmingOrder] = useState<OrderWithItems | null>(null);
+  const [etaMinutes, setEtaMinutes] = useState(30);
+  const [confirmingLoading, setConfirmingLoading] = useState(false);
   const prevCountRef = useRef(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -52,6 +55,54 @@ export default function DashboardPage() {
       body: JSON.stringify({ status }),
     });
     fetchOrders();
+  }
+
+  function openConfirmModal(order: OrderWithItems) {
+    const defaultEta = 30;
+    if (order.estimatedTime) {
+      const diffMinutes = Math.round(
+        (new Date(order.estimatedTime).getTime() - Date.now()) / 60000
+      );
+      setEtaMinutes(Math.max(5, diffMinutes));
+    } else {
+      setEtaMinutes(defaultEta);
+    }
+    setConfirmingOrder(order);
+  }
+
+  function closeConfirmModal() {
+    setConfirmingOrder(null);
+    setEtaMinutes(30);
+    setConfirmingLoading(false);
+  }
+
+  function adjustEtaMinutes(delta: number) {
+    setEtaMinutes((prev) => Math.max(5, Math.min(120, prev + delta)));
+  }
+
+  async function confirmIncomingOrder() {
+    if (!confirmingOrder) return;
+    setConfirmingLoading(true);
+    const estimatedTime = new Date(Date.now() + etaMinutes * 60000).toISOString();
+
+    await fetch(`/api/ordini/${confirmingOrder.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        status: "CONFIRMED",
+        estimatedTime,
+      }),
+    });
+
+    closeConfirmModal();
+    fetchOrders();
+  }
+
+  function printOrder(orderId: string) {
+    const printWindow = window.open(`/api/ordini/${orderId}/stampa`, "_blank", "width=420,height=700");
+    printWindow?.addEventListener("load", () => {
+      printWindow.print();
+    });
   }
 
   const activeOrders = orders.filter((o) => o.status !== "DELIVERED" && o.status !== "CANCELLED").length;
@@ -161,7 +212,16 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between mt-2.5 pt-2 border-t">
                       <span className="font-semibold text-sm">{formatCurrency(Number(order.total))}</span>
                       <div className="flex gap-1.5 flex-wrap justify-end">
+                        {status === "RECEIVED" && (
+                          <button
+                            onClick={() => openConfirmModal(order)}
+                            className="px-2.5 py-1.5 rounded-full border text-xs font-semibold min-h-[36px] bg-red-50 border-red-100 text-[#cf2a1d] hover:bg-red-100 transition-colors"
+                          >
+                            Conferma ordine
+                          </button>
+                        )}
                         {ORDER_STATUS_TRANSITIONS[status]?.map((nextStatus) => (
+                          status === "RECEIVED" && nextStatus !== "CANCELLED" ? null : (
                           <button
                             key={nextStatus}
                             onClick={() => updateStatus(order.id, nextStatus)}
@@ -173,6 +233,7 @@ export default function DashboardPage() {
                           >
                             {ORDER_STATUS_LABELS[nextStatus]}
                           </button>
+                          )
                         ))}
                       </div>
                     </div>
@@ -188,6 +249,101 @@ export default function DashboardPage() {
           );
         })}
       </div>
+
+      {confirmingOrder && (
+        <div className="fixed inset-0 z-[90] bg-black/45 flex items-end sm:items-center justify-center p-3 sm:p-5">
+          <div className="w-full max-w-2xl rounded-3xl border border-red-100/80 bg-white shadow-[0_20px_45px_rgba(31,38,135,0.12)]">
+            <div className="px-5 py-4 border-b border-red-100/80 flex items-center justify-between">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.14em] text-[#cf2a1d]/80 font-bold">Conferma Ordine</p>
+                <h3 className="text-xl font-bold text-[#1d1d1f]">Ordine #{confirmingOrder.orderNumber}</h3>
+              </div>
+              <button
+                onClick={closeConfirmModal}
+                className="h-9 w-9 rounded-xl border border-red-100 text-gray-500 hover:bg-red-50/60 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div className="rounded-xl border border-red-100/80 bg-red-50/30 p-3">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-gray-400 mb-1">Cliente</p>
+                  <p className="font-semibold text-[#1d1d1f]">{confirmingOrder.customerName}</p>
+                  <p className="text-gray-600">{confirmingOrder.customerPhone}</p>
+                </div>
+                <div className="rounded-xl border border-red-100/80 bg-red-50/30 p-3">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-gray-400 mb-1">Consegna</p>
+                  <p className="font-semibold text-[#1d1d1f]">{confirmingOrder.type === "ASPORTO" ? "Asporto" : "Delivery"}</p>
+                  <p className="text-gray-600">{confirmingOrder.address || "Ritiro in sede"}</p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-red-100/80 bg-white p-3">
+                <p className="text-sm font-semibold mb-2">Riepilogo ordine</p>
+                <div className="space-y-1.5 text-sm">
+                  {confirmingOrder.items.map((item) => (
+                    <div key={item.id} className="flex items-start justify-between gap-2">
+                      <span>{item.quantity}x {item.productName}</span>
+                      <span className="font-semibold">{formatCurrency(Number(item.totalPrice))}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 pt-2 border-t border-red-100/80 flex justify-between font-bold">
+                  <span>Totale</span>
+                  <span>{formatCurrency(Number(confirmingOrder.total))}</span>
+                </div>
+                {confirmingOrder.notes && (
+                  <p className="mt-2 text-xs text-gray-500 italic">Note: {confirmingOrder.notes}</p>
+                )}
+              </div>
+
+              <div className="rounded-xl border border-red-100/80 bg-red-50/35 p-3">
+                <p className="text-[11px] uppercase tracking-[0.1em] text-gray-400 mb-2">Tempo previsto consegna</p>
+                <div className="flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => adjustEtaMinutes(-5)}
+                    className="h-10 w-10 rounded-xl border border-red-100 bg-white text-[#cf2a1d] font-bold hover:bg-red-50/60"
+                  >
+                    −
+                  </button>
+                  <div className="flex-1 rounded-xl border border-red-100 bg-white px-4 py-2 text-center">
+                    <span className="text-2xl font-bold text-[#1d1d1f]">{etaMinutes}</span>
+                    <span className="text-sm text-gray-500 ml-1">min</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => adjustEtaMinutes(5)}
+                    className="h-10 w-10 rounded-xl border border-red-100 bg-white text-[#cf2a1d] font-bold hover:bg-red-50/60"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-5 border-t border-red-100/80 flex flex-col sm:flex-row gap-2 sm:justify-end">
+              <button
+                type="button"
+                onClick={() => printOrder(confirmingOrder.id)}
+                className="px-4 py-2.5 rounded-xl border border-red-100 bg-white text-[#cf2a1d] font-semibold hover:bg-red-50/60 transition-colors"
+              >
+                Stampa
+              </button>
+              <button
+                type="button"
+                onClick={confirmIncomingOrder}
+                disabled={confirmingLoading}
+                className="px-4 py-2.5 rounded-xl tomato-glass border text-white font-semibold hover:brightness-105 disabled:opacity-50 transition-all"
+              >
+                {confirmingLoading ? "Conferma..." : "Conferma ordine"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

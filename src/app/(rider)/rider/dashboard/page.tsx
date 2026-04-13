@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { ORDER_STATUS_COLORS, ORDER_STATUS_LABELS } from "@/lib/constants";
 
 export default function RiderDashboard() {
   const router = useRouter();
@@ -71,12 +72,8 @@ export default function RiderDashboard() {
                 <p className="text-xs text-slate-400 font-mono mt-1">{order.address}</p>
               </div>
               <div className="text-right">
-                <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase ${
-                  order.status === "PRONTO" ? "bg-yellow-100 text-yellow-700" :
-                  order.status === "IN_CONSEGNA" ? "bg-blue-100 text-blue-700" :
-                  "bg-green-100 text-green-700"
-                }`}>
-                  {order.status}
+                <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase ${ORDER_STATUS_COLORS[order.status] || "bg-gray-100 text-gray-700"}`}>
+                  {ORDER_STATUS_LABELS[order.status] || order.status}
                 </span>
                 <p className="text-sm font-black text-slate-800 mt-2">
                   {order.estimatedTime ? new Date(order.estimatedTime).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) : "N/D"}

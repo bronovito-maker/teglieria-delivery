@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatCurrency, formatTime } from "@/lib/utils";
+import { ORDER_STATUS_COLORS, ORDER_STATUS_LABELS } from "@/lib/constants";
 
 export default function RiderOrderPage() {
   const { id } = useParams();
@@ -54,7 +55,7 @@ export default function RiderOrderPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
         riderId: rider.id,
-        status: order.status === "PRONTO" ? "IN_CONSEGNA" : undefined
+        status: order.status === "READY" ? "OUT" : undefined
       }),
     });
 
@@ -74,8 +75,8 @@ export default function RiderOrderPage() {
       <div className="max-w-xl mx-auto space-y-4">
         <header className="flex items-center justify-between mb-2">
           <h1 className="text-xl font-bold">Dettaglio Consegna #{order.orderNumber}</h1>
-          <span className={`px-3 py-1 rounded-full text-xs font-bold ${order.status === "COMPLETATO" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}>
-            {order.status}
+          <span className={`px-3 py-1 rounded-full text-xs font-bold ${ORDER_STATUS_COLORS[order.status] || "bg-gray-100 text-gray-700"}`}>
+            {ORDER_STATUS_LABELS[order.status] || order.status}
           </span>
         </header>
 
