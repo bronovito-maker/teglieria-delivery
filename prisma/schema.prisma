@@ -1,0 +1,169 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  sortOrder Int       @default(0)
+  active    Boolean   @default(true)
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Product {
+  id           String             @id @default(cuid())
+  name         String
+  description  String?
+  price        Decimal            @db.Decimal(8, 2)
+  categoryId   String
+  category     Category           @relation(fields: [categoryId], references: [id])
+  active       Boolean            @default(true)
+  sortOrder    Int                @default(0)
+  kitchenNotes String?
+  variants     ProductVariant[]
+  additions    ProductAddition[]
+  removals     ProductRemoval[]
+  orderItems   OrderItem[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+}
+
+model ProductVariant {
+  id         String  @id @default(cuid())
+  productId  String
+  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name       String
+  priceDelta Decimal @default(0) @db.Decimal(8, 2)
+  active     Boolean @default(true)
+}
+
+model ProductAddition {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String
+  price     Decimal @default(0) @db.Decimal(8, 2)
+  active    Boolean @default(true)
+}
+
+model ProductRemoval {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String
+  active    Boolean @default(true)
+}
+
+model Order {
+  id             String          @id @default(cuid())
+  orderNumber    Int             @default(autoincrement())
+  type           OrderType
+  channel        OrderChannel
+  status         OrderStatus     @default(RECEIVED)
+  customerName   String
+  customerPhone  String
+  address        String?
+  addressDetail  String?
+  deliveryZone   String?
+  deliveryKm     Decimal?        @db.Decimal(5, 1)
+  deliveryCost   Decimal?        @db.Decimal(8, 2)
+  riderId        String?
+  rider          Rider?          @relation(fields: [riderId], references: [id])
+  estimatedTime  DateTime?
+  actualTime     DateTime?
+  deliveryStatus DeliveryStatus?
+  pickupTime     DateTime?
+  subtotal       Decimal         @db.Decimal(10, 2)
+  total          Decimal         @db.Decimal(10, 2)
+  notes          String?
+  timeSlot       String?
+  items          OrderItem[]
+  statusHistory  OrderStatusLog[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model GlobalConfig {
+  id               String   @id @default("default")
+  maxOrdersPerSlot Int      @default(5)
+  deliveryFee      Decimal  @default(2.50) @db.Decimal(8, 2)
+  updatedAt        DateTime @updatedAt
+}
+
+model OrderItem {
+  id          String  @id @default(cuid())
+  orderId     String
+  order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product @relation(fields: [productId], references: [id])
+  productName String
+  quantity    Int
+  unitPrice   Decimal @db.Decimal(8, 2)
+  totalPrice  Decimal @db.Decimal(10, 2)
+  variant     String?
+  additions   Json?
+  removals    Json?
+  notes       String?
+}
+
+model OrderStatusLog {
+  id        String      @id @default(cuid())
+  orderId   String
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status    OrderStatus
+  note      String?
+  createdAt DateTime    @default(now())
+}
+
+model Rider {
+  id         String  @id @default(cuid())
+  name       String
+  email      String? @unique
+  phone      String?
+  authUserId String? @unique
+  active     Boolean @default(true)
+  orders     Order[]
+}
+
+model DeliveryZone {
+  id           String  @id @default(cuid())
+  name         String
+  deliveryCost Decimal @db.Decimal(8, 2)
+  active       Boolean @default(true)
+}
+
+enum OrderType {
+  ASPORTO
+  DELIVERY
+}
+
+enum OrderChannel {
+  WEB
+  PHONE
+  COUNTER
+}
+
+enum OrderStatus {
+  RECEIVED
+  CONFIRMED
+  PREPARING
+  READY
+  OUT
+  DELIVERED
+  CANCELLED
+}
+
+enum DeliveryStatus {
+  ASSIGNED
+  PICKED_UP
+  EN_ROUTE
+  DELIVERED
+}
