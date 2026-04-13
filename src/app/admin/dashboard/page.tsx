@@ -2,23 +2,23 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_TRANSITIONS } from "@/lib/constants";
-import { formatCurrency, formatTime } from "@/lib/utils";
+import { cn, formatCurrency, formatTime } from "@/lib/utils";
 import type { OrderWithItems } from "@/types";
 
 const KANBAN_COLUMNS = ["RECEIVED", "CONFIRMED", "PREPARING", "READY", "OUT", "DELIVERED"];
 
 const STATUS_BADGE_STYLES: Record<string, string> = {
-  RECEIVED: "bg-amber-50 text-amber-700 border-amber-200",
-  CONFIRMED: "bg-red-50 text-red-700 border-red-200",
-  PREPARING: "bg-orange-50 text-orange-700 border-orange-200",
-  READY: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  OUT: "bg-sky-50 text-sky-700 border-sky-200",
-  DELIVERED: "bg-gray-100 text-gray-700 border-gray-200",
-  CANCELLED: "bg-red-100 text-red-700 border-red-200",
+  RECEIVED: "bg-marigold/10 text-marigold border-marigold/20",
+  CONFIRMED: "bg-marigold/5 text-marigold border-marigold/10",
+  PREPARING: "bg-terracotta/10 text-terracotta border-terracotta/20",
+  READY: "bg-terracotta/5 text-terracotta border-terracotta/10",
+  OUT: "bg-charcoal text-white border-charcoal",
+  DELIVERED: "bg-charcoal/10 text-charcoal/40 border-charcoal/10",
+  CANCELLED: "bg-charcoal text-white border-charcoal",
 };
 
 function getStatusBadgeClass(status: string) {
-  return STATUS_BADGE_STYLES[status] ?? "bg-gray-100 text-gray-700 border-gray-200";
+  return STATUS_BADGE_STYLES[status] ?? "bg-charcoal/5 text-charcoal/40 border-charcoal/10";
 }
 
 export default function DashboardPage() {
@@ -112,136 +112,134 @@ export default function DashboardPage() {
     .reduce((sum, order) => sum + Number(order.total), 0);
   const avgTicket = orders.length ? totalRevenue / orders.length : 0;
   const today = new Date().toLocaleDateString("it-IT", {
-    weekday: "short",
+    weekday: "long",
     day: "2-digit",
     month: "long",
   });
 
   return (
-    <div className="pb-2">
+    <div className="pb-20">
       {/* Hidden audio for notification */}
       <audio ref={audioRef} preload="auto">
         <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH+Jj4+Lh4J/fH5+goaIiYiGgoB9fH1/goaIioqIhoJ/fHx+gYWIioqIhoJ+fHx+gYWIioqIhoN+fHt9gIWIiomHhIF+fHx+gYWHiYiHhYJ/fXx9f4KFh4iHhYOAfnx8foCDhoiHhoSBf319foGEhoeGhYOBf359f4GEhoaGhIKAf359foCDhYaFhIOBf35+foCChYWFhIOBf359foGDhIWEg4KAf35+foCChIWEg4KAf35+fn+ChISEg4F/fn5+f4GDhISDgoB/fn1+f4GDg4ODgYB/fn5+f4GCg4OCgYB/fn5+f4GCg4OCgYB/fn5+foGCgoKBgH9/fn5+f4GCgoKBgH9+fn5+f4GBgoGAgH9+fn5+f4GBgYGAgH9+fn5/f4CBAAAAAIAAAACAf4B/gH+Af4B/gICAgICAgICAgICAgA==" type="audio/wav" />
       </audio>
 
-      <div className="mb-6 md:mb-8 rounded-2xl md:rounded-3xl border border-red-100/80 bg-white/80 p-4 md:p-5 lg:p-6 shadow-[0_12px_28px_rgba(31,38,135,0.06)]">
-        <p className="text-[11px] md:text-xs font-bold uppercase tracking-[0.22em] text-[#cf2a1d]/80 mb-2">
-          Admin Control
-        </p>
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3 lg:gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-[#1d1d1f]">Dashboard</h1>
-            <p className="hidden md:block text-gray-500 mt-1">Panoramica ordini e gestione rapida della cucina.</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <div className="rounded-xl border border-red-100/80 bg-white/90 px-3 py-2.5 text-xs font-medium text-gray-600 min-h-[40px] flex items-center">
-              {today}
-            </div>
-            <button
+      <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8">
+        <div>
+          <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-4 block">
+            Monitoraggio Operativo
+          </span>
+          <h1 className="text-4xl md:text-5xl font-brand font-medium uppercase tracking-tight text-charcoal">
+            Overview <span className="text-terracotta">Ordini.</span>
+          </h1>
+          <p className="font-body italic text-charcoal/40 mt-4 tracking-widest uppercase text-xs">Live Update • {today}</p>
+        </div>
+        
+        <div className="flex gap-4">
+           <button
               onClick={fetchOrders}
-              className="rounded-xl border border-red-100/80 bg-red-50/70 px-3.5 py-2.5 text-xs font-semibold text-[#cf2a1d] hover:bg-red-100/70 transition-colors min-h-[40px]"
+              className="px-8 py-4 rounded-full border border-charcoal/10 bg-white shadow-sm text-charcoal font-brand font-bold uppercase tracking-widest text-[10px] hover:bg-charcoal hover:text-white transition-all active:scale-95"
             >
-              Aggiorna ora
+              Aggiorna Dati
             </button>
-            <div className="rounded-xl border border-red-100/80 bg-white/90 px-3 py-2.5 text-xs font-medium text-gray-600 min-h-[40px] flex items-center">
-              Live ogni 5s
-            </div>
-          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4 mb-6 md:mb-8">
-        <div className="rounded-2xl border border-red-100/70 bg-white/90 p-3 md:p-4 shadow-[0_8px_18px_rgba(31,38,135,0.04)]">
-          <p className="text-[11px] md:text-xs uppercase tracking-[0.14em] text-gray-400 mb-1.5 md:mb-2">Ordini Oggi</p>
-          <p className="text-2xl xl:text-3xl font-bold text-[#1d1d1f]">{orders.length}</p>
-        </div>
-        <div className="rounded-2xl border border-red-100/70 bg-white/90 p-3 md:p-4 shadow-[0_8px_18px_rgba(31,38,135,0.04)]">
-          <p className="text-[11px] md:text-xs uppercase tracking-[0.14em] text-gray-400 mb-1.5 md:mb-2">Attivi</p>
-          <p className="text-2xl xl:text-3xl font-bold text-[#cf2a1d]">{activeOrders}</p>
-        </div>
-        <div className="rounded-2xl border border-red-100/70 bg-white/90 p-3 md:p-4 shadow-[0_8px_18px_rgba(31,38,135,0.04)]">
-          <p className="text-[11px] md:text-xs uppercase tracking-[0.14em] text-gray-400 mb-1.5 md:mb-2">In Preparazione</p>
-          <p className="text-2xl xl:text-3xl font-bold text-[#1d1d1f]">{preparingOrders}</p>
-        </div>
-        <div className="rounded-2xl border border-red-100/70 bg-white/90 p-3 md:p-4 shadow-[0_8px_18px_rgba(31,38,135,0.04)]">
-          <p className="text-[11px] md:text-xs uppercase tracking-[0.14em] text-gray-400 mb-1.5 md:mb-2">Fatturato</p>
-          <p className="text-lg md:text-xl xl:text-2xl font-bold text-[#1d1d1f]">{formatCurrency(totalRevenue)}</p>
-        </div>
-        <div className="rounded-2xl border border-red-100/70 bg-white/90 p-3 md:p-4 shadow-[0_8px_18px_rgba(31,38,135,0.04)]">
-          <p className="text-[11px] md:text-xs uppercase tracking-[0.14em] text-gray-400 mb-1.5 md:mb-2">Scontrino Medio</p>
-          <p className="text-lg md:text-xl xl:text-2xl font-bold text-[#1d1d1f]">{formatCurrency(avgTicket)}</p>
-        </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        {[
+          { label: "Ordini Oggi", value: orders.length, accent: "charcoal" },
+          { label: "Attivi", value: activeOrders, accent: "terracotta" },
+          { label: "In Cucina", value: preparingOrders, accent: "marigold" },
+          { label: "Fatturato", value: formatCurrency(totalRevenue), accent: "charcoal" },
+        ].map((stat, i) => (
+          <div key={i} className="bg-white/50 backdrop-blur-md rounded-[2rem] border border-charcoal/5 p-8 shadow-sm">
+            <p className="text-[10px] uppercase font-brand font-bold tracking-[0.2em] text-charcoal/30 mb-4">{stat.label}</p>
+            <p className={cn("text-3xl font-brand font-medium tracking-tight", stat.accent === "terracotta" ? "text-terracotta" : stat.accent === "marigold" ? "text-marigold" : "text-charcoal")}>
+              {stat.value}
+            </p>
+          </div>
+        ))}
       </div>
 
       {/* Kanban */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-2.5 md:gap-3 pb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-6">
         {KANBAN_COLUMNS.map((status) => {
           const columnOrders = orders.filter((o) => o.status === status);
           return (
-            <div
-              key={status}
-              className="rounded-2xl border border-red-100/70 bg-white/80 backdrop-blur-sm p-3 md:p-4"
-            >
-              <div className="flex items-center justify-between gap-2 mb-3">
-                <span className={`px-2.5 py-1 rounded-full border text-[11px] md:text-xs font-semibold ${getStatusBadgeClass(status)}`}>
+            <div key={status} className="flex flex-col min-w-[280px]">
+              <div className="flex items-center justify-between px-2 mb-6">
+                <span className={`px-4 py-1.5 rounded-full text-[9px] font-brand font-bold uppercase tracking-widest shadow-sm ${getStatusBadgeClass(status)}`}>
                   {ORDER_STATUS_LABELS[status]}
                 </span>
-                <span className="text-[11px] md:text-xs text-gray-400">{columnOrders.length} ordini</span>
+                <span className="text-[10px] font-brand font-bold uppercase tracking-widest text-charcoal/20">{columnOrders.length}</span>
               </div>
-              <div className="space-y-2">
+              
+              <div className={cn("flex-1 space-y-4 min-h-[500px] rounded-[2.5rem] p-4 bg-white/30 border border-charcoal/5 transition-colors", columnOrders.length > 0 ? "bg-white/30" : "bg-transparent border-dashed")}>
                 {columnOrders.map((order) => (
                   <div
                     key={order.id}
-                    className="bg-white rounded-xl shadow-sm p-3 border border-red-100/60 border-l-4"
-                    style={{ borderLeftColor: status === "RECEIVED" ? "#f59e0b" : status === "CANCELLED" ? "#ef4444" : "#f97316" }}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-bold text-sm">#{order.orderNumber}</span>
-                      <span className="text-[11px] text-gray-400">{formatTime(order.createdAt)}</span>
+                    className="bg-white rounded-[2rem] shadow-sm p-6 border border-charcoal/5 hover:shadow-xl hover:scale-[1.02] transition-all group"
+                  >
+                    <div className="flex items-center justify-between mb-4 border-b border-charcoal/5 pb-4">
+                      <span className="font-brand font-bold text-charcoal text-lg">#{order.orderNumber}</span>
+                      <span className="text-[10px] font-body text-charcoal/30 italic">{formatTime(order.createdAt)}</span>
                     </div>
-                    <p className="text-sm font-medium">{order.customerName}</p>
-                    <p className="text-xs text-gray-500">
-                      {order.type === "ASPORTO" ? "Asporto" : "Delivery"}
-                      {order.type === "DELIVERY" && order.address && ` - ${order.address}`}
-                    </p>
-                    <div className="mt-1.5 text-xs text-gray-600">
+                    
+                    <div className="mb-6 space-y-1">
+                      <p className="text-sm font-brand font-bold text-charcoal uppercase tracking-tight">{order.customerName}</p>
+                      <p className="text-[10px] font-body text-charcoal/40 italic flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-charcoal/20" />
+                        {order.type === "ASPORTO" ? "Ritiro Sede" : "Consegna"}
+                      </p>
+                      {order.type === "DELIVERY" && order.address && (
+                        <p className="text-[10px] font-body text-charcoal/60 truncate mt-1">📍 {order.address}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2 mb-6">
                       {order.items.slice(0, 3).map((item) => (
-                        <p key={item.id}>{item.quantity}x {item.productName}</p>
+                        <div key={item.id} className="flex justify-between items-center text-[10px]">
+                          <span className="text-charcoal/60"><span className="text-terracotta mr-1">{item.quantity}×</span> {item.productName}</span>
+                        </div>
                       ))}
-                      {order.items.length > 3 && <p className="text-gray-400">+{order.items.length - 3} altri</p>}
+                      {order.items.length > 3 && <p className="text-[9px] text-charcoal/20 uppercase tracking-widest font-brand">+ {order.items.length - 3} altri prodotti</p>}
                     </div>
-                    <div className="flex items-center justify-between mt-2.5 pt-2 border-t">
-                      <span className="font-semibold text-sm">{formatCurrency(Number(order.total))}</span>
-                      <div className="flex gap-1.5 flex-wrap justify-end">
-                        {status === "RECEIVED" && (
+
+                    <div className="flex items-center justify-between pt-6 border-t border-charcoal/5">
+                      <span className="font-brand font-bold text-charcoal">{formatCurrency(Number(order.total))}</span>
+                      <div className="flex gap-2">
+                        {status === "RECEIVED" ? (
                           <button
                             onClick={() => openConfirmModal(order)}
-                            className="px-2.5 py-1.5 rounded-full border text-xs font-semibold min-h-[36px] bg-red-50 border-red-100 text-[#cf2a1d] hover:bg-red-100 transition-colors"
+                            className="h-10 w-10 flex items-center justify-center rounded-xl bg-charcoal text-white hover:bg-terracotta transition-colors shadow-lg shadow-charcoal/10"
+                            title="Conferma Ordine"
                           >
-                            Conferma ordine
+                            ✓
                           </button>
+                        ) : (
+                          ORDER_STATUS_TRANSITIONS[status]?.map((nextStatus) => (
+                            <button
+                              key={nextStatus}
+                              onClick={() => updateStatus(order.id, nextStatus)}
+                              className={cn(
+                                "h-10 px-4 rounded-xl font-brand font-bold text-[9px] uppercase tracking-widest transition-all",
+                                nextStatus === "CANCELLED" 
+                                  ? "bg-red-50 text-red-500 hover:bg-red-500 hover:text-white" 
+                                  : "bg-charcoal/5 text-charcoal hover:bg-charcoal hover:text-white"
+                              )}
+                            >
+                              {ORDER_STATUS_LABELS[nextStatus]}
+                            </button>
+                          ))
                         )}
-                        {ORDER_STATUS_TRANSITIONS[status]?.map((nextStatus) => (
-                          status === "RECEIVED" && nextStatus !== "CANCELLED" ? null : (
-                          <button
-                            key={nextStatus}
-                            onClick={() => updateStatus(order.id, nextStatus)}
-                            className={`px-2.5 py-1.5 rounded-full border text-xs font-semibold min-h-[36px] transition-colors ${
-                              nextStatus === "CANCELLED"
-                                ? "bg-red-100 border-red-200 text-red-700 hover:bg-red-200"
-                                : "bg-red-50 border-red-100 text-[#cf2a1d] hover:bg-red-100"
-                            }`}
-                          >
-                            {ORDER_STATUS_LABELS[nextStatus]}
-                          </button>
-                          )
-                        ))}
                       </div>
                     </div>
                   </div>
                 ))}
                 {columnOrders.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-red-100/90 bg-white/65 py-7 text-center">
-                    <p className="text-xs text-gray-300">Nessun ordine</p>
+                  <div className="h-full flex flex-col items-center justify-center text-charcoal/5">
+                    <span className="text-4xl mb-4 opacity-50">○</span>
+                    <p className="text-[10px] font-brand font-bold uppercase tracking-widest opacity-30">Vuoto</p>
                   </div>
                 )}
               </div>
@@ -251,94 +249,75 @@ export default function DashboardPage() {
       </div>
 
       {confirmingOrder && (
-        <div className="fixed inset-0 z-[90] bg-black/45 flex items-end sm:items-center justify-center p-3 sm:p-5">
-          <div className="w-full max-w-2xl rounded-3xl border border-red-100/80 bg-white shadow-[0_20px_45px_rgba(31,38,135,0.12)]">
-            <div className="px-5 py-4 border-b border-red-100/80 flex items-center justify-between">
+        <div className="fixed inset-0 z-[100] bg-charcoal/80 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-300">
+          <div className="w-full max-w-xl bg-warm-light rounded-[3rem] p-10 shadow-2xl border border-white/20">
+            <div className="flex justify-between items-start mb-10">
               <div>
-                <p className="text-[11px] uppercase tracking-[0.14em] text-[#cf2a1d]/80 font-bold">Conferma Ordine</p>
-                <h3 className="text-xl font-bold text-[#1d1d1f]">Ordine #{confirmingOrder.orderNumber}</h3>
+                <span className="text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-terracotta mb-2 block">Confirm Order</span>
+                <h3 className="text-3xl font-brand font-medium text-charcoal uppercase tracking-tight">Ordine #{confirmingOrder.orderNumber}</h3>
               </div>
               <button
                 onClick={closeConfirmModal}
-                className="h-9 w-9 rounded-xl border border-red-100 text-gray-500 hover:bg-red-50/60 transition-colors"
+                className="w-12 h-12 rounded-2xl bg-white border border-charcoal/5 text-charcoal hover:bg-charcoal hover:text-white transition-all flex items-center justify-center font-bold"
               >
                 ✕
               </button>
             </div>
 
-            <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <div className="rounded-xl border border-red-100/80 bg-red-50/30 p-3">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-gray-400 mb-1">Cliente</p>
-                  <p className="font-semibold text-[#1d1d1f]">{confirmingOrder.customerName}</p>
-                  <p className="text-gray-600">{confirmingOrder.customerPhone}</p>
-                </div>
-                <div className="rounded-xl border border-red-100/80 bg-red-50/30 p-3">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-gray-400 mb-1">Consegna</p>
-                  <p className="font-semibold text-[#1d1d1f]">{confirmingOrder.type === "ASPORTO" ? "Asporto" : "Delivery"}</p>
-                  <p className="text-gray-600">{confirmingOrder.address || "Ritiro in sede"}</p>
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-red-100/80 bg-white p-3">
-                <p className="text-sm font-semibold mb-2">Riepilogo ordine</p>
-                <div className="space-y-1.5 text-sm">
-                  {confirmingOrder.items.map((item) => (
-                    <div key={item.id} className="flex items-start justify-between gap-2">
-                      <span>{item.quantity}x {item.productName}</span>
-                      <span className="font-semibold">{formatCurrency(Number(item.totalPrice))}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-3 pt-2 border-t border-red-100/80 flex justify-between font-bold">
-                  <span>Totale</span>
-                  <span>{formatCurrency(Number(confirmingOrder.total))}</span>
-                </div>
-                {confirmingOrder.notes && (
-                  <p className="mt-2 text-xs text-gray-500 italic">Note: {confirmingOrder.notes}</p>
-                )}
-              </div>
-
-              <div className="rounded-xl border border-red-100/80 bg-red-50/35 p-3">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-gray-400 mb-2">Tempo previsto consegna</p>
-                <div className="flex items-center justify-between gap-2">
-                  <button
-                    type="button"
-                    onClick={() => adjustEtaMinutes(-5)}
-                    className="h-10 w-10 rounded-xl border border-red-100 bg-white text-[#cf2a1d] font-bold hover:bg-red-50/60"
-                  >
-                    −
-                  </button>
-                  <div className="flex-1 rounded-xl border border-red-100 bg-white px-4 py-2 text-center">
-                    <span className="text-2xl font-bold text-[#1d1d1f]">{etaMinutes}</span>
-                    <span className="text-sm text-gray-500 ml-1">min</span>
+            <div className="space-y-8 mb-12">
+               <div className="grid grid-cols-2 gap-6">
+                  <div className="bg-white/50 p-6 rounded-3xl border border-charcoal/5">
+                    <p className="text-[9px] uppercase font-brand font-bold tracking-widest text-charcoal/30 mb-2">Cliente</p>
+                    <p className="font-brand font-bold text-charcoal text-sm">{confirmingOrder.customerName}</p>
+                    <p className="text-xs font-body italic text-charcoal/50">{confirmingOrder.customerPhone}</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => adjustEtaMinutes(5)}
-                    className="h-10 w-10 rounded-xl border border-red-100 bg-white text-[#cf2a1d] font-bold hover:bg-red-50/60"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
+                  <div className="bg-white/50 p-6 rounded-3xl border border-charcoal/5">
+                    <p className="text-[9px] uppercase font-brand font-bold tracking-widest text-charcoal/30 mb-2">Indirizzo</p>
+                    <p className="font-brand font-bold text-charcoal text-sm truncate">{confirmingOrder.address || "Ritiro Sede"}</p>
+                    <p className="text-xs font-body italic text-charcoal/50 uppercase tracking-widest">{confirmingOrder.type}</p>
+                  </div>
+               </div>
+
+               <div className="bg-white/50 p-8 rounded-3xl border border-charcoal/5">
+                  <p className="text-[9px] uppercase font-brand font-bold tracking-widest text-charcoal/30 mb-6">Tempo Stimato (Minuti)</p>
+                  <div className="flex items-center gap-6">
+                    <button
+                      type="button"
+                      onClick={() => adjustEtaMinutes(-5)}
+                      className="w-14 h-14 rounded-2xl bg-white border border-charcoal/5 text-xl font-bold text-charcoal hover:scale-105 active:scale-95 transition-all"
+                    >
+                      −
+                    </button>
+                    <div className="flex-1 text-center py-2">
+                       <span className="text-5xl font-brand font-medium text-terracotta leading-none">{etaMinutes}</span>
+                       <span className="text-xs font-brand font-bold text-charcoal/30 ml-2 uppercase">min</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => adjustEtaMinutes(5)}
+                      className="w-14 h-14 rounded-2xl bg-white border border-charcoal/5 text-xl font-bold text-charcoal hover:scale-105 active:scale-95 transition-all"
+                    >
+                      +
+                    </button>
+                  </div>
+               </div>
             </div>
 
-            <div className="p-5 border-t border-red-100/80 flex flex-col sm:flex-row gap-2 sm:justify-end">
+            <div className="grid grid-cols-2 gap-4">
               <button
                 type="button"
                 onClick={() => printOrder(confirmingOrder.id)}
-                className="px-4 py-2.5 rounded-xl border border-red-100 bg-white text-[#cf2a1d] font-semibold hover:bg-red-50/60 transition-colors"
+                className="py-5 rounded-full border border-charcoal text-charcoal font-brand font-bold uppercase tracking-widest text-[10px] hover:bg-charcoal hover:text-white transition-all shadow-lg shadow-charcoal/5"
               >
-                Stampa
+                🖨️ Stampa Scontrino
               </button>
               <button
                 type="button"
                 onClick={confirmIncomingOrder}
                 disabled={confirmingLoading}
-                className="px-4 py-2.5 rounded-xl tomato-glass border text-white font-semibold hover:brightness-105 disabled:opacity-50 transition-all"
+                className="py-5 rounded-full bg-terracotta text-white font-brand font-bold uppercase tracking-widest text-[10px] hover:scale-105 active:scale-95 disabled:opacity-50 transition-all shadow-xl shadow-terracotta/20"
               >
-                {confirmingLoading ? "Conferma..." : "Conferma ordine"}
+                {confirmingLoading ? "Processing..." : "Conferma & Notifica"}
               </button>
             </div>
           </div>

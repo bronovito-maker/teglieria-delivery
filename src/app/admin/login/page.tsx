@@ -14,6 +14,13 @@ export default function AdminLogin() {
   const supabase = createClient();
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("error") === "unauthorized") {
+      setError("Non hai i permessi per accedere al pannello admin.");
+    }
+  }, []);
+
+  useEffect(() => {
     async function checkSession() {
       const {
         data: { user },
@@ -48,69 +55,77 @@ export default function AdminLogin() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white via-[#fff7f5] to-white p-6">
-      <div className="w-full max-w-md p-8 md:p-10 bg-white/90 rounded-3xl border border-red-100/80 shadow-[0_20px_45px_rgba(31,38,135,0.1)]">
-        <div className="text-center mb-8">
-          <p className="text-[11px] md:text-xs font-bold uppercase tracking-[0.22em] text-[#cf2a1d]/80 mb-2">
+    <div className="min-h-screen flex items-center justify-center bg-warm-light p-6">
+      <div className="reveal active w-full max-w-lg p-12 md:p-16 bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-charcoal/5 shadow-2xl">
+        <div className="text-center mb-12">
+          <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-6 block px-4 py-1.5 border border-terracotta/20 rounded-full bg-white/50 w-fit mx-auto">
             Area Riservata
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight text-[#1d1d1f]">La Teglieria Admin</h1>
+          </span>
+          <h1 className="text-4xl md:text-5xl font-brand font-medium uppercase tracking-tight text-charcoal">
+            Admin <span className="text-terracotta">Login.</span>
+          </h1>
+          <p className="font-body italic text-charcoal/40 mt-4 tracking-widest uppercase text-[10px]">Autenticazione Richiesta</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <label className="block text-[10px] uppercase font-brand font-bold tracking-[0.2em] text-charcoal/30 ml-4">
               Email
             </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2.5 border border-red-100 rounded-xl focus:ring-2 focus:ring-[#cf2a1d] focus:border-[#cf2a1d] outline-none"
+              className="w-full px-8 py-5 bg-white border border-charcoal/5 rounded-full font-body italic text-sm focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta outline-none transition-all placeholder:text-charcoal/20 shadow-sm"
+              placeholder="admin@lateglieria.it"
               required
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+          <div className="space-y-2">
+            <label className="block text-[10px] uppercase font-brand font-bold tracking-[0.2em] text-charcoal/30 ml-4">
               Password
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2.5 border border-red-100 rounded-xl focus:ring-2 focus:ring-[#cf2a1d] focus:border-[#cf2a1d] outline-none"
+              className="w-full px-8 py-5 bg-white border border-charcoal/5 rounded-full font-body italic text-sm focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta outline-none transition-all placeholder:text-charcoal/20 shadow-sm"
+              placeholder="••••••••"
               required
             />
           </div>
 
-          <label className="flex items-center justify-between gap-3 rounded-xl border border-red-100 px-4 py-2.5 bg-red-50/35">
-            <span className="text-sm font-medium text-gray-700">Rimani connesso</span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={rememberMe}
-              onClick={() => setRememberMe((prev) => !prev)}
-              className={`relative inline-flex h-8 w-14 items-center rounded-full p-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#cf2a1d]/40 ${
-                rememberMe ? "bg-[#cf2a1d]" : "bg-gray-300"
-              }`}
-            >
-              <span
-                className={`h-6 w-6 rounded-full bg-white shadow-sm transition-transform ${
-                  rememberMe ? "translate-x-6" : "translate-x-0"
-                }`}
-              />
-            </button>
-          </label>
+          <div className="flex items-center justify-between px-4 py-2">
+             <span className="text-[10px] uppercase font-brand font-bold tracking-widest text-charcoal/40 italic">Rimani Connesso</span>
+             <button
+               type="button"
+               role="switch"
+               aria-checked={rememberMe}
+               onClick={() => setRememberMe((prev) => !prev)}
+               className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-300 focus:outline-none ${
+                 rememberMe ? "bg-terracotta" : "bg-charcoal/10"
+               }`}
+             >
+               <span
+                 className={`h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-300 ${
+                   rememberMe ? "translate-x-6" : "translate-x-1"
+                 }`}
+               />
+             </button>
+          </div>
 
           {error && (
-            <p className="text-sm text-red-600">{error}</p>
+            <div className="p-4 bg-red-50 rounded-2xl border border-red-100 animate-in slide-in-from-top-2">
+              <p className="text-[11px] text-red-600 font-brand font-bold uppercase tracking-widest text-center">{error}</p>
+            </div>
           )}
+          
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 text-white rounded-xl font-semibold tomato-glass border hover:brightness-105 disabled:opacity-50 transition-all"
+            className="w-full py-6 bg-charcoal text-white rounded-full font-brand font-bold uppercase tracking-[0.3em] text-[10px] shadow-2xl shadow-charcoal/30 hover:bg-terracotta hover:scale-[1.02] active:scale-95 disabled:opacity-50 transition-all mt-6"
           >
-            {loading ? "Accesso..." : "Accedi"}
+            {loading ? "Verifica in corso..." : "Accedi alla Console"}
           </button>
         </form>
       </div>

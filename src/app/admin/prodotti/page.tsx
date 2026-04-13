@@ -22,47 +22,68 @@ export default function ProdottiPage() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Prodotti</h1>
+    <div className="max-w-7xl animate-in fade-in duration-700">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between mb-12">
+        <div className="reveal active">
+          <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-2 block">Inventario</span>
+          <h1 className="text-4xl md:text-5xl font-brand font-medium uppercase tracking-tight text-charcoal">
+            Catalogo <span className="text-terracotta">Prodotti.</span>
+          </h1>
+          <p className="font-body italic text-charcoal/40 mt-2 tracking-widest uppercase text-[10px]">Gestione menu e disponibilità</p>
+        </div>
         <Link href="/admin/prodotti/nuovo"
-          className="px-4 py-2 tomato-glass border text-white rounded-xl font-semibold hover:brightness-105 transition-all">
-          + Nuovo prodotto
+          className="w-fit px-8 py-4 bg-charcoal text-white rounded-full font-brand font-bold uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-charcoal/20 hover:bg-terracotta transition-all active:scale-95">
+          + Aggiungi Prodotto
         </Link>
       </div>
 
-      <div className="bg-white rounded-xl shadow overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-gray-500">
-            <tr>
-              <th className="px-4 py-3">Nome</th>
-              <th className="px-4 py-3">Categoria</th>
-              <th className="px-4 py-3">Prezzo</th>
-              <th className="px-4 py-3">Stato</th>
-              <th className="px-4 py-3 text-right">Azioni</th>
+      <div className="bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-charcoal/5 shadow-2xl overflow-hidden reveal active">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="border-b border-charcoal/5">
+              <th className="px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40">Nome Prodotto</th>
+              <th className="px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40">Categoria</th>
+              <th className="px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40">Prezzo</th>
+              <th className="px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40 text-center">Stato</th>
+              <th className="px-8 py-6 text-right text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40">Azioni</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-charcoal/5">
             {products.map((p) => (
-              <tr key={p.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-medium">{p.name}</td>
-                <td className="px-4 py-3 text-gray-500">{p.category.name}</td>
-                <td className="px-4 py-3">{formatCurrency(Number(p.price))}</td>
-                <td className="px-4 py-3">
-                  <span className={`text-xs px-2 py-1 rounded-full ${p.active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                    {p.active ? "Attivo" : "Inattivo"}
+              <tr key={p.id} className="group hover:bg-warm-light/50 transition-colors">
+                <td className="px-8 py-6">
+                   <p className="font-brand font-bold text-lg text-charcoal">{p.name}</p>
+                   <p className="text-[9px] uppercase font-brand font-bold tracking-widest text-charcoal/20 mt-0.5">ID: {p.id.slice(0, 8)}</p>
+                </td>
+                <td className="px-8 py-6">
+                   <span className="font-brand font-bold uppercase tracking-widest text-[11px] text-charcoal/60 bg-charcoal/5 px-3 py-1 rounded-full">{p.category.name}</span>
+                </td>
+                <td className="px-8 py-6 font-brand font-bold text-charcoal">{formatCurrency(Number(p.price))}</td>
+                <td className="px-8 py-6 text-center">
+                  <span className={`inline-block px-4 py-1.5 rounded-full text-[9px] font-brand font-bold uppercase tracking-widest border ${
+                    p.active ? "bg-green-50 text-green-600 border-green-100" : "bg-charcoal/5 text-charcoal/40 border-charcoal/10"
+                  }`}>
+                    {p.active ? "Disponibile" : "Esaurito"}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-right space-x-2">
-                  <Link href={`/admin/prodotti/${p.id}`} className="text-blue-600 hover:underline">Modifica</Link>
-                  <button onClick={() => handleDelete(p.id)} className="text-red-600 hover:underline">Elimina</button>
+                <td className="px-8 py-6 text-right space-x-4">
+                  <Link href={`/admin/prodotti/${p.id}`} 
+                    className="font-brand font-bold uppercase tracking-widest text-[9px] text-charcoal hover:text-terracotta transition-colors">
+                    Modifica
+                  </Link>
+                  <button onClick={() => handleDelete(p.id)} 
+                    className="font-brand font-bold uppercase tracking-widest text-[9px] text-red-400 hover:text-red-600 transition-colors">
+                    Elimina
+                  </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
         {products.length === 0 && (
-          <p className="px-4 py-8 text-gray-400 text-center">Nessun prodotto. Creane uno.</p>
+          <div className="py-20 text-center">
+            <p className="font-brand font-bold uppercase tracking-[0.2em] text-charcoal/20 text-xs">Nessun prodotto configurato.</p>
+          </div>
         )}
       </div>
     </div>

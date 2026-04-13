@@ -162,7 +162,7 @@ export default function LogisticsMap({ orders }: Props) {
 
       marker.addListener("click", () => {
         infoWindowRef.current?.setContent(
-          `<div style="font-family:Inter,sans-serif;min-width:180px">
+          `<div style="font-family:var(--font-kit),sans-serif;min-width:180px">
              <strong>Ordine #${order.orderNumber}</strong><br/>
              ${order.customerName}<br/>
              <small>${ORDER_STATUS_LABELS[order.status] || order.status}</small>

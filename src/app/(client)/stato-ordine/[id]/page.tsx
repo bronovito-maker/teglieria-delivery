@@ -44,29 +44,37 @@ export default function StatoOrdinePage() {
   const currentStepIndex = STATUS_STEPS.indexOf(order.status);
 
   return (
-    <div className="max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-2">Stato ordine</h1>
-      <p className="text-sm text-gray-500 mb-6">Ordine #{order.orderNumber}</p>
+    <div className="max-w-lg mx-auto py-12 px-6 bg-warm-light min-h-screen">
+      <div className="reveal active flex flex-col items-center text-center mb-10">
+        <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-4 px-4 py-1.5 border border-terracotta/20 rounded-full bg-white/50">
+          Tracking Online
+        </span>
+        <h1 className="text-4xl md:text-5xl font-brand font-medium uppercase tracking-tight text-charcoal">
+          Stato <span className="text-terracotta">Ordine.</span>
+        </h1>
+        <p className="text-sm font-body italic text-charcoal/40 mt-4 tracking-widest uppercase">Ordine #{order.orderNumber}</p>
+      </div>
 
       {order.status === "CANCELLED" ? (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center mb-6">
-          <p className="text-red-700 font-semibold text-lg">Ordine annullato</p>
-          <p className="text-sm text-red-500 mt-1">Contatta il locale per maggiori informazioni.</p>
+        <div className="bg-charcoal border border-charcoal rounded-[2.5rem] p-10 text-center mb-10 shadow-2xl">
+          <div className="text-4xl mb-6">✕</div>
+          <p className="text-white font-brand font-medium uppercase tracking-widest text-xl mb-2">Ordine annullato</p>
+          <p className="text-sm text-white/50 font-body italic">Contatta il locale per maggiori informazioni.</p>
         </div>
       ) : (
         <>
           {/* Progress bar */}
-          <div className="bg-white rounded-xl shadow p-6 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${ORDER_STATUS_COLORS[order.status]}`}>
+          <div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] border border-charcoal/5 p-8 mb-8 shadow-sm">
+            <div className="flex items-center justify-center mb-8">
+              <span className={`px-6 py-2 rounded-full text-[10px] font-brand font-bold uppercase tracking-[0.2em] shadow-sm ${ORDER_STATUS_COLORS[order.status]}`}>
                 {ORDER_STATUS_LABELS[order.status]}
               </span>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-start gap-1 justify-between">
               {STATUS_STEPS.map((step, i) => (
-                <div key={step} className="flex-1">
-                  <div className={`h-2 rounded-full ${i <= currentStepIndex ? "bg-orange-500" : "bg-gray-200"}`} />
-                  <p className={`text-[10px] mt-1 text-center ${i <= currentStepIndex ? "text-orange-600 font-medium" : "text-gray-400"}`}>
+                <div key={step} className="flex-1 flex flex-col items-center group">
+                  <div className={`h-1.5 w-full rounded-full transition-all duration-700 ${i <= currentStepIndex ? "bg-terracotta" : "bg-charcoal/10"}`} />
+                  <p className={`text-[8px] mt-4 text-center font-brand font-bold uppercase tracking-widest leading-tight w-full ${i <= currentStepIndex ? "text-terracotta" : "text-charcoal/20"}`}>
                     {ORDER_STATUS_LABELS[step]}
                   </p>
                 </div>
@@ -75,64 +83,91 @@ export default function StatoOrdinePage() {
           </div>
 
           {order.status === "RECEIVED" && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 text-sm text-yellow-700">
-              Il tuo ordine è stato ricevuto ed è in attesa di conferma.
+            <div className="bg-marigold/10 border border-marigold/20 rounded-3xl p-6 mb-8 text-center">
+              <p className="text-xs font-brand font-bold uppercase tracking-widest text-marigold">
+                In attesa di conferma...
+              </p>
+              <p className="text-xs text-charcoal/40 font-body italic mt-2">
+                Il tuo ordine è stato ricevuto ed è in attesa di conferma dallo staff.
+              </p>
             </div>
           )}
         </>
       )}
 
       {/* Dettagli ordine */}
-      <div className="bg-white rounded-xl shadow p-4 space-y-3">
-        <h2 className="font-semibold">Dettagli</h2>
-        <div className="text-sm space-y-1">
-          <p><span className="text-gray-500">Tipo:</span> {order.type === "ASPORTO" ? "Asporto" : "Delivery"}</p>
-          <p><span className="text-gray-500">Nome:</span> {order.customerName}</p>
-          {order.address && <p><span className="text-gray-500">Indirizzo:</span> {order.address}</p>}
+      <div className="bg-white/50 backdrop-blur-md rounded-[2.5rem] border border-charcoal/5 p-8 space-y-8 shadow-sm">
+        <header className="flex items-center justify-between border-b border-charcoal/5 pb-6">
+          <h2 className="font-brand font-bold uppercase tracking-widest text-xs text-charcoal/30">Dettagli</h2>
+          <span className="text-[10px] font-brand font-bold uppercase tracking-widest text-terracotta">
+            {order.type === "ASPORTO" ? "Ritiro Sede" : "Consegna"}
+          </span>
+        </header>
+
+        <div className="space-y-4 font-body text-sm font-medium italic text-charcoal/60">
+          <div className="flex justify-between items-center">
+            <span className="text-charcoal/30 not-italic uppercase text-[10px] font-brand">Destinatario</span>
+            <span>{order.customerName}</span>
+          </div>
+          {order.address && (
+            <div className="flex justify-between items-start gap-4">
+              <span className="text-charcoal/30 not-italic uppercase text-[10px] font-brand min-w-fit">Indirizzo</span>
+              <span className="text-right">{order.address}</span>
+            </div>
+          )}
         </div>
 
-        <div className="border-t pt-3 space-y-1 text-sm">
+        <div className="border-t border-charcoal/5 pt-8 space-y-4">
           {order.items.map((item) => (
-            <div key={item.id} className="flex justify-between">
-              <span>
-                {item.quantity}x {item.productName}
-                {item.variant && ` (${item.variant})`}
+            <div key={item.id} className="flex justify-between items-center text-sm">
+              <span className="font-brand font-bold uppercase tracking-tight text-charcoal/70">
+                <span className="text-terracotta text-xs mr-2">{item.quantity}×</span>
+                {item.productName}
+                {item.variant && <span className="text-[10px] text-charcoal/30 font-body italic block">{item.variant}</span>}
               </span>
-              <span>{formatCurrency(Number(item.totalPrice))}</span>
+              <span className="font-brand font-bold text-charcoal">{formatCurrency(Number(item.totalPrice))}</span>
             </div>
           ))}
-          <div className="border-t pt-2 flex justify-between font-bold">
-            <span>Totale</span>
-            <span>{formatCurrency(Number(order.total))}</span>
+          
+          <div className="border-t border-charcoal/10 pt-6 flex justify-between items-end">
+             <span className="font-brand font-bold uppercase tracking-[0.2em] text-xs text-charcoal/30">Totale</span>
+             <span className="text-3xl font-brand font-medium text-terracotta leading-none tracking-tight">
+               {formatCurrency(Number(order.total))}
+             </span>
           </div>
         </div>
 
         {/* Status history */}
-        <div className="border-t pt-3">
-          <p className="text-xs text-gray-500 font-medium mb-2">Cronologia</p>
-          {order.statusHistory.map((log) => (
-            <div key={log.id} className="flex items-center gap-2 text-xs text-gray-500">
-              <span>{formatTime(log.createdAt)}</span>
-              <span className={`px-1.5 py-0.5 rounded text-[10px] ${ORDER_STATUS_COLORS[log.status]}`}>
-                {ORDER_STATUS_LABELS[log.status]}
-              </span>
-            </div>
-          ))}
+        <div className="border-t border-charcoal/5 pt-8">
+          <p className="text-[10px] font-brand font-bold uppercase tracking-widest text-charcoal/30 mb-6">Cronologia Stati</p>
+          <div className="space-y-4">
+            {order.statusHistory.map((log) => (
+              <div key={log.id} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-charcoal/10" />
+                  <span className={`px-2.5 py-1 rounded-full text-[9px] font-brand font-bold uppercase tracking-widest ${ORDER_STATUS_COLORS[log.status]}`}>
+                    {ORDER_STATUS_LABELS[log.status]}
+                  </span>
+                </div>
+                <span className="text-[10px] font-body text-charcoal/30 italic">{formatTime(log.createdAt)}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <Link
-          href="/menu?openCart=1"
-          className="w-full text-center py-3 rounded-xl border border-red-100 bg-red-50/60 text-[#cf2a1d] font-semibold hover:bg-red-100/60 transition-colors"
-        >
-          Apri carrello
-        </Link>
+      <div className="mt-12 flex flex-col gap-4 items-center">
         <Link
           href="/menu"
-          className="w-full text-center py-3 rounded-xl tomato-glass border text-white font-semibold hover:brightness-105 transition-all"
+          className="w-full text-center py-5 rounded-full bg-terracotta text-white font-brand font-bold uppercase tracking-widest text-xs shadow-[0_15px_30px_rgba(197,86,26,0.3)] hover:scale-105 active:scale-95 transition-all"
         >
-          Torna al menu
+          🍕 Torna al menu
+        </Link>
+        <Link
+          href="/menu?openCart=1"
+          className="text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/30 hover:text-terracotta transition-colors py-4 px-8"
+        >
+          Apri il carrello
         </Link>
       </div>
     </div>

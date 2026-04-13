@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { calculateRiderCompensation } from "@/lib/finance";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -26,6 +27,11 @@ export async function GET(request: Request) {
 
   const totalOrders = orders.length;
   const totalRevenue = orders.reduce((s, o) => s + Number(o.total), 0);
+  const deliveryCompletedCount = orders.filter(
+    (o) => o.type === "DELIVERY" && o.status === "DELIVERED"
+  ).length;
+  const riderCompensation = calculateRiderCompensation(deliveryCompletedCount);
+  const netAfterRiderCompensation = totalRevenue - riderCompensation;
 
   // By type
   const asportoOrders = orders.filter((o) => o.type === "ASPORTO");
@@ -56,6 +62,11 @@ export async function GET(request: Request) {
     totalOrders,
     totalRevenue,
     cancelledOrders: cancelled,
+    financial: {
+      riderCompensation,
+      netAfterRiderCompensation,
+      deliveryCompletedCount,
+    },
     byType: {
       asporto: { count: asportoOrders.length, revenue: asportoOrders.reduce((s, o) => s + Number(o.total), 0) },
       delivery: { count: deliveryOrders.length, revenue: deliveryOrders.reduce((s, o) => s + Number(o.total), 0) },

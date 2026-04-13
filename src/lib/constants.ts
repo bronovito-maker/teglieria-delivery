@@ -9,13 +9,13 @@ export const ORDER_STATUS_LABELS: Record<string, string> = {
 };
 
 export const ORDER_STATUS_COLORS: Record<string, string> = {
-  RECEIVED: "bg-yellow-100 text-yellow-800",
-  CONFIRMED: "bg-blue-100 text-blue-800",
-  PREPARING: "bg-orange-100 text-orange-800",
-  READY: "bg-green-100 text-green-800",
-  OUT: "bg-purple-100 text-purple-800",
-  DELIVERED: "bg-gray-100 text-gray-800",
-  CANCELLED: "bg-red-100 text-red-800",
+  RECEIVED: "bg-marigold/20 text-marigold border border-marigold/20",
+  CONFIRMED: "bg-marigold/10 text-marigold border border-marigold/10",
+  PREPARING: "bg-terracotta/20 text-terracotta border border-terracotta/20",
+  READY: "bg-terracotta/10 text-terracotta border border-terracotta/10",
+  OUT: "bg-charcoal/80 text-white shadow-sm",
+  DELIVERED: "bg-charcoal/10 text-charcoal/60 border border-charcoal/10",
+  CANCELLED: "bg-charcoal text-white",
 };
 
 export const ORDER_TYPE_LABELS: Record<string, string> = {

@@ -41,53 +41,69 @@ export default function RiderLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
-        <h1 className="text-2xl font-bold text-center mb-6">Area Rider</h1>
+    <div className="min-h-screen flex items-center justify-center bg-warm-light p-6">
+      <div className="reveal active w-full max-w-lg p-12 md:p-16 bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-charcoal/5 shadow-2xl">
+        <div className="text-center mb-12">
+          <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-marigold mb-6 block px-4 py-1.5 border border-marigold/20 rounded-full bg-white/50 w-fit mx-auto">
+            Rider Community
+          </span>
+          <h1 className="text-4xl md:text-5xl font-brand font-medium uppercase tracking-tight text-charcoal">
+            Rider <span className="text-terracotta">Login.</span>
+          </h1>
+          <p className="font-body italic text-charcoal/40 mt-4 tracking-widest uppercase text-[10px]">Gestisci le tue consegne</p>
+        </div>
         
         {message && (
-          <div className="mb-4 p-3 bg-blue-50 text-blue-700 rounded-lg text-sm text-center">
+          <div className="mb-8 p-4 bg-terracotta/5 border border-terracotta/10 rounded-2xl text-[11px] font-brand font-bold uppercase tracking-widest text-terracotta text-center">
             {message}
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <form onSubmit={handleLogin} className="space-y-6">
+          <div className="space-y-2">
+            <label className="block text-[10px] uppercase font-brand font-bold tracking-[0.2em] text-charcoal/30 ml-4">
+              Email
+            </label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-              placeholder="rider@esempio.it"
+              className="w-full px-8 py-5 bg-white border border-charcoal/5 rounded-full font-body italic text-sm focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta outline-none transition-all placeholder:text-charcoal/20 shadow-sm"
+              placeholder="rider@lateglieria.it"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <div className="space-y-2">
+            <label className="block text-[10px] uppercase font-brand font-bold tracking-[0.2em] text-charcoal/30 ml-4">
+              Password
+            </label>
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+              className="w-full px-8 py-5 bg-white border border-charcoal/5 rounded-full font-body italic text-sm focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta outline-none transition-all placeholder:text-charcoal/20 shadow-sm"
               placeholder="••••••••"
             />
           </div>
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {error && (
+            <div className="p-4 bg-red-50 rounded-2xl border border-red-100 animate-in slide-in-from-top-2">
+              <p className="text-[11px] text-red-600 font-brand font-bold uppercase tracking-widest text-center">{error}</p>
+            </div>
+          )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition-colors disabled:opacity-50"
+            className="w-full py-6 bg-charcoal text-white rounded-full font-brand font-bold uppercase tracking-[0.3em] text-[10px] shadow-2xl shadow-charcoal/30 hover:bg-terracotta hover:scale-[1.02] active:scale-95 disabled:opacity-50 transition-all mt-6"
           >
-            {loading ? "Accesso in corso..." : "Accedi"}
+            {loading ? "Verifica in corso..." : "Entra in Servizio"}
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-gray-600">
-          Non hai ancora un account? <a href="/rider/register" className="text-orange-600 font-bold hover:underline">Registrati qui</a>
+        <p className="mt-10 text-center text-[10px] font-brand font-bold uppercase tracking-widest text-charcoal/40">
+          Non hai ancora un account? <a href="/rider/register" className="text-terracotta hover:underline">Unisciti al team</a>
         </p>
       </div>
     </div>

@@ -47,56 +47,70 @@ export default function MenuPage() {
   }, [categories]);
 
   return (
-    <div className="max-w-3xl mx-auto pb-24">
+    <div className="max-w-3xl mx-auto pb-32 bg-warm-light min-h-screen">
       {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 mt-8 px-4 gap-4">
-        <div>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-2 text-gradient">
-            Il Nostro Menu
+      <div className="flex flex-col items-center text-center px-6 pt-12 pb-16">
+        <div className="reveal active flex flex-col items-center gap-4">
+          <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60">
+            Artigianato Romano
+          </span>
+          <h1 className="text-5xl md:text-7xl font-brand font-medium uppercase tracking-tight text-charcoal leading-none">
+            I Nostri <span className="text-terracotta">Impasti.</span>
           </h1>
-          <p className="text-gray-500 text-lg">
-            Scegli la tua teglia preferita, preparata con passione.
-          </p>
+          <div className="w-12 h-1 bg-terracotta/20 rounded-full mt-2" />
         </div>
+        <p className="reveal active text-charcoal/50 text-base md:text-lg mt-8 font-body italic max-w-md">
+          Scegli la tua teglia preferita, preparata con 48 ore di lenta maturazione.
+        </p>
       </div>
 
       {categories.map((cat, idx) => (
-        <div key={cat.id} className="mb-12">
+        <div key={cat.id} className="mb-16">
           {/* CATEGORY HEADER - Sticky Glass */}
-          <div className="sticky top-0 z-20 px-4 py-4 mb-4 glass-morphism -mx-4 md:mx-0 md:rounded-2xl border-b md:border border-white/40">
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-[#1d1d1f]">
+          <div className="sticky top-0 z-20 px-6 py-5 mb-6 backdrop-blur-md bg-warm-light/90 border-b border-charcoal/5 flex items-center justify-between">
+            <h2 className="text-sm font-brand font-bold uppercase tracking-[0.3em] text-charcoal">
               {cat.name}
             </h2>
+            <span className="text-[10px] font-brand font-bold uppercase tracking-widest text-charcoal/30">
+              {cat.products.length} Opzioni
+            </span>
           </div>
           
-          <div className="grid gap-4 px-4">
+          <div className="grid gap-6 px-6">
             {cat.products.map((product, pIdx) => (
               <button
                 key={product.id}
                 onClick={() => setSelectedProduct(product)}
-                className="reveal group flex items-start justify-between bg-white border border-gray-100 rounded-3xl p-6 hover:shadow-2xl hover:border-orange-100 transition-all text-left w-full relative overflow-hidden"
+                className="reveal group flex items-start justify-between bg-white/50 backdrop-blur-sm border border-charcoal/5 rounded-[2rem] p-6 hover:shadow-xl hover:border-terracotta/20 hover:bg-white transition-all text-left w-full relative overflow-hidden"
                 style={{ transitionDelay: `${pIdx * 50}ms` }}
               >
                 {/* Subtle Hover Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-50/0 to-orange-50/0 group-hover:from-orange-50/50 transition-colors pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-br from-terracotta/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                 
-                <div className="flex-1 relative z-10">
-                  <h3 className="text-xl font-bold mb-1 group-hover:text-orange-600 transition-colors">
-                    {product.name}
-                  </h3>
+                <div className="flex-1 relative z-10 pr-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-xl font-brand uppercase tracking-tight text-charcoal group-hover:text-terracotta transition-colors">
+                      {product.name}
+                    </h3>
+                    {pIdx === 0 && (
+                      <span className="px-2 py-0.5 rounded-full bg-marigold/10 text-marigold text-[8px] font-brand font-bold uppercase tracking-widest border border-marigold/20">
+                        Top
+                      </span>
+                    )}
+                  </div>
                   {product.description && (
-                    <p className="text-gray-500 text-sm leading-relaxed max-w-md">
+                    <p className="text-charcoal/50 text-sm font-body leading-relaxed line-clamp-2 italic">
                       {product.description}
                     </p>
                   )}
                 </div>
                 
-                <div className="flex flex-col items-end gap-2 relative z-10">
-                  <span className="font-bold text-lg text-[#1d1d1f]">
+                <div className="flex flex-col items-end gap-4 relative z-10 min-w-fit">
+                  <span className="font-brand font-bold text-lg text-charcoal">
                     {formatCurrency(Number(product.price))}
                   </span>
-                  <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-orange-600 group-hover:text-white transition-all shadow-sm">
-                    +
+                  <div className="w-10 h-10 rounded-full bg-charcoal/5 flex items-center justify-center text-charcoal/40 group-hover:bg-terracotta group-hover:text-white transition-all shadow-sm active:scale-90">
+                    <span className="text-xl font-light">+</span>
                   </div>
                 </div>
               </button>
@@ -106,10 +120,10 @@ export default function MenuPage() {
       ))}
 
       {categories.length === 0 && (
-        <div className="text-center py-20 px-6">
-          <div className="text-6xl mb-4 opacity-20">🍕</div>
-          <h3 className="text-xl font-semibold mb-2">Menu non disponibile</h3>
-          <p className="text-gray-400">Torna a trovarci tra poco!</p>
+        <div className="text-center py-32 px-6">
+          <div className="text-7xl mb-6 opacity-10 grayscale scale-150 transform transition-transform duration-1000 animate-pulse">🍕</div>
+          <h3 className="text-xl font-brand uppercase tracking-widest text-charcoal mb-2">Menu non disponibile</h3>
+          <p className="text-charcoal/40 font-body italic text-sm">Torna a trovarci tra poco!</p>
         </div>
       )}
 
@@ -120,14 +134,15 @@ export default function MenuPage() {
         />
       )}
 
+      {/* FLOATING CART BUTTON */}
       <button
         onClick={() => setCartOpen(true)}
-        className="fixed bottom-6 right-4 md:bottom-8 md:right-8 z-40 group tomato-glass border text-white rounded-full px-5 md:px-6 py-3.5 font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg flex items-center gap-2"
+        className="fixed bottom-8 right-6 md:right-10 z-40 group flex items-center gap-3 bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] text-white rounded-full px-7 py-4 font-brand font-bold uppercase tracking-widest text-xs shadow-[0_15px_30px_rgba(197,86,26,0.3)] hover:scale-105 active:scale-95 transition-all border border-white/20"
       >
-        <span className="text-xl">🛒</span>
+        <span className="text-lg">🛒</span>
         Carrello
         {itemCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 bg-white text-[#cf2a1d] text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold border border-red-100 animate-scale-in">
+          <span className="flex items-center justify-center bg-white text-terracotta text-[10px] w-5 h-5 rounded-full font-bold shadow-sm animate-scale-in">
             {itemCount}
           </span>
         )}

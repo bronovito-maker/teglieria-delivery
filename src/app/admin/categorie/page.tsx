@@ -61,83 +61,93 @@ export default function CategoriePage() {
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Categorie</h1>
+    <div className="max-w-4xl animate-in fade-in duration-700">
+      <div className="reveal active mb-12">
+        <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-2 block">Organizzazione</span>
+        <h1 className="text-4xl md:text-5xl font-brand font-medium uppercase tracking-tight text-charcoal">
+          Categorie <span className="text-terracotta">Menu.</span>
+        </h1>
+        <p className="font-body italic text-charcoal/40 mt-2 tracking-widest uppercase text-[10px]">Struttura delle portate</p>
+      </div>
 
-      <form onSubmit={handleAdd} className="flex gap-2 mb-6">
+      <form onSubmit={handleAdd} className="flex gap-4 mb-12 bg-white/50 backdrop-blur-xl p-6 rounded-[2.5rem] border border-charcoal/5 shadow-sm reveal active">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Nuova categoria..."
-          className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+          placeholder="Nome nuova categoria..."
+          className="flex-1 px-8 py-4 bg-white border border-charcoal/5 rounded-full font-body italic text-sm focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta outline-none transition-all shadow-sm"
         />
         <button
           type="submit"
-          className="px-4 py-2 tomato-glass border text-white rounded-xl font-semibold hover:brightness-105 transition-all"
+          className="px-8 py-4 bg-charcoal text-white rounded-full font-brand font-bold uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-charcoal/20 hover:bg-terracotta transition-all active:scale-95"
         >
           Aggiungi
         </button>
       </form>
 
-      <div className="bg-white rounded-xl shadow divide-y">
+      <div className="bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-charcoal/5 shadow-2xl overflow-hidden divide-y divide-charcoal/5 reveal active">
         {categories.map((cat) => (
-          <div key={cat.id} className="flex items-center gap-3 px-4 py-3">
+          <div key={cat.id} className="group flex items-center gap-6 px-10 py-8 hover:bg-warm-light/50 transition-colors">
             {editingId === cat.id ? (
-              <>
+              <div className="flex-1 flex items-center gap-4 animate-in slide-in-from-left-4">
                 <input
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="flex-1 px-2 py-1 border rounded"
+                  className="flex-1 px-6 py-3 bg-white border border-terracotta rounded-full font-body italic text-sm outline-none shadow-inner"
                   autoFocus
                   onKeyDown={(e) => e.key === "Enter" && handleSave(cat.id)}
                 />
                 <button
                   onClick={() => handleSave(cat.id)}
-                  className="text-sm text-green-600 hover:underline"
+                  className="font-brand font-bold uppercase tracking-widest text-[9px] text-green-600 hover:text-green-700 transition-colors"
                 >
                   Salva
                 </button>
                 <button
                   onClick={() => setEditingId(null)}
-                  className="text-sm text-gray-400 hover:underline"
+                  className="font-brand font-bold uppercase tracking-widest text-[9px] text-charcoal/40 hover:text-charcoal transition-colors"
                 >
                   Annulla
                 </button>
-              </>
+              </div>
             ) : (
               <>
-                <span className={`flex-1 ${!cat.active ? "text-gray-400 line-through" : ""}`}>
-                  {cat.name}
-                </span>
-                <span className="text-xs text-gray-400">
-                  {cat._count.products} prodotti
-                </span>
-                <button
-                  onClick={() => { setEditingId(cat.id); setEditName(cat.name); }}
-                  className="text-sm text-blue-600 hover:underline"
-                >
-                  Modifica
-                </button>
-                <button
-                  onClick={() => handleToggle(cat)}
-                  className="text-sm text-orange-600 hover:underline"
-                >
-                  {cat.active ? "Disattiva" : "Attiva"}
-                </button>
-                <button
-                  onClick={() => handleDelete(cat.id)}
-                  className="text-sm text-red-600 hover:underline"
-                >
-                  Elimina
-                </button>
+                <div className="flex-1">
+                  <span className={`font-brand font-bold text-xl tracking-tighter transition-colors ${!cat.active ? "text-charcoal/20 line-through" : "text-charcoal"}`}>
+                    {cat.name}
+                  </span>
+                  <p className="text-[9px] uppercase font-brand font-bold tracking-[0.3em] text-charcoal/20 mt-1">
+                    {cat._count.products} Referenze Associate
+                  </p>
+                </div>
+                <div className="flex items-center gap-6">
+                  <button
+                    onClick={() => { setEditingId(cat.id); setEditName(cat.name); }}
+                    className="font-brand font-bold uppercase tracking-widest text-[9px] text-charcoal/40 hover:text-charcoal transition-colors"
+                  >
+                    Modifica
+                  </button>
+                  <button
+                    onClick={() => handleToggle(cat)}
+                    className={`font-brand font-bold uppercase tracking-widest text-[9px] transition-colors ${cat.active ? "text-marigold hover:text-terracotta" : "text-green-600 hover:text-green-700"}`}
+                  >
+                    {cat.active ? "Disattiva" : "Attiva"}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(cat.id)}
+                    className="font-brand font-bold uppercase tracking-widest text-[9px] text-red-300 hover:text-red-500 transition-colors"
+                  >
+                    Elimina
+                  </button>
+                </div>
               </>
             )}
           </div>
         ))}
         {categories.length === 0 && (
-          <p className="px-4 py-6 text-gray-400 text-center">
-            Nessuna categoria. Aggiungine una.
-          </p>
+          <div className="py-20 text-center">
+            <p className="font-brand font-bold uppercase tracking-[0.2em] text-charcoal/20 text-xs">Nessuna categoria configurata.</p>
+          </div>
         )}
       </div>
     </div>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import FloatingIngredients from "@/components/ui/FloatingIngredients";
 import MobileTopBar from "@/components/client/MobileTopBar";
+import { formatCurrency } from "@/lib/utils";
 
 // Observer for scroll animations
 const useScrollReveal = () => {
@@ -103,7 +104,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-white text-[#1d1d1f] pt-24 md:pt-0">
+    <main className="min-h-screen bg-warm-light text-charcoal pt-24 md:pt-0 selection:bg-marigold/30">
       <MobileTopBar />
 
       {/* 1. HERO SECTION */}
@@ -114,90 +115,116 @@ export default function LandingPage() {
       >
         <FloatingIngredients />
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-orange-100 rounded-full blur-[120px] opacity-40 animate-pulse" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-50 rounded-full blur-[120px] opacity-30 animate-pulse" />
+          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-terracotta/20 rounded-full blur-[120px] opacity-20 animate-pulse" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-marigold/20 rounded-full blur-[120px] opacity-20 animate-pulse" />
         </div>
 
-        <div className="max-w-4xl text-center space-y-8 animate-fade-in">
-          <h1 className="text-6xl md:text-8xl font-bold tracking-tight leading-tight text-[#cf2a1d]">
-            La Teglieria. <br />
-            <span className="text-3xl md:text-5xl font-medium text-gray-400">La pizza, elevata.</span>
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-500 max-w-2xl mx-auto font-medium">
-            Croccantezza artigianale e leggerezza sbalorditiva. Il nuovo standard della pizza in teglia.
+        <div className="max-w-4xl text-center space-y-10 animate-fade-in relative z-10">
+          <div className="reveal active flex flex-col items-center">
+            <span className="text-[10px] md:text-xs font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-6 px-4 py-1.5 border border-terracotta/20 rounded-full backdrop-blur-sm shadow-sm bg-warm-light">
+              Roma • Dal 1982
+            </span>
+            <h1 className="text-7xl md:text-9xl font-brand font-medium uppercase tracking-wider leading-[0.85] text-charcoal">
+              La <br className="md:hidden" /> <span className="text-terracotta">Teglieria.</span>
+            </h1>
+            <div className="w-24 h-1 bg-gradient-to-r from-transparent via-terracotta to-transparent mt-8 opacity-20" />
+            <h2 className="text-2xl md:text-4xl font-subtitle font-medium text-charcoal/40 mt-8 normal-case italic">
+              La pizza, elevata.
+            </h2>
+          </div>
+          
+          <p className="reveal active text-lg md:text-2xl text-charcoal/60 max-w-2xl mx-auto font-body leading-relaxed transition-all duration-700">
+            Croccantezza artigianale e leggerezza sbalorditiva. <br className="hidden md:block" />
+            Il nuovo standard della pizza in teglia nel cuore di Roma.
           </p>
 
-          <div className="pt-8 flex flex-col md:flex-row gap-4 justify-center">
+          <div className="reveal active pt-10 flex flex-col md:flex-row gap-5 justify-center">
             <Link
               href="/menu?type=DELIVERY"
-              className="px-12 py-5 rounded-full text-lg font-semibold text-white tomato-glass border hover:scale-105 transition-transform"
+              className="px-14 py-5 rounded-full text-sm font-brand font-bold uppercase tracking-widest text-white bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] shadow-[0_15px_30px_rgba(197,86,26,0.3)] hover:scale-105 active:scale-95 transition-all"
             >
-              Ordina Ora
+              Ordina Delivery
             </Link>
-            <Link href="/menu?type=ASPORTO" className="px-12 py-5 bg-white text-[#1d1d1f] border border-gray-200 rounded-full text-lg font-semibold hover:bg-gray-50 transition-colors">
+            <Link 
+              href="/menu?type=ASPORTO" 
+              className="px-14 py-5 bg-warm-light text-charcoal border border-charcoal/10 rounded-full text-sm font-brand font-bold uppercase tracking-widest shadow-sm hover:bg-white hover:border-charcoal/20 transition-all"
+            >
               Ritira in Sede
             </Link>
           </div>
         </div>
 
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce text-gray-300">
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 animate-bounce text-charcoal/20 text-2xl font-light">
           ↓
         </div>
       </section>
 
       {/* 1.5 PRODUCT SPOTLIGHT (TEGLIA INTERA) */}
-      <section className="reveal py-10 md:py-12 px-6 max-w-5xl mx-auto">
-        <div className="text-center mb-8 md:mb-10">
-          <p className="text-[11px] md:text-xs font-bold uppercase tracking-[0.22em] text-[#cf2a1d]/80 mb-3">
-            Signature Teglia
+      <section className="reveal py-16 md:py-24 px-6 max-w-6xl mx-auto">
+        <div className="text-center mb-12 md:mb-16">
+          <p className="text-[10px] md:text-xs font-brand font-bold uppercase tracking-[0.3em] text-terracotta mb-4">
+            Il Nostro Orgoglio
           </p>
-          <h2 className="text-2xl md:text-4xl font-bold tracking-tight text-[#1d1d1f]">
-            Il Nostro Manifesto di Croccantezza
+          <h2 className="text-4xl md:text-6xl font-brand font-medium uppercase tracking-tight text-charcoal">
+            La <span className="text-terracotta">Teglia</span> Perfetta
           </h2>
         </div>
-        <div className="relative aspect-[16/10] md:aspect-[21/9] rounded-[2.5rem] overflow-hidden shadow-2xl border border-gray-100">
+        <div className="relative aspect-[16/10] md:aspect-[21/9] rounded-[3rem] overflow-hidden shadow-2xl border border-charcoal/5 group">
           <Image
             src="/images/pizza-teglia-hero.png"
             alt="Pizza in Teglia Artigianale"
             fill
-            className="object-cover transition-transform duration-1000 hover:scale-105"
+            className="object-cover transition-transform duration-[2s] group-hover:scale-110"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-8 md:p-12">
-            <p className="text-white text-xl md:text-2xl font-semibold drop-shadow-md">
-              Rigorosamente in teglia. <br className="md:hidden" /> Croccantezza senza confini.
-            </p>
+          <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-transparent to-transparent flex items-end p-8 md:p-16">
+            <div className="space-y-4">
+              <span className="inline-block px-4 py-1 bg-marigold text-charcoal text-[10px] font-bold uppercase tracking-widest rounded-full shadow-lg">
+                High Hydration
+              </span>
+              <p className="text-white text-2xl md:text-4xl font-brand font-medium uppercase leading-tight drop-shadow-lg">
+                Rigorosamente in teglia. <br /> Croccantezza senza confini.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* 2. LA NOSTRA STORIA */}
-      <section id="chi-siamo" className="scroll-mt-24 py-16 md:py-24 px-6 max-w-7xl mx-auto">
-        <div className="text-center mb-10 md:mb-14 reveal">
-          <p className="text-[11px] md:text-xs font-bold uppercase tracking-[0.22em] text-[#cf2a1d]/80 mb-3">
-            Chi Siamo
-          </p>
-          <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
-            Dietro Ogni Teglia C&apos;è Ricerca
-          </h2>
-        </div>
-        <div className="grid md:grid-cols-2 gap-16 items-center">
-          <div className="reveal space-y-6">
-            <h3 className="text-3xl font-bold">La Nostra Storia</h3>
-            <p className="text-lg text-gray-600 leading-relaxed">
-              Nata nel cuore della città, La Teglieria non è solo una pizzeria. È un laboratorio di ricerca dove la tradizione dell&apos;impasto incontra tecniche di lievitazione moderna.
-            </p>
-            <p className="text-lg text-gray-600 leading-relaxed">
-              Il segreto? 72 ore di maturazione, farina di grani antichi e una passione ossessiva per il &quot;crunch&quot; perfetto. Ogni nostra teglia racconta un viaggio tra sapori autentici e innovazione.
-            </p>
+      <section id="chi-siamo" className="scroll-mt-24 py-20 md:py-32 px-6 max-w-7xl mx-auto overflow-hidden">
+        <div className="grid md:grid-cols-12 gap-16 items-center">
+          <div className="md:col-span-7 reveal space-y-10">
+            <header>
+              <p className="text-[10px] md:text-xs font-brand font-bold uppercase tracking-[0.3em] text-terracotta mb-4">
+                L&apos;Eredità
+              </p>
+              <h2 className="text-4xl md:text-6xl font-brand font-medium uppercase leading-[0.9] text-charcoal">
+                Dietro Ogni Teglia <br /> <span className="text-terracotta">C&apos;è Ricerca.</span>
+              </h2>
+            </header>
+            <div className="space-y-6 text-lg md:text-xl text-charcoal/60 leading-relaxed font-body italic">
+              <p>
+                Nata nel cuore della città, <span className="text-charcoal font-bold not-italic">La Teglieria</span> non è solo una pizzeria. È un laboratorio dove la tradizione incontra le tecniche di lievitazione più avanzate.
+              </p>
+              <p>
+                Il segreto? <span className="text-terracotta font-bold not-italic">7d 48 ore</span> di maturazione, farina di grani antichi e una passione ossessiva per il &quot;crunch&quot; perfetto. Ogni nostra teglia racconta un viaggio tra sapori autentici e innovazione.
+              </p>
+            </div>
+            <div className="pt-6">
+              <Link href="/menu" className="group flex items-center gap-4 text-charcoal font-brand font-bold uppercase tracking-widest text-sm transition-all border-b-2 border-terracotta/20 pb-2 w-fit hover:border-terracotta">
+                Scopri la collezione
+                <span className="group-hover:translate-x-2 transition-transform">→</span>
+              </Link>
+            </div>
           </div>
-          <div className="reveal order-first md:order-last">
-            <div className="relative aspect-square rounded-3xl overflow-hidden shadow-2xl">
+          <div className="md:col-span-5 reveal relative">
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-marigold/10 rounded-full blur-3xl" />
+            <div className="relative aspect-[3/4] rounded-[3rem] overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.15)] border-8 border-white/40">
               <Image
                 src="/images/pizzeria-interior.png"
                 alt="Interno Pizzeria"
                 fill
-                className="object-cover transition-transform duration-1000 hover:scale-110"
+                className="object-cover transition-transform duration-1000 group-hover:scale-110"
               />
             </div>
           </div>
@@ -205,65 +232,77 @@ export default function LandingPage() {
       </section>
 
       {/* 3. QUALITÀ (INGREDIENTI) */}
-      <section className="py-16 md:py-24 bg-[#f5f5f7]">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16 reveal">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">Il Nostro Segreto</h2>
-            <p className="text-xl text-gray-500">Meno ingredienti, più ricerca.</p>
+      <section className="py-24 md:py-40 bg-charcoal/5 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-terracotta/5 rounded-full blur-[150px]" />
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="text-center mb-24 reveal">
+            <p className="text-[10px] md:text-xs font-brand font-bold uppercase tracking-[0.3em] text-terracotta mb-4">
+              La Materia Prima
+            </p>
+            <h2 className="text-4xl md:text-7xl font-brand font-medium uppercase tracking-tight text-charcoal leading-none">
+              Meno Ingredienti, <br /> <span className="text-terracotta">Più Ricerca.</span>
+            </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="reveal bg-white p-8 rounded-3xl space-y-4 hover:shadow-xl transition-shadow" style={{ transitionDelay: '0.1s' }}>
-              <div className="text-3xl">🌾</div>
-              <h3 className="text-xl font-bold">Impasto 72h</h3>
-              <p className="text-gray-500">Lunga lievitazione per una digeribilità senza precedenti e una croccantezza unica.</p>
-            </div>
-            <div className="reveal bg-white p-8 rounded-3xl space-y-4 hover:shadow-xl transition-shadow" style={{ transitionDelay: '0.2s' }}>
-              <div className="text-3xl">🍅</div>
-              <h3 className="text-xl font-bold">San Marzano DOP</h3>
-              <p className="text-gray-500">Solo pomodori selezionati dai migliori produttori locali per un sapore vibrante.</p>
-            </div>
-            <div className="reveal bg-white p-8 rounded-3xl space-y-4 hover:shadow-xl transition-shadow" style={{ transitionDelay: '0.3s' }}>
-              <div className="text-3xl">🌿</div>
-              <h3 className="text-xl font-bold">Olio del Contadino</h3>
-              <p className="text-gray-500">Olio extravergine spremuto a freddo, aggiunto a crudo per preservare ogni aroma.</p>
-            </div>
+          <div className="grid md:grid-cols-3 gap-12">
+            {[
+              { emoji: "🌾", title: "Impasto 48h", desc: "Lunga maturazione per una digeribilità senza precedenti e un alveolatura perfetta.", delay: "0.1s" },
+              { emoji: "🍅", title: "San Marzano DOP", desc: "Solo pomodori selezionati dai migliori ettari dell'agro sarnese-nocerino.", delay: "0.2s" },
+              { emoji: "🌿", title: "Olio EVO", desc: "Estratto a freddo, aggiunto a crudo per preservare ogni nota aromatica.", delay: "0.3s" }
+            ].map((item, i) => (
+              <div key={i} className="reveal bg-warm-light p-12 rounded-[2.5rem] space-y-6 hover:shadow-2xl transition-all duration-500 border border-charcoal/5 group hover:-translate-y-2" style={{ transitionDelay: item.delay }}>
+                <div className="w-16 h-16 bg-charcoal/5 rounded-2xl flex items-center justify-center text-4xl group-hover:scale-110 transition-transform">
+                  {item.emoji}
+                </div>
+                <h3 className="text-2xl font-brand uppercase tracking-tight text-charcoal">{item.title}</h3>
+                <p className="text-charcoal/50 leading-relaxed font-body">{item.desc}</p>
+              </div>
+            ))}
           </div>
 
-          <div className="mt-12 md:mt-16 reveal relative h-[400px] w-full rounded-3xl overflow-hidden shadow-2xl">
+          <div className="mt-20 md:mt-32 reveal relative h-[500px] w-full rounded-[3.5rem] overflow-hidden shadow-2xl border border-charcoal/10 group">
             <Image
               src="/images/ingredients.png"
               alt="Ingredienti Premium"
               fill
-              className="object-cover"
+              className="object-cover transition-transform duration-[3s] group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-              <span className="text-white text-3xl font-bold italic drop-shadow-lg text-center px-6">Qualità senza compromessi.</span>
+            <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 to-transparent flex items-center justify-center">
+              <span className="text-white text-3xl md:text-5xl font-brand font-medium uppercase tracking-widest drop-shadow-2xl text-center px-10">
+                Qualità senza <br /> compromessi.
+              </span>
             </div>
           </div>
         </div>
       </section>
 
       {/* 4. MENU HIGHLIGHTS */}
-      <section id="menu" className="scroll-mt-24 py-16 md:py-24 px-6 max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-12 reveal">
+      <section id="menu" className="scroll-mt-24 py-24 md:py-40 px-6 max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-end mb-16 reveal">
           <div>
-            <h2 className="text-4xl font-bold mb-2">I Consigliati</h2>
-            <p className="text-gray-500 text-lg">Direttamente dal nostro laboratorio creativo.</p>
+            <p className="text-[10px] md:text-xs font-brand font-bold uppercase tracking-[0.3em] text-terracotta mb-4">
+              I Protagonisti
+            </p>
+            <h2 className="text-4xl md:text-6xl font-brand font-medium uppercase tracking-tight text-charcoal">
+              Consigli <span className="text-terracotta">Artigianali.</span>
+            </h2>
           </div>
-          <Link href="/menu" className="text-[#cf2a1d] font-semibold hover:underline mt-4 md:mt-0 inline-block">
-            Vedi tutto il menu →
+          <Link href="/menu" className="flex items-center gap-2 text-terracotta font-brand font-bold uppercase tracking-widest text-sm hover:translate-x-2 transition-transform mt-8 md:mt-0 px-6 py-3 border border-terracotta/20 rounded-full hover:bg-terracotta/5">
+            Vedi tutto il menu
           </Link>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-10 md:gap-14">
           {highlights.map((p, idx) => (
             <div key={p.id} className="reveal group cursor-pointer" style={{ transitionDelay: `${idx * 0.1}s` }}>
-              <div className="relative aspect-video rounded-2xl overflow-hidden bg-gray-100 mb-4 shadow-sm group-hover:shadow-md transition-all">
-                <Image src="/images/pizza-teglia-slices.png" alt={p.name} fill className="object-cover group-hover:scale-110 transition-transform" />
+              <div className="relative aspect-square rounded-[2rem] overflow-hidden bg-charcoal/5 mb-8 shadow-lg group-hover:shadow-2xl transition-all border border-charcoal/5">
+                <Image src="/images/pizza-teglia-slices.png" alt={p.name} fill className="object-cover group-hover:scale-110 transition-transform duration-1000" />
+                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-bold text-charcoal shadow-sm">
+                  {formatCurrency(p.price)}
+                </div>
               </div>
-              <h3 className="text-xl font-bold">{p.name}</h3>
-              <p className="text-gray-500 line-clamp-2 mt-1">{p.description || "Un'esplosione di sapori artigianali."}</p>
+              <h3 className="text-2xl font-brand uppercase tracking-tight text-charcoal mb-2 group-hover:text-terracotta transition-colors">{p.name}</h3>
+              <p className="text-charcoal/50 font-body line-clamp-2 leading-relaxed italic">{p.description || "Un&apos;esplosione di sapori artigianali creata con amore."}</p>
             </div>
           ))}
         </div>
@@ -272,34 +311,39 @@ export default function LandingPage() {
       {/* 5. RECENSIONI */}
       <section
         id="dicono-di-noi"
-        className="scroll-mt-24 py-16 md:py-24 bg-gradient-to-b from-[#fff7f5] via-white to-[#fff7f5]"
+        className="scroll-mt-24 py-24 md:py-40 bg-gradient-to-b from-marigold/5 via-warm-light to-marigold/5 relative overflow-hidden"
       >
-        <div className="max-w-7xl mx-auto px-6 overflow-hidden">
-          <div className="text-center mb-12 md:mb-16 reveal">
-            <p className="text-[11px] md:text-xs font-bold uppercase tracking-[0.22em] text-[#cf2a1d]/80 mb-3">
-              Recensioni
+        <div className="absolute top-40 left-0 w-80 h-80 bg-terracotta/10 rounded-full blur-[100px]" />
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="text-center mb-20 reveal">
+            <p className="text-[10px] md:text-xs font-brand font-bold uppercase tracking-[0.3em] text-terracotta mb-4">
+              Community
             </p>
-            <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-[#1d1d1f]">
-              Cosa Dicono di Noi
+            <h2 className="text-4xl md:text-7xl font-brand font-medium uppercase tracking-tight text-charcoal">
+              Cosa Dicono <br /> <span className="text-terracotta">Di Noi.</span>
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 md:gap-8">
+          <div className="grid md:grid-cols-3 gap-10">
             {[
-              { name: "Marco R.", text: "La migliore pizza in teglia della città. Croccante fuori e morbida dentro come non l'avevo mai provata.", stars: "⭐⭐⭐⭐⭐" },
-              { name: "Giulia M.", text: "Ingredienti spaziali. Si sente che c'è ricerca dietro ogni abbinamento. Consigliatissima la Margherita DOP.", stars: "⭐⭐⭐⭐⭐" },
-              { name: "Filippo T.", text: "Delivery puntuale e pizza arrivata ancora calda e croccante. Servizio eccellente!", stars: "⭐⭐⭐⭐⭐" }
+              { name: "Marco R.", text: "La migliore pizza in teglia della città. Croccante fuori e morbida dentro come non l'avevo mai provata.", stars: "★★★★★" },
+              { name: "Giulia M.", text: "Ingredienti spaziali. Si sente che c'è ricerca dietro ogni abbinamento. Consigliatissima la Margherita DOP.", stars: "★★★★★" },
+              { name: "Filippo T.", text: "Delivery puntuale e pizza arrivata ancora calda e croccante. Servizio eccellente!", stars: "★★★★★" }
             ].map((r, idx) => (
               <div
                 key={idx}
-                className="reveal rounded-2xl border border-red-100/70 bg-white p-6 md:p-7 shadow-[0_8px_22px_rgba(31,38,135,0.06)]"
-                style={{ transitionDelay: `${idx * 0.12}s` }}
+                className="reveal bg-white p-10 rounded-[2.5rem] shadow-[0_20px_40px_rgba(21,27,31,0.03)] border border-charcoal/5 flex flex-col justify-between"
+                style={{ transitionDelay: `${idx * 0.15}s` }}
               >
-                <div className="text-yellow-500 mb-3">{r.stars}</div>
-                <p className="text-base md:text-lg leading-relaxed text-gray-600 italic mb-5">
-                  &quot;{r.text}&quot;
-                </p>
-                <p className="font-bold text-[#cf2a1d]">— {r.name}</p>
+                <div className="space-y-6">
+                  <div className="text-marigold text-xl tracking-widest">{r.stars}</div>
+                  <p className="text-lg md:text-xl leading-relaxed text-charcoal font-body italic">
+                    &quot;{r.text}&quot;
+                  </p>
+                </div>
+                <div className="mt-8 pt-6 border-t border-charcoal/5">
+                  <p className="font-brand font-bold uppercase tracking-widest text-xs text-terracotta">— {r.name}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -309,87 +353,81 @@ export default function LandingPage() {
       {/* FOOTER & STICKY CTA */}
       <footer
         id="contatti"
-        className="scroll-mt-24 py-14 md:py-20 px-6 mb-24 md:mb-0 border-t border-red-100 bg-gradient-to-b from-white via-[#fff7f5] to-white"
+        className="scroll-mt-24 py-20 md:py-40 px-6 border-t border-charcoal/5 bg-warm-light"
       >
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-10 md:mb-14">
-            <p className="text-[11px] md:text-xs font-bold uppercase tracking-[0.22em] text-[#cf2a1d]/80 mb-3">
-              Contatti
-            </p>
-            <h3 className="text-2xl md:text-4xl font-bold tracking-tight text-[#1d1d1f]">
-              Passa in Teglieria o Ordina Online
-            </h3>
-          </div>
-
-          <div className="grid md:grid-cols-4 gap-4 md:gap-6 text-sm text-gray-600">
-            <div className="rounded-2xl border border-red-100/70 bg-white/85 p-5 space-y-3">
-              <h4 className="text-[#cf2a1d] font-bold text-lg">La Teglieria.</h4>
-              <p>Laboratorio artigianale di pizza in teglia ad alta idratazione.</p>
-            </div>
-
-            <div className="rounded-2xl border border-red-100/70 bg-white/85 p-5">
-              <h4 className="text-[#1d1d1f] font-bold mb-3">Orari</h4>
-              <p>Lun - Dom: 18:30 - 22:30</p>
-              <p>Chiuso il Martedì</p>
-            </div>
-
-            <div className="rounded-2xl border border-red-100/70 bg-white/85 p-5 space-y-1">
-              <h4 className="text-[#1d1d1f] font-bold mb-3">Contatti</h4>
-              <p>Via Roma 123, Roma</p>
-              <a href="tel:+39061234567" className="block text-[#cf2a1d] font-semibold hover:underline">
-                Tel: +39 06 123 4567
-              </a>
-            </div>
-
-            <div className="rounded-2xl border border-red-100/70 bg-white/85 p-5">
-              <h4 className="text-[#1d1d1f] font-bold mb-3">Social</h4>
-              <div className="flex gap-2">
-                <a href="#" className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-[#cf2a1d] font-semibold">
-                  Instagram
+          <div className="mb-24 flex flex-col md:flex-row justify-between items-start gap-12">
+            <div className="space-y-6 max-w-md">
+              <h3 className="text-4xl font-brand font-medium uppercase tracking-tight text-charcoal">
+                La <span className="text-terracotta">Teglieria.</span>
+              </h3>
+              <p className="text-lg text-charcoal/50 leading-relaxed font-body italic">
+                Laboratorio artigianale di pizza in teglia ad alta idratazione. Dedizione, tempo e croccantezza nel cuore pulsante della città.
+              </p>
+              <div className="flex gap-4">
+                <a href="#" className="w-12 h-12 rounded-full bg-charcoal/5 flex items-center justify-center hover:bg-terracotta hover:text-white transition-all">
+                  Ig
                 </a>
-                <a href="#" className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-[#cf2a1d] font-semibold">
-                  Facebook
+                <a href="#" className="w-12 h-12 rounded-full bg-charcoal/5 flex items-center justify-center hover:bg-terracotta hover:text-white transition-all">
+                  Fb
                 </a>
               </div>
             </div>
-          </div>
-        </div>
 
-        <div className="text-center mt-12 md:mt-16 text-xs text-gray-400">
-          © {new Date().getFullYear()} La Teglieria • Creato con cura artigianale.
-        </div>
-
-        <div className="mt-4 text-center">
-          <details className="inline-block text-[11px] text-gray-400">
-            <summary className="cursor-pointer select-none hover:text-gray-500 transition-colors">
-              Area riservata
-            </summary>
-            <div className="mt-2 flex items-center justify-center gap-3">
-              <Link href="/admin/login" className="hover:text-[#cf2a1d] transition-colors">
-                Admin
-              </Link>
-              <span>•</span>
-              <Link href="/rider/login" className="hover:text-[#cf2a1d] transition-colors">
-                Rider
-              </Link>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-12 md:gap-24 font-brand uppercase tracking-widest text-xs">
+              <div className="space-y-8">
+                <h4 className="text-charcoal/30 font-bold">Menu</h4>
+                <ul className="space-y-4 text-charcoal font-bold">
+                  <li><Link href="/#ordina" className="hover:text-terracotta transition-colors">Ordina</Link></li>
+                  <li><Link href="/#menu" className="hover:text-terracotta transition-colors">Classiche</Link></li>
+                  <li><Link href="/#menu" className="hover:text-terracotta transition-colors">Gourmet</Link></li>
+                </ul>
+              </div>
+              <div className="space-y-8">
+                <h4 className="text-charcoal/30 font-bold">Contatti</h4>
+                <ul className="space-y-4 text-charcoal font-bold">
+                  <li>Via Roma 123, Roma</li>
+                  <li><a href="tel:+39061234567" className="hover:text-terracotta transition-colors">+39 06 123 4567</a></li>
+                  <li className="text-terracotta">Chiuso il Martedì</li>
+                </ul>
+              </div>
+              <div className="space-y-8 col-span-2 md:col-span-1">
+                <h4 className="text-charcoal/30 font-bold">Orari</h4>
+                <ul className="space-y-4 text-charcoal font-bold">
+                  <li>Lun - Ven: 18:30 - 22:30</li>
+                  <li>Sab - Dom: 17:30 - 23:00</li>
+                </ul>
+              </div>
             </div>
-          </details>
+          </div>
+
+          <div className="pt-12 border-t border-charcoal/10 flex flex-col md:flex-row justify-between items-center gap-8">
+            <div className="text-[10px] text-charcoal/30 font-brand font-bold uppercase tracking-[0.4em]">
+              © {new Date().getFullYear()} La Teglieria Artisan Pizza • All rights reserved
+            </div>
+            
+            <div className="flex items-center gap-6">
+              <Link href="/admin/login" className="text-[10px] text-charcoal/40 font-brand font-bold uppercase tracking-widest hover:text-terracotta transition-colors">Admin Area</Link>
+              <div className="w-1 h-1 bg-charcoal/20 rounded-full" />
+              <Link href="/rider/login" className="text-[10px] text-charcoal/40 font-brand font-bold uppercase tracking-widest hover:text-terracotta transition-colors">Rider Access</Link>
+            </div>
+          </div>
         </div>
       </footer>
 
       {/* MOBILE STICKY CTA */}
       <div
-        className={`md:hidden fixed bottom-8 inset-x-0 px-6 z-50 transition-all duration-400 ${
+        className={`md:hidden fixed bottom-8 inset-x-0 px-8 z-50 transition-all duration-400 ${
           showMobileCta
-            ? "opacity-100 translate-y-0 pointer-events-auto"
-            : "opacity-0 translate-y-6 pointer-events-none"
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-10 pointer-events-none"
         }`}
       >
         <Link
           href="/menu"
-          className="flex items-center justify-center w-full py-4 rounded-full text-white font-bold tomato-glass border active:scale-95 transition-all"
+          className="flex items-center justify-center w-full py-5 rounded-full text-white font-brand font-bold uppercase tracking-widest text-xs bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] shadow-[0_20px_40px_rgba(197,86,26,0.3)] active:scale-95 transition-all"
         >
-          🍕 Ordina Ora la tua Teglia
+          🍕 Ordina la tua Teglia
         </Link>
       </div>
     </main>

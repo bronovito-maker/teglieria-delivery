@@ -10,6 +10,10 @@ export default function OrderDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const [order, setOrder] = useState<OrderWithItems | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   const fetchOrder = useCallback(async () => {
     const res = await fetch(`/api/ordini/${id}`);
@@ -47,6 +51,39 @@ export default function OrderDetailPage() {
     });
   }
 
+  function openDeleteModal() {
+    setDeletePassword("");
+    setDeleteError("");
+    setShowDeleteModal(true);
+  }
+
+  async function handleDeleteOrder() {
+    if (!order) return;
+    setDeleteError("");
+    setDeleting(true);
+
+    const payload = order.status === "CONFIRMED"
+      ? { adminPassword: deletePassword }
+      : undefined;
+
+    const res = await fetch(`/api/ordini/${id}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload ?? {}),
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({ error: "Errore durante l'eliminazione ordine" }));
+      setDeleteError(data.error || "Errore durante l'eliminazione ordine");
+      setDeleting(false);
+      return;
+    }
+
+    setShowDeleteModal(false);
+    router.push("/admin/ordini");
+    router.refresh();
+  }
+
   if (!order) return <p className="text-gray-400">Caricamento...</p>;
 
   const nextStatuses = ORDER_STATUS_TRANSITIONS[order.status] || [];
@@ -62,6 +99,12 @@ export default function OrderDetailPage() {
           <button onClick={handlePrint}
             className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm transition-colors">
             Stampa
+          </button>
+          <button
+            onClick={openDeleteModal}
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-colors"
+          >
+            Elimina ordine
           </button>
           {nextStatuses.map((status) => (
             <button key={status} onClick={() => updateStatus(status)}
@@ -198,6 +241,69 @@ export default function OrderDetailPage() {
           </div>
         </div>
       </div>
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[90] bg-black/45 flex items-end sm:items-center justify-center p-3 sm:p-5">
+          <div className="w-full max-w-lg rounded-3xl border border-red-100/80 bg-white shadow-[0_20px_45px_rgba(31,38,135,0.12)]">
+            <div className="px-5 py-4 border-b border-red-100/80 flex items-center justify-between">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.14em] text-[#cf2a1d]/80 font-bold">Eliminazione ordine</p>
+                <h3 className="text-xl font-bold text-[#1d1d1f]">Ordine #{order.orderNumber}</h3>
+              </div>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="h-9 w-9 rounded-xl border border-red-100 text-gray-500 hover:bg-red-50/60 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              <p className="text-sm text-gray-600">
+                Stai per eliminare definitivamente questo ordine.
+              </p>
+
+              {order.status === "CONFIRMED" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Password amministratore
+                  </label>
+                  <input
+                    type="password"
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-red-100 rounded-xl focus:ring-2 focus:ring-[#cf2a1d] focus:border-[#cf2a1d] outline-none"
+                    placeholder="Inserisci password eliminazione"
+                  />
+                  <p className="mt-2 text-xs text-gray-500">
+                    Per ordini confermati la password è obbligatoria.
+                  </p>
+                </div>
+              )}
+
+              {deleteError && <p className="text-sm text-red-600">{deleteError}</p>}
+            </div>
+
+            <div className="p-5 border-t border-red-100/80 flex flex-col sm:flex-row gap-2 sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2.5 rounded-xl border border-red-100 bg-white text-[#cf2a1d] font-semibold hover:bg-red-50/60 transition-colors"
+              >
+                Annulla
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteOrder}
+                disabled={deleting || (order.status === "CONFIRMED" && !deletePassword.trim())}
+                className="px-4 py-2.5 rounded-xl bg-red-600 border border-red-600 text-white font-semibold hover:bg-red-700 disabled:opacity-50 transition-colors"
+              >
+                {deleting ? "Eliminazione..." : "Conferma eliminazione"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

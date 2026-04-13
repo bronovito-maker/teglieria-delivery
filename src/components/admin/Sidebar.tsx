@@ -30,102 +30,90 @@ export default function Sidebar() {
 
   return (
     <>
-      <header className="md:hidden fixed top-0 inset-x-0 z-[80] tomato-glass border-b text-white">
-        <div className="px-4 py-3 flex items-center justify-between">
+      <header className="md:hidden fixed top-0 inset-x-0 z-[80] bg-charcoal border-b border-white/5 text-white">
+        <div className="px-6 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">La Teglieria</h1>
-            <p className="text-[11px] text-white/85 uppercase tracking-[0.18em]">Gestionale</p>
+            <h1 className="text-2xl font-brand font-medium uppercase tracking-wider text-white">La Teglieria</h1>
+            <p className="text-[10px] font-brand font-bold text-terracotta uppercase tracking-[0.25em]">Gestionale</p>
           </div>
           <button
             type="button"
             aria-label={open ? "Chiudi menu admin" : "Apri menu admin"}
             aria-expanded={open}
             onClick={() => setOpen((prev) => !prev)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/35 bg-white/10"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
           >
             <span className="relative block h-4 w-5">
-              <span
-                className={`absolute left-0 top-0 h-[2px] w-5 rounded bg-white transition-all ${
-                  open ? "top-[7px] rotate-45" : ""
-                }`}
-              />
-              <span
-                className={`absolute left-0 top-[7px] h-[2px] w-5 rounded bg-white transition-all ${
-                  open ? "opacity-0" : "opacity-100"
-                }`}
-              />
-              <span
-                className={`absolute left-0 top-[14px] h-[2px] w-5 rounded bg-white transition-all ${
-                  open ? "top-[7px] -rotate-45" : ""
-                }`}
-              />
+              <span className={`absolute left-0 top-0 h-[2px] w-5 rounded bg-white transition-all duration-300 ${open ? "top-[7px] rotate-45" : ""}`} />
+              <span className={`absolute left-0 top-[7px] h-[2px] w-5 rounded bg-white transition-all duration-300 ${open ? "opacity-0" : "opacity-100"}`} />
+              <span className={`absolute left-0 top-[14px] h-[2px] w-5 rounded bg-white transition-all duration-300 ${open ? "top-[7px] -rotate-45" : ""}`} />
             </span>
           </button>
         </div>
 
-        <nav
-          className={`grid transition-all duration-300 ease-out ${
-            open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-          }`}
-        >
-          <div className="overflow-hidden border-t border-white/20">
-            <div className="px-3 py-3 space-y-2">
+        <nav className={`grid transition-all duration-500 ease-in-out ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+          <div className="overflow-hidden bg-charcoal">
+            <div className="px-4 py-6 space-y-2 border-t border-white/5">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
+                    "flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[11px] font-brand font-bold uppercase tracking-widest transition-all",
                     pathname === item.href
-                      ? "bg-white/20 border border-white/30 text-white"
-                      : "text-white/95 hover:bg-white/10"
+                      ? "bg-terracotta text-white shadow-lg shadow-terracotta/20"
+                      : "text-white/60 hover:text-white hover:bg-white/5"
                   )}
                 >
-                  <span>{item.icon}</span>
+                  <span className="text-base opacity-80">{item.icon}</span>
                   {item.label}
                 </Link>
               ))}
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/95 hover:bg-white/10 transition-colors"
+                className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[11px] font-brand font-bold uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/5 transition-all mt-4"
               >
-                <span>🚪</span>
-                Esci
+                <span className="text-base opacity-60">🚪</span>
+                Esci Sessione
               </button>
             </div>
           </div>
         </nav>
       </header>
 
-      <aside className="w-72 bg-white/70 border-r border-red-100/80 min-h-screen flex-col hidden md:flex backdrop-blur-xl">
-        <div className="p-4 border-b border-red-100/80 tomato-glass text-white">
-          <h1 className="text-xl font-bold tracking-tight">La Teglieria</h1>
-          <p className="text-xs text-white/80 mt-1 uppercase tracking-[0.12em]">Gestionale</p>
+      <aside className="w-80 bg-charcoal border-r border-white/5 min-h-screen flex-col hidden md:flex shadow-2xl relative z-50">
+        <div className="p-10 mb-8">
+          <h1 className="text-2xl font-brand font-medium uppercase tracking-wider text-white">La Teglieria</h1>
+          <p className="text-[10px] font-brand font-bold text-terracotta mt-2 uppercase tracking-[0.3em] leading-none">Console Gestionale</p>
         </div>
-        <nav className="flex-1 p-3 space-y-1.5">
+        
+        <nav className="flex-1 px-4 space-y-2">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
+                "flex items-center gap-4 px-6 py-4 rounded-2xl text-[11px] font-brand font-bold uppercase tracking-[0.15em] transition-all group",
                 pathname === item.href
-                  ? "tomato-glass border text-white shadow-[0_8px_18px_rgba(192,38,22,0.2)]"
-                  : "text-gray-600 hover:bg-red-50/60 hover:text-[#cf2a1d]"
+                  ? "bg-terracotta text-white shadow-xl shadow-terracotta/20 scale-[1.02]"
+                  : "text-white/40 hover:text-white hover:bg-white/5"
               )}
             >
-              <span>{item.icon}</span>
+              <span className={cn("text-base transition-transform group-hover:scale-110", pathname === item.href ? "opacity-100" : "opacity-50")}>
+                {item.icon}
+              </span>
               {item.label}
             </Link>
           ))}
         </nav>
-        <div className="p-3 border-t border-red-100/80">
+
+        <div className="p-6 mt-auto border-t border-white/5">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-red-50/60 hover:text-[#cf2a1d] transition-colors"
+            className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[11px] font-brand font-bold uppercase tracking-[0.2em] text-white/30 hover:text-white hover:bg-white/5 transition-all"
           >
-            <span>🚪</span>
+            <span className="text-base opacity-30">🚪</span>
             Esci
           </button>
         </div>

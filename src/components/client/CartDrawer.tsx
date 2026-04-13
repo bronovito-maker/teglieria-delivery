@@ -23,31 +23,31 @@ export default function CartDrawer({ open, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex justify-end" onClick={onClose}>
-      <div className="bg-white w-full max-w-md h-full flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="p-4 border-b border-red-300/35 bg-gradient-to-br from-[#d92d20] via-[#cf2a1d] to-[#bb2418] text-white shadow-[0_12px_24px_rgba(192,38,22,0.25)] backdrop-blur-xl flex items-center justify-between">
-          <h2 className="text-lg font-bold">Il tuo ordine</h2>
+      <div className="bg-warm-light w-full max-w-md h-full flex flex-col border-l border-charcoal/5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="p-6 border-b border-white/20 bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] text-white shadow-[0_8px_20px_rgba(197,86,26,0.2)] backdrop-blur-xl flex items-center justify-between">
+          <h2 className="text-xl font-brand uppercase tracking-wider">Il tuo ordine</h2>
           <button onClick={onClose} className="text-white/80 hover:text-white text-2xl">&times;</button>
         </div>
 
         {/* Tipo ordine */}
-        <div className="p-4 border-b">
-          <div className="flex rounded-lg border border-red-200/70 overflow-hidden bg-white">
+        <div className="p-4 border-b border-charcoal/5">
+          <div className="flex rounded-full border border-charcoal/10 overflow-hidden bg-charcoal/5 p-1">
             <button
               onClick={() => setOrderType("ASPORTO")}
-              className={`flex-1 py-2 text-sm font-medium transition-colors ${
+              className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-full transition-all ${
                 orderType === "ASPORTO"
-                  ? "bg-gradient-to-br from-[#d92d20] via-[#cf2a1d] to-[#bb2418] text-white"
-                  : "text-gray-700 hover:bg-red-50/50"
+                  ? "bg-white text-charcoal shadow-sm scale-[1.02]"
+                  : "text-charcoal/40 hover:text-charcoal/60"
               }`}
             >
               Asporto
             </button>
             <button
               onClick={() => setOrderType("DELIVERY")}
-              className={`flex-1 py-2 text-sm font-medium transition-colors ${
+              className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-full transition-all ${
                 orderType === "DELIVERY"
-                  ? "bg-gradient-to-br from-[#d92d20] via-[#cf2a1d] to-[#bb2418] text-white"
-                  : "text-gray-700 hover:bg-red-50/50"
+                  ? "bg-white text-charcoal shadow-sm scale-[1.02]"
+                  : "text-charcoal/40 hover:text-charcoal/60"
               }`}
             >
               Delivery
@@ -69,7 +69,7 @@ export default function CartDrawer({ open, onClose }: Props) {
             </div>
           )}
           {items.map((item) => (
-            <div key={item.id} className="bg-gray-50 rounded-lg p-3">
+            <div key={item.id} className="bg-white/40 border border-charcoal/5 rounded-2xl p-4 shadow-sm">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <p className="font-medium text-sm">{item.productName}</p>
@@ -85,12 +85,12 @@ export default function CartDrawer({ open, onClose }: Props) {
                 <p className="font-semibold text-sm ml-2">{formatCurrency(item.totalPrice)}</p>
               </div>
               <div className="flex items-center justify-between mt-2">
-                <div className="flex items-center border rounded text-sm">
-                  <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="px-2 py-0.5 hover:bg-gray-100">-</button>
-                  <span className="px-2">{item.quantity}</span>
-                  <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="px-2 py-0.5 hover:bg-gray-100">+</button>
+                <div className="flex items-center border border-charcoal/10 rounded-full text-xs font-bold overflow-hidden">
+                  <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="px-3 py-1 hover:bg-charcoal/5">-</button>
+                  <span className="px-3 border-x border-charcoal/10">{item.quantity}</span>
+                  <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="px-3 py-1 hover:bg-charcoal/5">+</button>
                 </div>
-                <button onClick={() => removeItem(item.id)} className="text-xs text-red-500 hover:underline">Rimuovi</button>
+                <button onClick={() => removeItem(item.id)} className="text-xs font-bold text-terracotta hover:underline uppercase tracking-tighter">Rimuovi</button>
               </div>
             </div>
           ))}
@@ -99,19 +99,19 @@ export default function CartDrawer({ open, onClose }: Props) {
         {/* Footer */}
         {items.length > 0 && (
           <div className="border-t p-4 space-y-3">
-            <div className="flex justify-between font-semibold text-lg">
+            <div className="flex justify-between font-bold text-2xl text-charcoal">
               <span>Totale</span>
-              <span>{formatCurrency(getSubtotal())}</span>
+              <span className="text-terracotta">{formatCurrency(getSubtotal())}</span>
             </div>
             <button
               onClick={clearCart}
-              className="w-full py-2.5 rounded-lg border border-red-200 text-red-600 font-semibold hover:bg-red-50 transition-colors"
+              className="w-full py-3 rounded-xl border border-charcoal/10 text-charcoal/60 font-bold uppercase text-xs tracking-widest hover:bg-charcoal/5 transition-colors"
             >
               Svuota carrello
             </button>
             <button
               onClick={handleCheckout}
-              className="w-full py-3 text-white rounded-lg font-medium bg-gradient-to-br from-[#d92d20] via-[#cf2a1d] to-[#bb2418] border border-red-300/35 shadow-[0_12px_24px_rgba(192,38,22,0.28)] backdrop-blur-xl hover:brightness-105 transition-all"
+              className="w-full py-4 text-white rounded-xl font-bold uppercase tracking-widest bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] border border-white/10 shadow-[0_12px_24px_rgba(197,86,26,0.25)] hover:brightness-110 active:scale-[0.98] transition-all"
             >
               Procedi all&apos;ordine
             </button>

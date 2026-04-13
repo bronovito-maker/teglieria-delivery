@@ -58,7 +58,7 @@ export default function OrdinePage() {
         <h2 className="text-2xl font-bold mb-4">Il carrello è vuoto</h2>
         <button 
           onClick={() => router.push("/menu")} 
-          className="px-8 py-3 bg-[#1d1d1f] text-white rounded-full font-semibold hover:scale-105 transition-transform"
+          className="px-8 py-3 bg-charcoal text-white rounded-full font-semibold hover:scale-105 transition-transform"
         >
           Vai al Menu
         </button>
@@ -141,7 +141,7 @@ export default function OrdinePage() {
               {items.map((item) => (
                 <div key={item.id} className="flex justify-between items-start">
                   <div className="flex-1">
-                    <p className="font-bold text-[#1d1d1f]">
+                    <p className="font-bold text-charcoal">
                       {item.quantity}x {item.productName}
                     </p>
                     {item.variant && <p className="text-sm text-gray-500">{item.variant}</p>}
@@ -162,14 +162,14 @@ export default function OrdinePage() {
                   <span>{formatCurrency(deliveryCost)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-2xl font-bold text-[#1d1d1f] pt-4">
+              <div className="flex justify-between text-2xl font-bold text-charcoal pt-4">
                 <span>Totale</span>
-                <span className="text-orange-600">{formatCurrency(total)}</span>
+                <span className="text-terracotta">{formatCurrency(total)}</span>
               </div>
             </div>
 
             <div className="mt-6 flex justify-center">
-              <div className="px-4 py-1.5 bg-orange-100 text-orange-800 rounded-full text-xs font-bold uppercase tracking-wider">
+              <div className="px-4 py-1.5 bg-terracotta/10 text-terracotta rounded-full text-xs font-bold uppercase tracking-wider">
                 {orderType === "ASPORTO" ? "Ritiro in Sede" : "Consegna a Domicilio"}
               </div>
             </div>
@@ -257,10 +257,10 @@ export default function OrdinePage() {
                 onClick={() => setPickupTime(slot.time)}
                 className={`py-3 text-xs font-bold rounded-2xl border transition-all ${
                   pickupTime === slot.time
-                    ? "bg-[#1d1d1f] border-[#1d1d1f] text-white shadow-xl scale-105"
+                    ? "bg-terracotta border-terracotta text-white shadow-xl scale-105"
                     : slot.available
-                    ? "bg-white border-gray-100 text-gray-600 hover:border-orange-200"
-                    : "bg-gray-50 border-transparent text-gray-300 cursor-not-allowed opacity-50"
+                    ? "bg-white/50 border-charcoal/10 text-charcoal hover:border-terracotta"
+                    : "bg-charcoal/5 border-transparent text-charcoal/30 cursor-not-allowed opacity-50"
                 }`}
               >
                 {slot.time}
@@ -273,14 +273,14 @@ export default function OrdinePage() {
         {/* SECTION 5: PAGAMENTO */}
         <div className="reveal space-y-6">
           <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-gray-400">Metodo di Pagamento</h2>
-          <div className="flex gap-4 p-2 bg-gray-100/50 rounded-[2rem]">
+          <div className="flex gap-4 p-2 bg-charcoal/5 rounded-[2rem]">
             <button
               type="button"
               onClick={() => setPaymentMethod("CONTANTI")}
               className={`flex-1 py-4 px-6 rounded-[1.6rem] transition-all flex items-center justify-center gap-3 font-bold ${
                 paymentMethod === "CONTANTI"
-                  ? "bg-white shadow-xl text-[#1d1d1f] scale-[1.02]"
-                  : "text-gray-400 hover:text-gray-600"
+                  ? "bg-white shadow-xl text-charcoal scale-[1.02]"
+                  : "text-charcoal/40 hover:text-charcoal/60"
               }`}
             >
               <span className="text-xl">💵</span>
@@ -291,8 +291,8 @@ export default function OrdinePage() {
               onClick={() => setPaymentMethod("POS")}
               className={`flex-1 py-4 px-6 rounded-[1.6rem] transition-all flex items-center justify-center gap-3 font-bold ${
                 paymentMethod === "POS"
-                  ? "bg-white shadow-xl text-[#1d1d1f] scale-[1.02]"
-                  : "text-gray-400 hover:text-gray-600"
+                  ? "bg-white shadow-xl text-charcoal scale-[1.02]"
+                  : "text-charcoal/40 hover:text-charcoal/60"
               }`}
             >
               <span className="text-xl">💳</span>
@@ -318,7 +318,7 @@ export default function OrdinePage() {
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full py-5 bg-orange-600 text-white rounded-full font-bold text-xl shadow-2xl hover:bg-orange-700 active:scale-[0.98] transition-all disabled:opacity-50"
+            className="w-full py-5 bg-terracotta text-white rounded-full font-bold text-xl shadow-2xl hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
           >
             {loading ? "Elaborazione..." : "Conferma e Invia Ordine"}
           </button>

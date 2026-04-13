@@ -8,6 +8,11 @@ type Report = {
   totalOrders: number;
   totalRevenue: number;
   cancelledOrders: number;
+  financial: {
+    riderCompensation: number;
+    netAfterRiderCompensation: number;
+    deliveryCompletedCount: number;
+  };
   byType: {
     asporto: { count: number; revenue: number };
     delivery: { count: number; revenue: number };
@@ -31,134 +36,142 @@ export default function ReportPage() {
   if (!report) return <p className="text-gray-400">Caricamento...</p>;
 
   return (
-    <div className="max-w-6xl">
-      <div className="mb-6 md:mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-[11px] md:text-xs font-bold uppercase tracking-[0.22em] text-[#cf2a1d]/80 mb-1">
-            Analytics
-          </p>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-[#1d1d1f]">Report</h1>
+    <div className="max-w-7xl animate-in fade-in duration-700">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between mb-12">
+        <div className="reveal active">
+          <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-2 block">Performance Store</span>
+          <h1 className="text-4xl md:text-5xl font-brand font-medium uppercase tracking-tight text-charcoal">
+            Analitica <span className="text-terracotta">Report.</span>
+          </h1>
+          <p className="font-body italic text-charcoal/40 mt-2 tracking-widest uppercase text-[10px]">Bilancio giornaliero e flussi</p>
         </div>
         <input
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="w-full sm:w-auto px-4 py-2.5 border border-red-100 rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#cf2a1d]/30 outline-none"
+          className="w-full sm:w-auto px-8 py-4 bg-white border border-charcoal/5 rounded-full font-brand font-bold uppercase tracking-[0.2em] text-[10px] shadow-sm hover:bg-warm-light transition-all outline-none focus:ring-2 focus:ring-terracotta/20"
         />
       </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-6">
-        <div className="bg-white/90 rounded-2xl border border-red-100/80 shadow-[0_10px_22px_rgba(31,38,135,0.05)] p-4 text-center">
-          <p className="text-3xl font-bold text-[#cf2a1d]">{report.totalOrders}</p>
-          <p className="text-sm text-gray-500">Ordini</p>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-12">
+        <div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] border border-charcoal/5 p-8 shadow-sm reveal active text-center">
+          <p className="text-4xl font-brand font-bold text-charcoal mb-2">{report.totalOrders}</p>
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30">Volume Ordini</p>
         </div>
-        <div className="col-span-2 md:col-span-1 bg-white/90 rounded-2xl border border-red-100/80 shadow-[0_10px_22px_rgba(31,38,135,0.05)] p-4 text-center">
-          <p className="text-3xl font-bold text-emerald-600">{formatCurrency(report.totalRevenue)}</p>
-          <p className="text-sm text-gray-500">Incasso</p>
+        <div className="col-span-2 md:col-span-1 bg-white/70 backdrop-blur-xl rounded-[2.5rem] border border-charcoal/5 p-8 shadow-sm reveal active text-center">
+          <p className="text-4xl font-brand font-bold text-terracotta mb-2">{formatCurrency(report.totalRevenue)}</p>
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30">Incasso Lordo</p>
         </div>
-        <div className="bg-white/90 rounded-2xl border border-red-100/80 shadow-[0_10px_22px_rgba(31,38,135,0.05)] p-4 text-center md:col-start-auto">
-          <p className="text-3xl font-bold text-red-400">{report.cancelledOrders}</p>
-          <p className="text-sm text-gray-500">Annullati</p>
+        <div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] border border-charcoal/5 p-8 shadow-sm reveal active text-center">
+          <p className="text-4xl font-brand font-bold text-marigold mb-2">{report.cancelledOrders}</p>
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30">Annullati</p>
         </div>
-      </div>
-
-      {/* By type */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <div className="bg-white/90 rounded-2xl border border-red-100/80 shadow-[0_10px_22px_rgba(31,38,135,0.05)] p-4 md:p-5">
-          <h2 className="font-semibold mb-3">Per tipologia</h2>
-          <table className="w-full text-sm md:text-base">
-            <thead className="text-gray-500">
-              <tr>
-                <th className="text-left py-1">Tipo</th>
-                <th className="text-right">Ordini</th>
-                <th className="text-right">Incasso</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="py-1.5">Asporto</td>
-                <td className="text-right tabular-nums">{report.byType.asporto.count}</td>
-                <td className="text-right tabular-nums">{formatCurrency(report.byType.asporto.revenue)}</td>
-              </tr>
-              <tr>
-                <td className="py-1.5">Delivery</td>
-                <td className="text-right tabular-nums">{report.byType.delivery.count}</td>
-                <td className="text-right tabular-nums">{formatCurrency(report.byType.delivery.revenue)}</td>
-              </tr>
-            </tbody>
-          </table>
+        <div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] border border-charcoal/5 p-8 shadow-sm reveal active text-center">
+          <p className="text-3xl font-brand font-bold text-charcoal mb-2">{formatCurrency(report.financial.riderCompensation)}</p>
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30">Costo Consegna</p>
         </div>
-        <div className="bg-white/90 rounded-2xl border border-red-100/80 shadow-[0_10px_22px_rgba(31,38,135,0.05)] p-4 md:p-5">
-          <h2 className="font-semibold mb-3">Per canale</h2>
-          <table className="w-full text-sm md:text-base">
-            <thead className="text-gray-500">
-              <tr>
-                <th className="text-left py-1">Canale</th>
-                <th className="text-right">Ordini</th>
-                <th className="text-right">Incasso</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="py-1.5">Sito Web</td>
-                <td className="text-right tabular-nums">{report.byChannel.web.count}</td>
-                <td className="text-right tabular-nums">{formatCurrency(report.byChannel.web.revenue)}</td>
-              </tr>
-              <tr>
-                <td className="py-1.5">Telefono</td>
-                <td className="text-right tabular-nums">{report.byChannel.phone.count}</td>
-                <td className="text-right tabular-nums">{formatCurrency(report.byChannel.phone.revenue)}</td>
-              </tr>
-              <tr>
-                <td className="py-1.5">Banco</td>
-                <td className="text-right tabular-nums">{report.byChannel.counter.count}</td>
-                <td className="text-right tabular-nums">{formatCurrency(report.byChannel.counter.revenue)}</td>
-              </tr>
-            </tbody>
-          </table>
+        <div className="col-span-2 md:col-span-1 bg-charcoal text-white rounded-[2.5rem] p-8 shadow-2xl reveal active text-center">
+          <p className="text-3xl font-brand font-bold mb-2">{formatCurrency(report.financial.netAfterRiderCompensation)}</p>
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-white/40">Netto Store</p>
         </div>
       </div>
 
-      {/* Top products */}
-      <div className="bg-white/90 rounded-2xl border border-red-100/80 shadow-[0_10px_22px_rgba(31,38,135,0.05)] p-4 md:p-5">
-        <h2 className="font-semibold mb-3">Prodotti più venduti</h2>
-        <div className="md:hidden space-y-2">
-          {report.topProducts.map((p) => (
-            <div key={p.name} className="rounded-xl border border-red-100/70 bg-red-50/30 p-3">
-              <p className="font-medium text-[#1d1d1f]">{p.name}</p>
-              <div className="mt-1 flex items-center justify-between text-sm text-gray-600">
-                <span>Q.tà: <span className="tabular-nums font-semibold">{p.quantity}</span></span>
-                <span className="tabular-nums font-semibold">{formatCurrency(p.revenue)}</span>
-              </div>
-            </div>
-          ))}
-          {report.topProducts.length === 0 && (
-            <p className="text-center text-gray-400 py-4">Nessun dato</p>
-          )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        <div className="bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-charcoal/5 shadow-2xl overflow-hidden reveal active">
+          <div className="px-10 py-6 border-b border-charcoal/5 bg-warm-light/20">
+            <h2 className="font-brand font-bold uppercase tracking-[0.2em] text-[10px] text-charcoal">Flusso per Tipologia</h2>
+          </div>
+          <div className="p-10">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-charcoal/5">
+                  <th className="pb-4 text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/40">Tipo Servizio</th>
+                  <th className="pb-4 text-right text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/40">Qtà</th>
+                  <th className="pb-4 text-right text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/40">Rendimento</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-charcoal/5">
+                <tr className="group">
+                  <td className="py-5 font-brand font-bold text-charcoal">Asporto</td>
+                  <td className="py-5 text-right font-brand font-bold text-charcoal/60">{report.byType.asporto.count}</td>
+                  <td className="py-5 text-right font-brand font-bold text-terracotta">{formatCurrency(report.byType.asporto.revenue)}</td>
+                </tr>
+                <tr className="group">
+                  <td className="py-5 font-brand font-bold text-charcoal">Delivery</td>
+                  <td className="py-5 text-right font-brand font-bold text-charcoal/60">{report.byType.delivery.count}</td>
+                  <td className="py-5 text-right font-brand font-bold text-terracotta">{formatCurrency(report.byType.delivery.revenue)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <table className="hidden md:table w-full text-sm md:text-base">
-          <thead className="text-gray-500">
-            <tr>
-              <th className="text-left py-1">Prodotto</th>
-              <th className="text-right">Quantità</th>
-              <th className="text-right">Incasso</th>
-            </tr>
-          </thead>
-          <tbody>
-            {report.topProducts.map((p) => (
-              <tr key={p.name}>
-                <td className="py-1.5">{p.name}</td>
-                <td className="text-right tabular-nums">{p.quantity}</td>
-                <td className="text-right tabular-nums">{formatCurrency(p.revenue)}</td>
+        <div className="bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-charcoal/5 shadow-2xl overflow-hidden reveal active">
+           <div className="px-10 py-6 border-b border-charcoal/5 bg-warm-light/20">
+            <h2 className="font-brand font-bold uppercase tracking-[0.2em] text-[10px] text-charcoal">Saturazione Canali</h2>
+          </div>
+          <div className="p-10">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-charcoal/5">
+                  <th className="pb-4 text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/40">Sorgente</th>
+                  <th className="pb-4 text-right text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/40">Qtà</th>
+                  <th className="pb-4 text-right text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/40">Rendimento</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-charcoal/5">
+                <tr>
+                  <td className="py-5 font-brand font-bold text-charcoal">Web Store</td>
+                  <td className="py-5 text-right font-brand font-bold text-charcoal/60">{report.byChannel.web.count}</td>
+                  <td className="py-5 text-right font-brand font-bold text-terracotta">{formatCurrency(report.byChannel.web.revenue)}</td>
+                </tr>
+                <tr>
+                  <td className="py-5 font-brand font-bold text-charcoal">Ordine Telefonico</td>
+                  <td className="py-5 text-right font-brand font-bold text-charcoal/60">{report.byChannel.phone.count}</td>
+                  <td className="py-5 text-right font-brand font-bold text-terracotta">{formatCurrency(report.byChannel.phone.revenue)}</td>
+                </tr>
+                <tr>
+                  <td className="py-5 font-brand font-bold text-charcoal">Vendita al Banco</td>
+                  <td className="py-5 text-right font-brand font-bold text-charcoal/60">{report.byChannel.counter.count}</td>
+                  <td className="py-5 text-right font-brand font-bold text-terracotta">{formatCurrency(report.byChannel.counter.revenue)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-charcoal/5 shadow-2xl overflow-hidden reveal active mb-20">
+         <div className="px-10 py-6 border-b border-charcoal/5 bg-warm-light/20">
+            <h2 className="font-brand font-bold uppercase tracking-[0.2em] text-[10px] text-charcoal">Preferenze Prodotti</h2>
+          </div>
+        <div className="p-10">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-charcoal/5">
+                <th className="pb-4 text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/40">Referenza</th>
+                <th className="pb-4 text-right text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/40">Volumi</th>
+                <th className="pb-4 text-right text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/40">Fatturato</th>
               </tr>
-            ))}
-            {report.topProducts.length === 0 && (
-              <tr><td colSpan={3} className="text-center text-gray-400 py-4">Nessun dato</td></tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-charcoal/5">
+              {report.topProducts.map((p) => (
+                <tr key={p.name} className="group hover:bg-warm-light/30 transition-colors">
+                  <td className="py-5 font-brand font-bold text-charcoal">{p.name}</td>
+                  <td className="py-5 text-right font-brand font-bold text-charcoal/60">{p.quantity}</td>
+                  <td className="py-5 text-right font-brand font-bold text-terracotta">{formatCurrency(p.revenue)}</td>
+                </tr>
+              ))}
+              {report.topProducts.length === 0 && (
+                <tr>
+                  <td colSpan={3} className="py-20 text-center font-brand font-bold uppercase tracking-[0.2em] text-charcoal/20 text-xs">
+                    Nessun dato di vendita registrato.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

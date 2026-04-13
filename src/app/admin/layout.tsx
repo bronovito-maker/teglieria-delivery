@@ -16,10 +16,10 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-b from-white via-[#fff7f5] to-white">
+    <div className="flex min-h-screen bg-warm-light transition-colors duration-500">
       <Sidebar />
-      <main className="flex-1 overflow-auto p-4 pt-24 md:p-6">
-        <div className="mx-auto max-w-[1400px]">{children}</div>
+      <main className="flex-1 overflow-auto p-4 pt-32 md:p-10 lg:p-12">
+        <div className="mx-auto max-w-[1600px]">{children}</div>
       </main>
     </div>
   );

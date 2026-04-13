@@ -11,6 +11,10 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        charcoal: "#151b1f",
+        "warm-light": "#f5ead7",
+        terracotta: "#e66a26",
+        marigold: "#ffa941",
       },
     },
   },

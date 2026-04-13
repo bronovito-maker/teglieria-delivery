@@ -1,103 +1,66 @@
 # Teglieria Design System
 
-Versione: 2026-04-13
+Versione: 2026-04-14 (Premium Update)
 
 Questo documento definisce lo stile UI da riutilizzare su Landing, Admin e Rider.
 
 ## Visione
-- Apple-style minimal: pulito, arioso, tipografia forte, poche decorazioni ma curate.
-- Accento brand: rosso pomodoro caldo e moderno.
-- Motion discreta: transizioni morbide, no effetti aggressivi.
-- Coerenza cross-area: stessi token, stessi pattern, stessi componenti base.
+- **Apple-style Premium**: Pulizia estrema, tipografia editoriale, materiali (blur) sofisticati.
+- **Identità Forte**: Contrasto tra un brand condensato e moderno e sottotitoli serif classici.
+- **Interactive Motion**: L'interfaccia reagisce all'utente (parallax su scroll) anziché avere animazioni passive.
 
-## Tipografia
-- Font principale: `Inter` (via `next/font/google`).
-- Tone:
-  - Headline: bold/black, tracking tight.
-  - Body: grigio medio, alta leggibilità.
-  - Micro-label: uppercase con tracking ampio.
+## Sistema Tipografico (Premium Mix)
+Abbiamo abbandonato i font di sistema per un sistema a tre livelli personalizzato:
 
-## Palette Colori
-- Pomodoro principale: `#cf2a1d`
-- Pomodoro chiaro: `#d92d20`
-- Pomodoro scuro: `#bb2418`
-- Testo primario: `#1d1d1f`
-- Grigio testo secondario: `#6b7280` / `#9ca3af`
-- Sfondo soft: `#fff7f5` e bianco
+1.  **Brand Font: Narkiss Tam Condensed**
+    - **Uso**: Titoli brand "LA TEGLIERIA" e nomi prodotti hero.
+    - **Stile**: Uppercase obbligatorio, peso Medium (500), `tracking-wider`.
+    - **Utility**: `.font-brand`
 
-## Glassmorphism Brand
-- Classe shared: `.tomato-glass` (in `src/app/globals.css`)
-- Uso:
-  - top bar mobile/desktop
-  - CTA principali (es. “Ordina Ora”, “Procedi all'ordine”)
-  - elementi prominenti con accento brand
-- Regole:
-  - blur moderato (non “frosted” estremo)
-  - ombra corta, mai lunga
-  - bordo rosso chiaro semitrasparente
+2.  **Subtitle Font: Odile**
+    - **Uso**: Sottotitoli (Hero), etichette sopra i titoli di sezione (es. *Chi Siamo*), copyright.
+    - **Stile**: Serif elegante, pesi da Light a Semibold.
+    - **Utility**: `.font-subtitle`
 
-## Componenti UI Standard
+3.  **Body Font: Kit Sans**
+    - **Uso**: **Default globale**. Testo descrittivo, pulsanti, input, tabelle, gestione admin.
+    - **Stile**: Alta leggibilità, pulizia sans-serif moderna. Sostituisce *Inter*.
+    - **Utility**: `.font-body` (applicato automaticamente al `body`)
 
-### Header / Top Bar
-- Sfondo pomodoro glass (`tomato-glass`)
-- Logo/titolo bianco bold
-- Mobile: hamburger + menu verticale
+## Palette Colori (Teglieria Premium)
+- **Charcoal (Corpo)**: `#151b1f` (Profondo, elegante, alta leggibilità)
+- **Warm Light (Sfondo)**: `#f5ead7` (Eearthy, accogliente, meno stancante del bianco puro)
+- **Terracotta (Sottotitoli & Brand)**: `#e66a26` (Sostituisce il Tomato red, un'anima aranciata e calda)
+- **Marigold (Accenti & Detail)**: `#ffa941` (Vibrante, usato per accenti e interazioni)
 
+## Glassmorphism & Materiali
+- **Terracotta Glass** (`.tomato-glass`):
+  - Gradiente dal terracotta chiaro al terracotta scuro con blur 16px.
+  - Usato per top bar e CTA primarie.
+- **Premium Blur** (`.glass-morphism`):
+  - Sfondo bianco 85% opacità con **blur 20px**.
+  - Ombra soft `rgba(31, 38, 135, 0.07)`.
+  - Usato per card e pannelli informativi.
+
+## Motion & Parallax
+L'interfaccia "prende vita" durante lo scorrimento:
+
+- **Scroll-based Parallax**: Gli ingredienti in background si muovono a velocità diverse (profondità 3D).
+- **Dynamic Transforms**: Gli elementi rotano e hanno un leggero "drift" laterale durante lo scroll.
+- **Scroll Reveal**: Sezioni che sfumano e si sollevano con curve `cubic-bezier(0.16, 1, 0.3, 1)`.
+
+## Componenti UI
 ### Bottoni
-- Primario: `tomato-glass`, testo bianco, bordi morbidi (`rounded-xl` o `rounded-full`)
-- Secondario: bianco con bordo rosso chiaro e testo pomodoro
-- Hover: leggero `brightness` o lieve aumento scala
+- **Primari**: `tomato-glass` (Terracotta) con testo `font-brand` uppercase.
+- **Secondari**: Bordo sottile, fondo bianco, `font-body`.
 
-### Card
-- Fondo bianco/bianco traslucido
-- Bordi `red-100` molto leggeri
-- Ombra soft, non pesante
-- Radius: `rounded-2xl` / `rounded-3xl` in base al contesto
-
-### Form Controls
-- Input/select con bordo rosso chiaro
-- Focus ring pomodoro (`#cf2a1d`)
-- Checkbox/radio in accento pomodoro
-
-### Badge / Pills
-- Uso per stati, micro-nav, social chip
-- Versione attiva in pomodoro, inattiva in grigio/rosso soft
-
-## Motion & Scroll
-- Reveal leggero su scroll:
-  - `opacity + translateY` breve
-  - attivo in entrambe le direzioni (su/giù)
-- Durate target: 550–750ms con curve morbide
-- Floating CTA mobile: compare dopo hero, non subito
-
-## Spaziatura & Layout
-- Mobile-first.
-- Evitare grandi “buchi” verticali: usare titoli editoriali dove serve.
-- Spaziature standard:
-  - sezione mobile `py-16`
-  - sezione desktop `py-24`
-- Contenitori principali: `max-w-7xl` (landing), `max-w-4xl`/`max-w-3xl` (flow app)
-
-## Iconografia & Linguaggio
-- Linguaggio umano, caldo, premium ma semplice.
-- Emoji solo dove già parte del tone (es. CTA pizza), senza abuso.
-- Mai blu “default link” nei punti brand: usare pomodoro.
-
-## Accessibilità
-- Contrasto testo/CTA sempre leggibile.
-- `prefers-reduced-motion` rispettato dove ci sono effetti.
-- Touch targets adeguati su mobile (almeno ~40px).
-
-## Checklist Per Rifare Admin e Rider
-- Usare `tomato-glass` su top bar e CTA principali.
-- Uniformare bottoni, input, card con i token sopra.
-- Eliminare colori fuori palette (blu default non brand).
-- Applicare stessa gerarchia tipografica della landing.
-- Mantenere motion sobria e coerente.
+### Card & Layout
+- Border radius ampio: `2xl` o `3xl`.
+- Bordi quasi invisibili: `border-red-100/70`.
 
 ## File di Riferimento
-- `src/app/globals.css`
+- `src/app/layout.tsx` (Configurazione Fonts)
+- `src/app/globals.css` (Utility classes e variabili)
+- `src/components/ui/FloatingIngredients.tsx` (Logica Parallax)
 - `src/components/client/MobileTopBar.tsx`
-- `src/components/client/CartDrawer.tsx`
-- `src/components/client/ProductModal.tsx`
-- `src/app/page.tsx`
+- `src/app/page.tsx` (Esempio principale del sistema)

@@ -3,10 +3,22 @@
 @tailwind utilities;
 
 :root {
-  --apple-bg: #ffffff;
-  --apple-text: #1d1d1f;
-  --apple-gray: #f5f5f7;
-  --apple-blue: #0071e3;
+  --background: #f5ead7;
+  --foreground: #151b1f;
+  --terracotta: #e66a26;
+  --marigold: #ffa941;
+}
+
+@layer utilities {
+  .font-brand {
+    font-family: var(--font-narkiss), sans-serif;
+  }
+  .font-subtitle {
+    font-family: var(--font-odile), serif;
+  }
+  .font-body {
+    font-family: var(--font-kit), sans-serif;
+  }
 }
 
 @layer base {
@@ -15,7 +27,7 @@
   }
 
   body {
-    @apply antialiased text-[#1d1d1f] bg-white selection:bg-orange-100;
+    @apply antialiased text-charcoal bg-warm-light selection:bg-marigold/30;
     font-feature-settings: "ss01", "ss02", "cv01", "cv02";
   }
 }
@@ -62,18 +74,18 @@
 .tomato-glass {
   background: linear-gradient(
     135deg,
-    rgba(217, 45, 32, 0.84) 0%,
-    rgba(207, 42, 29, 0.8) 52%,
-    rgba(187, 36, 24, 0.84) 100%
+    rgba(241, 122, 60, 0.86) 0%,
+    rgba(230, 106, 38, 0.82) 52%,
+    rgba(197, 86, 26, 0.86) 100%
   );
   backdrop-filter: blur(16px) saturate(145%);
   -webkit-backdrop-filter: blur(16px) saturate(145%);
-  border-color: rgba(254, 202, 202, 0.35);
-  box-shadow: 0 5px 12px rgba(192, 38, 22, 0.16);
+  border-color: rgba(255, 230, 210, 0.35);
+  box-shadow: 0 5px 12px rgba(197, 86, 26, 0.16);
 }
 
 .text-gradient {
-  background: linear-gradient(180deg, #1d1d1f 0%, #434345 100%);
+  background: linear-gradient(180deg, #151b1f 0%, #3e4850 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
