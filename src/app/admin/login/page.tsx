@@ -37,7 +37,8 @@ export default function AdminLogin() {
     });
 
     if (error) {
-      setError("Credenziali non valide");
+      console.error("Login attempt failed:", error);
+      setError(error.message);
       setLoading(false);
       return;
     }

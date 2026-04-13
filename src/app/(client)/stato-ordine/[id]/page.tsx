@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/constants";
 import { formatCurrency, formatTime } from "@/lib/utils";
@@ -118,6 +119,21 @@ export default function StatoOrdinePage() {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Link
+          href="/menu?openCart=1"
+          className="w-full text-center py-3 rounded-xl border border-red-100 bg-red-50/60 text-[#cf2a1d] font-semibold hover:bg-red-100/60 transition-colors"
+        >
+          Apri carrello
+        </Link>
+        <Link
+          href="/menu"
+          className="w-full text-center py-3 rounded-xl tomato-glass border text-white font-semibold hover:brightness-105 transition-all"
+        >
+          Torna al menu
+        </Link>
       </div>
     </div>
   );

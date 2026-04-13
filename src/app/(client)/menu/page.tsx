@@ -18,8 +18,12 @@ export default function MenuPage() {
     // Handle order type from landing page
     const params = new URLSearchParams(window.location.search);
     const type = params.get("type");
+    const openCartParam = params.get("openCart");
     if (type === "DELIVERY" || type === "ASPORTO") {
       setOrderType(type);
+    }
+    if (openCartParam === "1") {
+      setCartOpen(true);
     }
 
     fetch("/api/menu").then((r) => r.json()).then(setCategories);

@@ -18,7 +18,7 @@ export default function AdminLayout({
   return (
     <div className="flex min-h-screen bg-gradient-to-b from-white via-[#fff7f5] to-white">
       <Sidebar />
-      <main className="flex-1 overflow-auto p-4 md:p-6">
+      <main className="flex-1 overflow-auto p-4 pt-24 md:p-6">
         <div className="mx-auto max-w-[1400px]">{children}</div>
       </main>
     </div>
