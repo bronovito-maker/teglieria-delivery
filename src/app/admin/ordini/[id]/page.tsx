@@ -110,7 +110,7 @@ export default function OrderDetailPage() {
               <p className="text-gray-500">Cliente</p>
               <p className="font-medium">{order.customerName}</p>
               <p>{order.customerPhone}</p>
-              <p className="mt-1 font-semibold text-blue-600">Richiesto: {order.pickupTime}</p>
+              <p className="mt-1 font-semibold text-blue-600">Richiesto: {order.timeSlot || (order.pickupTime ? new Date(order.pickupTime).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : 'N/D')}</p>
             </div>
             {order.type === "DELIVERY" && (
               <div>

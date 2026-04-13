@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Teglieria",
-  description: "Ordina per asporto o delivery dalla Teglieria",
+  title: "La Teglieria",
+  description: "Ordina per asporto o delivery dalla La Teglieria",
 };
 
 export default function RootLayout({

@@ -10,7 +10,7 @@ export default function ClientLayout({
       <header className="bg-orange-600 text-white shadow-md">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/menu" className="text-2xl font-bold">
-            Teglieria
+            La Teglieria
           </Link>
         </div>
       </header>
@@ -18,7 +18,7 @@ export default function ClientLayout({
         {children}
       </main>
       <footer className="bg-gray-100 text-center text-sm text-gray-500 py-4">
-        Teglieria &copy; {new Date().getFullYear()}
+        La Teglieria &copy; {new Date().getFullYear()}
       </footer>
     </div>
   );
