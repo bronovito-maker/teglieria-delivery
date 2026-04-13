@@ -1,18 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export default function RiderLoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const supabase = createClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const message = searchParams.get("message");
+  const [message, setMessage] = useState<string | null>(null);
+  const [redirectTo, setRedirectTo] = useState("/rider/dashboard");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setMessage(params.get("message"));
+    setRedirectTo(params.get("next") || "/rider/dashboard");
+  }, []);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -31,7 +37,6 @@ export default function RiderLoginPage() {
     }
 
     // After login, redirect to a dashboard or the pending order if any
-    const redirectTo = searchParams.get("next") || "/rider/dashboard";
     router.push(redirectTo);
   }
 
