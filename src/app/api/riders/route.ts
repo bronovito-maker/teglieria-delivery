@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-const ACTIVE_ORDER_STATUSES = ["CONFIRMED", "PREPARING", "READY", "OUT"] as const;
+const ACTIVE_ORDER_STATUSES = ["CONFIRMED", "PREPARING", "READY", "OUT"];
 
 export async function GET() {
   const riders = await prisma.rider.findMany({
