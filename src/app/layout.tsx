@@ -68,7 +68,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="it">
-      <body className={`${inter.className} ${inter.variable} ${narkiss.variable} antialiased`}>
+      <body className={`${inter.className} ${inter.variable} ${narkiss.variable} antialiased`} data-gramm="false" data-gramm_editor="false">
         <PwaRegister />
         {children}
       </body>

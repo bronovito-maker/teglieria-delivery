@@ -28,6 +28,7 @@ export default function MobileTopBar() {
           <Link
             href="/"
             onClick={() => setOpen(false)}
+            translate="no"
             className="text-[1.65rem] leading-none font-logo font-semibold uppercase tracking-[0.08em] text-charcoal"
           >
             La <span className="text-terracotta">Teglieria</span>
@@ -60,6 +61,7 @@ export default function MobileTopBar() {
           <Link
             href="/"
             onClick={() => setOpen(false)}
+            translate="no"
             className="text-[1.65rem] leading-none font-logo font-semibold uppercase tracking-[0.08em] text-charcoal"
           >
             La <span className="text-terracotta">Teglieria</span>

@@ -4,25 +4,25 @@ import { useEffect, useRef, useState } from "react";
 
 const SCRIPT_ID = "google-maps-places-script";
 
-function loadMapsPlaces(apiKey: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (window.google?.maps?.places) return resolve();
+async function loadMapsPlaces(apiKey: string): Promise<void> {
+  // Already fully loaded
+  if (window.google?.maps?.places?.Autocomplete) return;
 
-    const existing = document.getElementById(SCRIPT_ID);
-    if (existing) {
-      existing.addEventListener("load", () => resolve());
-      existing.addEventListener("error", reject);
-      return;
-    }
+  // Load bootstrap script if not yet in DOM
+  if (!document.getElementById(SCRIPT_ID)) {
+    await new Promise<void>((resolve, reject) => {
+      const script = document.createElement("script");
+      script.id = SCRIPT_ID;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&loading=async&language=it`;
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  }
 
-    const script = document.createElement("script");
-    script.id = SCRIPT_ID;
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=it&loading=async`;
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
+  // With loading=async, libraries must be loaded explicitly after bootstrap
+  await (window.google.maps as unknown as { importLibrary: (lib: string) => Promise<void> }).importLibrary("places");
 }
 
 interface Props {
@@ -43,7 +43,7 @@ export default function AddressAutocomplete({ value, onChange, required, placeho
     if (!apiKey || !inputRef.current) return;
 
     loadMapsPlaces(apiKey).then(() => {
-      if (!inputRef.current || !window.google?.maps?.places) return;
+      if (!inputRef.current || !window.google?.maps?.places?.Autocomplete) return;
 
       // Bounding box centrato su Livorno (~15km raggio)
       const livornoCenter = new window.google.maps.LatLng(43.5485, 10.3106);

@@ -55,18 +55,22 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // For same-origin static assets use cache first
-  if (requestUrl.origin === self.location.origin) {
+  // For same-origin static assets (files with extension) use cache first.
+  // Skip Next.js prefetch/RSC requests and API routes — let them go to network normally.
+  const isStaticAsset = /\.[a-z0-9]+$/i.test(requestUrl.pathname);
+  if (requestUrl.origin === self.location.origin && isStaticAsset) {
     event.respondWith(
       caches.match(event.request).then((cached) => {
         if (cached) return cached;
-        return fetch(event.request).then((response) => {
-          if (response.ok) {
-            const cloned = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
-          }
-          return response;
-        });
+        return fetch(event.request)
+          .then((response) => {
+            if (response.ok) {
+              const cloned = response.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
+            }
+            return response;
+          })
+          .catch(() => new Response("", { status: 503 }));
       })
     );
   }

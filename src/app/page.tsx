@@ -276,6 +276,7 @@ export default function LandingPage() {
                 src="/images/pizzeria-interior.png"
                 alt="Interno Pizzeria"
                 fill
+                sizes="(max-width: 768px) 100vw, 40vw"
                 className="object-cover transition-transform duration-1000 group-hover:scale-110"
               />
             </div>
