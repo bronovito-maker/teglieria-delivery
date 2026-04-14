@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { OrderStatus } from "@prisma/client";
+import { OrderStatus, RiderVehicle } from "@prisma/client";
+
+const VALID_VEHICLES: RiderVehicle[] = ["BIKE", "SCOOTER", "CAR"];
 import { calculateRiderCompensation } from "@/lib/finance";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
@@ -20,7 +22,7 @@ export async function GET() {
 
   const payload = await Promise.all(
     riders.map(async (rider) => {
-      const [activeOrders, deliveredAll, deliveredToday] = await Promise.all([
+      const [activeOrders, deliveredAll, deliveredToday, recentDelivered] = await Promise.all([
         prisma.order.findMany({
           where: {
             riderId: rider.id,
@@ -31,6 +33,7 @@ export async function GET() {
             orderNumber: true,
             status: true,
             createdAt: true,
+            timeSlot: true,
           },
           orderBy: { createdAt: "desc" },
         }),
@@ -61,7 +64,24 @@ export async function GET() {
             total: true,
           },
         }),
+        prisma.order.findMany({
+          where: {
+            riderId: rider.id,
+            status: "DELIVERED",
+            actualTime: { not: null },
+          },
+          select: { createdAt: true, actualTime: true },
+          orderBy: { actualTime: "desc" },
+          take: 20,
+        }),
       ]);
+
+      const deliveryDurations = recentDelivered
+        .map((o) => (o.actualTime ? (o.actualTime.getTime() - o.createdAt.getTime()) / 60000 : null))
+        .filter((v): v is number => v !== null && v > 0 && v < 240);
+      const avgDeliveryMinutes = deliveryDurations.length > 0
+        ? Math.round(deliveryDurations.reduce((a, b) => a + b, 0) / deliveryDurations.length)
+        : null;
 
       const totalDeliveredRevenue = deliveredAll.reduce(
         (sum, order) => sum + Number(order.total),
@@ -92,6 +112,7 @@ export async function GET() {
           averageTicket: deliveredCount > 0 ? totalDeliveredRevenue / deliveredCount : 0,
           estimatedCompensation,
           netAfterRiderCompensation,
+          avgDeliveryMinutes,
         },
       };
     })
@@ -123,11 +144,17 @@ export async function POST(request: Request) {
       );
     }
 
+    const vehicle: RiderVehicle = VALID_VEHICLES.includes(body.vehicle)
+      ? body.vehicle
+      : "SCOOTER";
+
     const rider = await prisma.rider.create({
       data: {
         name: body.name.trim(),
         email: typeof body.email === "string" && body.email.trim() ? body.email.trim() : null,
         phone: typeof body.phone === "string" && body.phone.trim() ? body.phone.trim() : null,
+        vehicle,
+        zone: typeof body.zone === "string" && body.zone.trim() ? body.zone.trim() : null,
         active: true,
       },
     });

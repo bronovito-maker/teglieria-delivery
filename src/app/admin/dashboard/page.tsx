@@ -29,15 +29,45 @@ export default function DashboardPage() {
   const prevCountRef = useRef(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Cancel order state
+  const [cancelTarget, setCancelTarget] = useState<OrderWithItems | null>(null);
+  const [cancelPassword, setCancelPassword] = useState("");
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+
+  // Browser notification permission
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
+
+  useEffect(() => {
+    if (typeof Notification !== "undefined") {
+      setNotifPermission(Notification.permission);
+    }
+  }, []);
+
+  async function requestNotifPermission() {
+    if (typeof Notification === "undefined") return;
+    const result = await Notification.requestPermission();
+    setNotifPermission(result);
+  }
+
   const fetchOrders = useCallback(async () => {
     const today = new Date().toISOString().split("T")[0];
     const res = await fetch(`/api/ordini?date=${today}`);
     const data = await res.json();
     setOrders(data);
 
-    // Play sound on new order
+    // Sound + browser notification on new order
     if (prevCountRef.current > 0 && data.length > prevCountRef.current) {
       audioRef.current?.play().catch(() => {});
+      if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+        const newest = data[data.length - 1];
+        new Notification("🍕 Nuovo Ordine — La Teglieria", {
+          body: newest ? `#${newest.orderNumber} · ${newest.customerName} · ${newest.type === "DELIVERY" ? "Delivery" : "Asporto"}` : "Nuovo ordine ricevuto!",
+          icon: "/favicon.ico",
+          tag: newest?.id ?? "new-order",
+          requireInteraction: true,
+        });
+      }
     }
     prevCountRef.current = data.length;
   }, []);
@@ -105,6 +135,31 @@ export default function DashboardPage() {
     });
   }
 
+  async function handleCancelOrder() {
+    if (!cancelTarget || !cancelPassword.trim()) return;
+    setCancelLoading(true);
+    setCancelError(null);
+    try {
+      const res = await fetch(`/api/ordini/${cancelTarget.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminPassword: cancelPassword }),
+      });
+      if (res.ok) {
+        setCancelTarget(null);
+        setCancelPassword("");
+        fetchOrders();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setCancelError(data?.error ?? "Errore durante la cancellazione.");
+      }
+    } catch {
+      setCancelError("Errore di rete. Riprova.");
+    } finally {
+      setCancelLoading(false);
+    }
+  }
+
   const activeOrders = orders.filter((o) => o.status !== "DELIVERED" && o.status !== "CANCELLED").length;
   const preparingOrders = orders.filter((o) => o.status === "PREPARING" || o.status === "READY").length;
   const totalRevenue = orders
@@ -135,13 +190,26 @@ export default function DashboardPage() {
           <p className="font-body italic text-charcoal/40 mt-4 tracking-widest uppercase text-xs">Live Update • {today}</p>
         </div>
         
-        <div className="flex gap-4">
-           <button
-              onClick={fetchOrders}
-              className="px-8 py-4 rounded-full border border-charcoal/10 bg-white shadow-sm text-charcoal font-brand font-bold uppercase tracking-widest text-[10px] hover:bg-charcoal hover:text-white transition-all active:scale-95"
+        <div className="flex gap-3 flex-wrap">
+          {notifPermission !== "granted" && typeof Notification !== "undefined" && (
+            <button
+              onClick={requestNotifPermission}
+              className="px-8 py-4 rounded-full border border-marigold/30 bg-marigold/5 text-marigold font-brand font-bold uppercase tracking-widest text-[10px] hover:bg-marigold hover:text-white transition-all active:scale-95 flex items-center gap-2"
             >
-              Aggiorna Dati
+              🔔 Abilita Notifiche
             </button>
+          )}
+          {notifPermission === "granted" && (
+            <span className="px-6 py-4 rounded-full border border-charcoal/5 bg-white text-charcoal/30 font-brand font-bold uppercase tracking-widest text-[9px] flex items-center gap-2">
+              🔔 Notifiche Attive
+            </span>
+          )}
+          <button
+            onClick={fetchOrders}
+            className="px-8 py-4 rounded-full border border-charcoal/10 bg-white shadow-sm text-charcoal font-brand font-bold uppercase tracking-widest text-[10px] hover:bg-charcoal hover:text-white transition-all active:scale-95"
+          >
+            Aggiorna Dati
+          </button>
         </div>
       </div>
 
@@ -220,7 +288,15 @@ export default function DashboardPage() {
                           ORDER_STATUS_TRANSITIONS[status]?.map((nextStatus) => (
                             <button
                               key={nextStatus}
-                              onClick={() => updateStatus(order.id, nextStatus)}
+                              onClick={() => {
+                                if (nextStatus === "CANCELLED") {
+                                  setCancelTarget(order);
+                                  setCancelPassword("");
+                                  setCancelError(null);
+                                } else {
+                                  updateStatus(order.id, nextStatus);
+                                }
+                              }}
                               className={cn(
                                 "h-10 px-4 rounded-xl font-brand font-bold text-[9px] uppercase tracking-widest transition-all",
                                 nextStatus === "CANCELLED" 
@@ -319,6 +395,73 @@ export default function DashboardPage() {
               >
                 {confirmingLoading ? "Processing..." : "Conferma & Notifica"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Order Modal */}
+      {cancelTarget && (
+        <div className="fixed inset-0 z-[110] bg-charcoal/80 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-300">
+          <div className="w-full max-w-md bg-warm-light rounded-[3rem] p-10 shadow-2xl border border-white/20">
+            <div className="flex justify-between items-start mb-10">
+              <div>
+                <span className="text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-red-500 mb-2 block">⚠ Azione Irreversibile</span>
+                <h3 className="text-3xl font-brand font-medium text-charcoal uppercase tracking-tight">Annulla Ordine</h3>
+                <p className="font-body italic text-charcoal/50 text-sm mt-2">#{cancelTarget.orderNumber} · {cancelTarget.customerName}</p>
+              </div>
+              <button
+                onClick={() => setCancelTarget(null)}
+                className="w-12 h-12 rounded-2xl bg-white border border-charcoal/5 text-charcoal hover:bg-charcoal hover:text-white transition-all flex items-center justify-center font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <div className="bg-red-50 border border-red-100 rounded-3xl p-6">
+                <p className="text-[10px] font-brand font-bold uppercase tracking-widest text-red-400 mb-1">Attenzione</p>
+                <p className="font-body italic text-sm text-red-600">La cancellazione è permanente e non può essere annullata. Inserisci la password amministratore per procedere.</p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-[10px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/30 ml-4">
+                  Password Admin
+                </label>
+                <input
+                  type="password"
+                  autoFocus
+                  value={cancelPassword}
+                  onChange={(e) => { setCancelPassword(e.target.value); setCancelError(null); }}
+                  onKeyDown={async (e) => { if (e.key === "Enter") await handleCancelOrder(); }}
+                  placeholder="••••••••"
+                  className="w-full px-8 py-5 bg-white border border-charcoal/5 rounded-full font-body italic text-sm focus:ring-2 focus:ring-red-200 focus:border-red-300 outline-none transition-all shadow-sm"
+                />
+              </div>
+
+              {cancelError && (
+                <div className="p-4 bg-red-50 rounded-2xl border border-red-100 animate-in slide-in-from-top-2">
+                  <p className="text-[11px] text-red-600 font-brand font-bold uppercase tracking-widest text-center">{cancelError}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setCancelTarget(null)}
+                  className="py-5 rounded-full border border-charcoal/10 text-charcoal font-brand font-bold uppercase tracking-widest text-[10px] hover:bg-charcoal/5 transition-all"
+                >
+                  Annulla
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelOrder}
+                  disabled={cancelLoading || !cancelPassword.trim()}
+                  className="py-5 rounded-full bg-red-500 text-white font-brand font-bold uppercase tracking-widest text-[10px] hover:bg-red-600 active:scale-95 disabled:opacity-50 transition-all shadow-xl shadow-red-500/20"
+                >
+                  {cancelLoading ? "Eliminazione..." : "Conferma Cancellazione"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

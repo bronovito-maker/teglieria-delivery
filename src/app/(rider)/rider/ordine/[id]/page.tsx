@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatCurrency, formatTime } from "@/lib/utils";
 import { ORDER_STATUS_COLORS, ORDER_STATUS_LABELS } from "@/lib/constants";
+import RiderRouteMap from "@/components/rider/RiderRouteMap";
 
 export default function RiderOrderPage() {
   const { id } = useParams();
@@ -14,6 +15,7 @@ export default function RiderOrderPage() {
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [riderVehicle, setRiderVehicle] = useState<"BIKE" | "SCOOTER" | "CAR" | null>(null);
   const [eventNote, setEventNote] = useState("");
   const [eventLoading, setEventLoading] = useState(false);
   const [eventError, setEventError] = useState("");
@@ -43,6 +45,13 @@ export default function RiderOrderPage() {
         router.push(`/rider/login?next=/rider/ordine/${id}`);
       } else {
         setUser(user);
+        try {
+          const profileRes = await fetch(`/api/rider/profile?authUserId=${user.id}`);
+          if (profileRes.ok) {
+            const profile = await profileRes.json();
+            if (profile?.vehicle) setRiderVehicle(profile.vehicle);
+          }
+        } catch {}
         await fetchOrder();
         interval = setInterval(fetchOrder, 7000);
       }
@@ -170,6 +179,14 @@ export default function RiderOrderPage() {
             </span>
           </div>
         </header>
+
+        {order.type === "DELIVERY" && order.address && (
+          <RiderRouteMap
+            address={order.address}
+            addressDetail={order.addressDetail}
+            vehicle={riderVehicle}
+          />
+        )}
 
         <div className="bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-charcoal/5 shadow-2xl overflow-hidden reveal active">
           <div className="p-10 space-y-10">

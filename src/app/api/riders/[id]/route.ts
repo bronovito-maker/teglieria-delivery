@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { OrderStatus } from "@prisma/client";
+import { OrderStatus, RiderVehicle } from "@prisma/client";
+
+const VALID_VEHICLES: RiderVehicle[] = ["BIKE", "SCOOTER", "CAR"];
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
@@ -42,6 +44,8 @@ export async function PATCH(
         phone: typeof body.phone === "string" ? body.phone.trim() || null : undefined,
         email: typeof body.email === "string" ? body.email.trim() || null : undefined,
         active: typeof body.active === "boolean" ? body.active : undefined,
+        vehicle: VALID_VEHICLES.includes(body.vehicle) ? body.vehicle : undefined,
+        zone: typeof body.zone === "string" ? body.zone.trim() || null : undefined,
       },
     });
 

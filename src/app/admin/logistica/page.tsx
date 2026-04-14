@@ -6,17 +6,22 @@ import { formatCurrency } from "@/lib/utils";
 import type { OrderWithItems } from "@/types";
 import LogisticsMap from "@/components/admin/LogisticsMap";
 
+type RiderVehicleValue = "BIKE" | "SCOOTER" | "CAR";
+
 type RiderSummary = {
   id: string;
   name: string;
   email?: string | null;
   phone?: string | null;
   active: boolean;
+  vehicle: RiderVehicleValue;
+  zone?: string | null;
   orders: Array<{
     id: string;
     orderNumber: number;
     status: string;
     createdAt: string;
+    timeSlot?: string | null;
   }>;
   metrics: {
     activeOrders: number;
@@ -28,7 +33,14 @@ type RiderSummary = {
     averageTicket: number;
     estimatedCompensation: number;
     netAfterRiderCompensation: number;
+    avgDeliveryMinutes: number | null;
   };
+};
+
+const VEHICLE_LABELS: Record<RiderVehicleValue, string> = {
+  BIKE: "Bici",
+  SCOOTER: "Scooter",
+  CAR: "Auto",
 };
 
 type DispatchSuggestion = {
@@ -97,6 +109,49 @@ function getDispatchSuggestion(order: OrderWithItems, riders: RiderSummary[]): D
       reasons.push("continuità con assegnazione attuale");
     }
 
+    // Mezzo vs distanza
+    if (deliveryKm >= 5 && rider.vehicle === "BIKE") {
+      score -= 25;
+      reasons.push("mezzo poco adatto alla tratta");
+    } else if (deliveryKm >= 8 && rider.vehicle === "SCOOTER") {
+      score -= 8;
+      reasons.push("tratta lunga per scooter");
+    } else if (rider.vehicle === "CAR" && deliveryKm >= 5) {
+      score += 6;
+      reasons.push("auto ideale su tratta lunga");
+    }
+
+    // Velocità media
+    if (rider.metrics.avgDeliveryMinutes != null) {
+      const bonus = Math.max(0, 30 - rider.metrics.avgDeliveryMinutes) * 0.5;
+      if (bonus > 0) {
+        score += bonus;
+        reasons.push(`media ${rider.metrics.avgDeliveryMinutes}′`);
+      }
+    }
+
+    // Zona
+    if (
+      rider.zone &&
+      order.deliveryZone &&
+      rider.zone.trim().toLowerCase() === order.deliveryZone.trim().toLowerCase()
+    ) {
+      score += 10;
+      reasons.push("zona di competenza");
+    }
+
+    // Fascia oraria
+    if (order.timeSlot) {
+      const sameSlot = rider.orders.filter((o) => o.timeSlot === order.timeSlot).length;
+      if (sameSlot === 1) {
+        score += 4;
+        reasons.push("batching fascia");
+      } else if (sameSlot >= 2) {
+        score -= 10;
+        reasons.push("saturo fascia");
+      }
+    }
+
     return {
       riderId: rider.id,
       riderName: rider.name,
@@ -130,6 +185,8 @@ export default function LogisticaPage() {
   const [newRiderName, setNewRiderName] = useState("");
   const [newRiderPhone, setNewRiderPhone] = useState("");
   const [newRiderEmail, setNewRiderEmail] = useState("");
+  const [newRiderVehicle, setNewRiderVehicle] = useState<RiderVehicleValue>("SCOOTER");
+  const [newRiderZone, setNewRiderZone] = useState("");
   const [savingRider, setSavingRider] = useState(false);
   const [criticalAlerts, setCriticalAlerts] = useState<CriticalRiderAlert[]>([]);
   const knownAlertLogIdsRef = useRef<Set<string>>(new Set());
@@ -291,6 +348,8 @@ export default function LogisticaPage() {
         name: newRiderName,
         phone: newRiderPhone,
         email: newRiderEmail,
+        vehicle: newRiderVehicle,
+        zone: newRiderZone,
       }),
     });
 
@@ -298,6 +357,8 @@ export default function LogisticaPage() {
       setNewRiderName("");
       setNewRiderPhone("");
       setNewRiderEmail("");
+      setNewRiderVehicle("SCOOTER");
+      setNewRiderZone("");
       fetchData();
     }
 
@@ -621,6 +682,27 @@ export default function LogisticaPage() {
                 className="w-full px-8 py-4 bg-white border border-charcoal/5 rounded-full font-body italic text-sm focus:ring-2 focus:ring-terracotta/20 outline-none transition-all"
               />
             </div>
+             <div className="space-y-1">
+               <label className="text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/40 ml-4">Mezzo</label>
+               <select
+                value={newRiderVehicle}
+                onChange={(e) => setNewRiderVehicle(e.target.value as RiderVehicleValue)}
+                className="w-full px-8 py-4 bg-white border border-charcoal/5 rounded-full font-body italic text-sm focus:ring-2 focus:ring-terracotta/20 outline-none transition-all appearance-none cursor-pointer"
+              >
+                <option value="BIKE">Bici</option>
+                <option value="SCOOTER">Scooter</option>
+                <option value="CAR">Auto</option>
+              </select>
+            </div>
+             <div className="space-y-1">
+               <label className="text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/40 ml-4">Zona di competenza</label>
+               <input
+                value={newRiderZone}
+                onChange={(e) => setNewRiderZone(e.target.value)}
+                placeholder="Es. Centro, Zona Nord"
+                className="w-full px-8 py-4 bg-white border border-charcoal/5 rounded-full font-body italic text-sm focus:ring-2 focus:ring-terracotta/20 outline-none transition-all"
+              />
+            </div>
             <button
               type="button"
               onClick={createRider}
@@ -644,6 +726,21 @@ export default function LogisticaPage() {
                 <div>
                   <p className="font-brand font-bold text-xl tracking-tight text-charcoal">{rider.name}</p>
                   <p className="font-body italic text-xs text-charcoal/40 mt-1">{rider.phone || "No tel"} • {rider.email || "No email"}</p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    <span className="px-2.5 py-1 rounded-full bg-terracotta/10 text-terracotta text-[9px] font-brand font-bold uppercase tracking-widest border border-terracotta/20">
+                      {VEHICLE_LABELS[rider.vehicle]}
+                    </span>
+                    {rider.zone && (
+                      <span className="px-2.5 py-1 rounded-full bg-charcoal/5 text-charcoal/70 text-[9px] font-brand font-bold uppercase tracking-widest">
+                        {rider.zone}
+                      </span>
+                    )}
+                    {rider.metrics.avgDeliveryMinutes != null && (
+                      <span className="px-2.5 py-1 rounded-full bg-marigold/10 text-marigold text-[9px] font-brand font-bold uppercase tracking-widest border border-marigold/20">
+                        media {rider.metrics.avgDeliveryMinutes}′
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <span
                   className={`px-4 py-1.5 rounded-full text-[9px] font-brand font-bold uppercase tracking-widest ${

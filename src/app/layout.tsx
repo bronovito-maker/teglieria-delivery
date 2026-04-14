@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import PwaRegister from "@/components/PwaRegister";
 
 const kitSans = localFont({
   src: [
@@ -93,6 +94,23 @@ const odile = localFont({
 export const metadata: Metadata = {
   title: "La Teglieria",
   description: "Ordina per asporto o delivery dalla La Teglieria",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "La Teglieria",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#cf2a1d",
 };
 
 export default function RootLayout({
@@ -103,6 +121,7 @@ export default function RootLayout({
   return (
     <html lang="it">
       <body className={`${kitSans.className} ${kitSans.variable} ${narkiss.variable} ${odile.variable} antialiased`}>
+        <PwaRegister />
         {children}
       </body>
     </html>

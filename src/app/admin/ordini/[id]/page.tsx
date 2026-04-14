@@ -62,14 +62,10 @@ export default function OrderDetailPage() {
     setDeleteError("");
     setDeleting(true);
 
-    const payload = order.status === "CONFIRMED"
-      ? { adminPassword: deletePassword }
-      : undefined;
-
     const res = await fetch(`/api/ordini/${id}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload ?? {}),
+      body: JSON.stringify({ adminPassword: deletePassword }),
     });
 
     if (!res.ok) {
@@ -263,23 +259,21 @@ export default function OrderDetailPage() {
                 Stai per eliminare definitivamente questo ordine.
               </p>
 
-              {order.status === "CONFIRMED" && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Password amministratore
-                  </label>
-                  <input
-                    type="password"
-                    value={deletePassword}
-                    onChange={(e) => setDeletePassword(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-red-100 rounded-xl focus:ring-2 focus:ring-[#cf2a1d] focus:border-[#cf2a1d] outline-none"
-                    placeholder="Inserisci password eliminazione"
-                  />
-                  <p className="mt-2 text-xs text-gray-500">
-                    Per ordini confermati la password è obbligatoria.
-                  </p>
-                </div>
-              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Password amministratore
+                </label>
+                <input
+                  type="password"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-red-100 rounded-xl focus:ring-2 focus:ring-[#cf2a1d] focus:border-[#cf2a1d] outline-none"
+                  placeholder="Inserisci password eliminazione"
+                />
+                <p className="mt-2 text-xs text-gray-500">
+                  La password è sempre obbligatoria per eliminare un ordine.
+                </p>
+              </div>
 
               {deleteError && <p className="text-sm text-red-600">{deleteError}</p>}
             </div>
@@ -295,7 +289,7 @@ export default function OrderDetailPage() {
               <button
                 type="button"
                 onClick={handleDeleteOrder}
-                disabled={deleting || (order.status === "CONFIRMED" && !deletePassword.trim())}
+                disabled={deleting || !deletePassword.trim()}
                 className="px-4 py-2.5 rounded-xl bg-red-600 border border-red-600 text-white font-semibold hover:bg-red-700 disabled:opacity-50 transition-colors"
               >
                 {deleting ? "Eliminazione..." : "Conferma eliminazione"}

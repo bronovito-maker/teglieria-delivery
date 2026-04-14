@@ -125,13 +125,22 @@ model OrderStatusLog {
 }
 
 model Rider {
-  id         String  @id @default(cuid())
-  name       String
-  email      String? @unique
-  phone      String?
-  authUserId String? @unique
-  active     Boolean @default(true)
-  orders     Order[]
+  id                 String       @id @default(cuid())
+  name               String
+  email              String?      @unique
+  phone              String?
+  authUserId         String?      @unique
+  active             Boolean      @default(true)
+  vehicle            RiderVehicle @default(SCOOTER)
+  zone               String?
+  avgDeliveryMinutes Int?
+  orders             Order[]
+}
+
+enum RiderVehicle {
+  BIKE
+  SCOOTER
+  CAR
 }
 
 model DeliveryZone {

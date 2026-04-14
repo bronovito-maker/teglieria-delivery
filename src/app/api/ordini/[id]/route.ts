@@ -123,20 +123,18 @@ export async function DELETE(
     body = {};
   }
 
-  if (order.status === "CONFIRMED") {
-    const deletePassword = process.env.ADMIN_ORDER_DELETE_PASSWORD;
-    if (!deletePassword) {
-      return NextResponse.json(
-        { error: "Password eliminazione non configurata sul server" },
-        { status: 500 }
-      );
-    }
-    if (!body.adminPassword || body.adminPassword !== deletePassword) {
-      return NextResponse.json(
-        { error: "Password amministratore non valida" },
-        { status: 403 }
-      );
-    }
+  const deletePassword = process.env.ADMIN_ORDER_DELETE_PASSWORD;
+  if (!deletePassword) {
+    return NextResponse.json(
+      { error: "Password eliminazione non configurata sul server" },
+      { status: 500 }
+    );
+  }
+  if (!body.adminPassword || body.adminPassword !== deletePassword) {
+    return NextResponse.json(
+      { error: "Password amministratore non valida" },
+      { status: 403 }
+    );
   }
 
   await prisma.order.delete({
@@ -151,7 +149,7 @@ export async function DELETE(
     actorId: user.id,
     metadata: {
       previousStatus: order.status,
-      withPasswordCheck: order.status === "CONFIRMED",
+      withPasswordCheck: true,
     },
   });
 
