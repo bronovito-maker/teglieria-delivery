@@ -1,45 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
-import { Inter } from "next/font/google";
+import { DM_Sans } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
+const inter = DM_Sans({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
 });
 import PwaRegister from "@/components/PwaRegister";
-
-const kitSans = localFont({
-  src: [
-    {
-      path: "../../public/fonts/fonnts.com-KitSans_Light.otf",
-      weight: "300",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/fonnts.com-KitSans_Regular.otf",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/fonnts.com-KitSans_Medium.otf",
-      weight: "500",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/fonnts.com-KitSans_SemiBold.otf",
-      weight: "600",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/fonnts.com-KitSans_Bold.otf",
-      weight: "700",
-      style: "normal",
-    },
-  ],
-  variable: "--font-kit",
-});
 
 const narkiss = localFont({
   src: [
@@ -67,37 +36,6 @@ const narkiss = localFont({
   variable: "--font-narkiss",
 });
 
-const odile = localFont({
-  src: [
-    {
-      path: "../../public/fonts/fonnts.com-Odile-Light.otf",
-      weight: "300",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/fonnts.com-Odile-Regular.otf",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/fonnts.com-Odile-Book-.otf",
-      weight: "450",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/fonnts.com-Odile-Semibold-.otf",
-      weight: "600",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/fonnts.com-Odile-Black.otf",
-      weight: "900",
-      style: "normal",
-    },
-  ],
-  variable: "--font-odile",
-});
-
 export const metadata: Metadata = {
   title: "La Teglieria",
   description: "Ordina per asporto o delivery dalla La Teglieria",
@@ -114,6 +52,9 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "La Teglieria",
   },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
 };
 
 export const viewport: Viewport = {
@@ -127,7 +68,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="it">
-      <body className={`${kitSans.className} ${kitSans.variable} ${narkiss.variable} ${odile.variable} ${inter.variable} antialiased`}>
+      <body className={`${inter.className} ${inter.variable} ${narkiss.variable} antialiased`}>
         <PwaRegister />
         {children}
       </body>

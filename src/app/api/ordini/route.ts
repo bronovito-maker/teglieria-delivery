@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendOrderConfirmationEmail } from "@/lib/email";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -38,6 +39,7 @@ export async function POST(request: Request) {
       channel: body.channel || "WEB",
       customerName: body.customerName,
       customerPhone: body.customerPhone,
+      customerEmail: body.customerEmail || null,
       address: body.address,
       addressDetail: body.addressDetail,
       deliveryZone: body.deliveryZone,
@@ -71,6 +73,28 @@ export async function POST(request: Request) {
     },
     include: { items: true },
   });
+
+  if (order.customerEmail) {
+    sendOrderConfirmationEmail({
+      customerEmail: order.customerEmail,
+      customerName: order.customerName,
+      orderNumber: order.orderNumber,
+      type: order.type,
+      items: order.items.map((i) => ({
+        productName: i.productName,
+        quantity: i.quantity,
+        totalPrice: Number(i.totalPrice),
+        variant: i.variant,
+      })),
+      subtotal: Number(order.subtotal),
+      total: Number(order.total),
+      deliveryCost: order.deliveryCost ? Number(order.deliveryCost) : null,
+      address: order.address,
+      pickupTime: order.pickupTime,
+      estimatedTime: order.estimatedTime,
+      paymentMethod: order.paymentMethod,
+    }).catch((err) => console.error("[EMAIL] Conferma ordine fallita:", err));
+  }
 
   return NextResponse.json(order, { status: 201 });
 }

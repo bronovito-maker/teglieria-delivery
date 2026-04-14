@@ -16,6 +16,14 @@ const config: Config = {
         terracotta: "#e66a26",
         marigold: "#ffa941",
       },
+      fontFamily: {
+        // SOLO per "La Teglieria" logo — mai per altro testo
+        logo: ["var(--font-narkiss)", "sans-serif"],
+        // DM Sans — font di default per tutto il sito client
+        brand:    ["var(--font-inter)", "sans-serif"],
+        body:     ["var(--font-inter)", "sans-serif"],
+        subtitle: ["var(--font-inter)", "sans-serif"],
+      },
     },
   },
   plugins: [],

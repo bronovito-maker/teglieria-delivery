@@ -164,17 +164,6 @@ export default function ProductModal({ product, onClose }: Props) {
               </section>
             )}
 
-            {/* Note */}
-            <section className="reveal active">
-              <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-charcoal/40 mb-4 ml-1">Note per lo Chef</h3>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Es. Ben cotta, poco piccante..."
-                className="w-full px-6 py-4 bg-charcoal/5 border-none rounded-[1.5rem] text-sm outline-none focus:ring-2 focus:ring-marigold/30 transition-all resize-none font-body"
-                rows={2}
-              />
-            </section>
 
             {/* Azioni finali */}
             <div className="pt-6 border-t border-charcoal/5 flex items-center gap-4">

@@ -28,9 +28,9 @@ export default function MobileTopBar() {
           <Link
             href="/"
             onClick={() => setOpen(false)}
-            className="text-[1.65rem] leading-none font-brand font-semibold uppercase tracking-[0.08em] text-charcoal"
+            className="text-[1.65rem] leading-none font-logo font-semibold uppercase tracking-[0.08em] text-charcoal"
           >
-            La <span className="text-terracotta">Teglieria.</span>
+            La <span className="text-terracotta">Teglieria</span>
           </Link>
 
           <button
@@ -60,9 +60,9 @@ export default function MobileTopBar() {
           <Link
             href="/"
             onClick={() => setOpen(false)}
-            className="text-[1.65rem] leading-none font-brand font-semibold uppercase tracking-[0.08em] text-charcoal"
+            className="text-[1.65rem] leading-none font-logo font-semibold uppercase tracking-[0.08em] text-charcoal"
           >
-            La <span className="text-terracotta">Teglieria.</span>
+            La <span className="text-terracotta">Teglieria</span>
           </Link>
 
           <button

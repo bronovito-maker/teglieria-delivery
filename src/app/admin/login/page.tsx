@@ -56,7 +56,7 @@ export default function AdminLogin() {
           <div className="bg-charcoal flex flex-col items-center justify-center p-10 md:p-12 md:w-2/5 gap-6 py-12 md:py-0">
             <span className="text-5xl md:text-6xl">🍕</span>
             <div className="text-center">
-              <h2 className="text-2xl md:text-3xl font-brand font-medium uppercase tracking-wider text-white leading-tight">
+              <h2 className="text-2xl md:text-3xl font-logo font-medium uppercase tracking-wider text-white leading-tight">
                 La Teglieria
               </h2>
               <p className="text-[10px] font-brand font-bold text-terracotta mt-2 uppercase tracking-[0.3em]">

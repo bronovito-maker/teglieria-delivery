@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { notifyCustomerOrderStatus } from "@/lib/customer-notifications";
+import { sendRiderDepartedEmail } from "@/lib/email";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 import { writeAuditLog } from "@/lib/audit";
@@ -71,6 +72,17 @@ export async function PATCH(
       actualTime: order.actualTime,
       rider: order.rider,
     });
+
+    if (body.status === "OUT" && order.customerEmail) {
+      sendRiderDepartedEmail({
+        customerEmail: order.customerEmail,
+        customerName: order.customerName,
+        orderNumber: order.orderNumber,
+        riderName: order.rider?.name,
+        estimatedTime: order.estimatedTime,
+        address: order.address,
+      }).catch((err) => console.error("[EMAIL] Rider partito fallita:", err));
+    }
   }
 
   if (body.status || body.riderId !== undefined || body.estimatedTime || body.actualTime || body.statusNote) {

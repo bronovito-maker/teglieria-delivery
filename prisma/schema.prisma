@@ -70,6 +70,7 @@ model Order {
   status         OrderStatus     @default(RECEIVED)
   customerName   String
   customerPhone  String
+  customerEmail  String?
   address        String?
   addressDetail  String?
   deliveryZone   String?
@@ -97,6 +98,27 @@ model GlobalConfig {
   maxOrdersPerSlot Int      @default(5)
   deliveryFee      Decimal  @default(2.50) @db.Decimal(8, 2)
   updatedAt        DateTime @updatedAt
+}
+
+// 0=Dom, 1=Lun, 2=Mar, 3=Mer, 4=Gio, 5=Ven, 6=Sab (JS getDay())
+model DaySchedule {
+  id           Int      @id @default(autoincrement())
+  dayOfWeek    Int      @unique
+  isOpen       Boolean  @default(false)
+  lunchActive  Boolean  @default(false)
+  lunchStart   String   @default("12:00")
+  lunchEnd     String   @default("14:30")
+  dinnerActive Boolean  @default(false)
+  dinnerStart  String   @default("18:30")
+  dinnerEnd    String   @default("22:00")
+  updatedAt    DateTime @updatedAt
+}
+
+model ClosedDate {
+  id        Int      @id @default(autoincrement())
+  date      String   @unique // "YYYY-MM-DD"
+  reason    String?
+  createdAt DateTime @default(now())
 }
 
 model OrderItem {

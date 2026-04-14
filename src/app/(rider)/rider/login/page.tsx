@@ -54,7 +54,7 @@ export default function RiderLoginPage() {
           <div className="bg-charcoal flex items-center gap-4 px-7 py-6">
             <span className="text-3xl shrink-0">🛵</span>
             <div>
-              <p className="text-[10px] font-brand font-bold text-terracotta uppercase tracking-[0.3em]">
+              <p className="text-[10px] font-logo font-bold text-terracotta uppercase tracking-[0.3em]">
                 La Teglieria
               </p>
               <h2 className="text-lg font-brand font-medium uppercase tracking-wide text-white leading-tight">

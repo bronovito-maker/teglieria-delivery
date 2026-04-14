@@ -10,18 +10,64 @@
 }
 
 @layer utilities {
-  .font-brand {
-    font-family: var(--font-narkiss), sans-serif;
-  }
-  .font-subtitle {
-    font-family: var(--font-odile), serif;
-  }
+  /*
+   * FONT SYSTEM
+   * font-logo  → Narkiss Tam — SOLO "La Teglieria" logo (definito in tailwind.config.ts)
+   * font-brand / font-body / font-subtitle → DM Sans (tutto il resto)
+   */
+  .font-brand,
+  .font-subtitle,
   .font-body {
-    font-family: var(--font-kit), sans-serif;
+    font-family: var(--font-inter), system-ui, sans-serif;
+  }
+
+  /*
+   * DESIGN SYSTEM — CLASSI COMPONENTE
+   *
+   * REGOLA UPPERCASE: solo su testo ≤ 12px (micro-label, badge, nav, copyright)
+   * Mai uppercase su h1/h2/h3/bottoni/testo su immagini
+   *
+   * PESO: font-semibold per titoli e bottoni, font-bold solo per micro-label
+   * TRACKING: tracking-wide max per bottoni, tracking-[0.2em→0.4em] per micro-label
+   */
+
+  /* Titolo hero (h1 mobile) */
+  .ds-heading-hero {
+    @apply font-brand font-semibold leading-[1.1] tracking-tight text-charcoal;
+  }
+
+  /* Titolo di sezione (h2) */
+  .ds-heading-section {
+    @apply font-brand font-semibold leading-none text-charcoal;
+  }
+
+  /* Titolo card (h3) */
+  .ds-heading-card {
+    @apply font-brand font-semibold leading-none text-charcoal;
+  }
+
+  /* Micro-label overline uppercase — UNICO caso in cui uppercase è ammesso */
+  .ds-micro-label {
+    @apply text-xs font-brand font-bold uppercase tracking-[0.25em] leading-none;
+  }
+
+  /* CTA primario */
+  .ds-cta-primary {
+    @apply rounded-full font-brand font-semibold tracking-wide text-white
+           bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a]
+           shadow-[0_10px_25px_rgba(230,100,40,0.25)]
+           hover:scale-[1.02] active:scale-95 transition-all;
+  }
+
+  /* CTA secondario */
+  .ds-cta-secondary {
+    @apply rounded-full font-brand font-semibold tracking-wide text-charcoal
+           bg-white/50 border-2 border-charcoal/50
+           hover:bg-white/80 hover:border-charcoal/60 transition-all;
   }
 }
 
-/* Admin: override tutti i font con Inter */
+/* Admin: Inter per tutto, font-logo mantiene Narkiss Tam per il logo */
 .admin-layout,
 .admin-layout .font-brand,
 .admin-layout .font-subtitle,

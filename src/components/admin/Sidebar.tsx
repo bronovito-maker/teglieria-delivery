@@ -14,6 +14,7 @@ const navItems = [
   { href: "/admin/prodotti", label: "Prodotti", icon: "🍕" },
   { href: "/admin/categorie", label: "Categorie", icon: "📁" },
   { href: "/admin/report", label: "Report", icon: "📈" },
+  { href: "/admin/orari", label: "Orari", icon: "🗓️" },
 ];
 
 export default function Sidebar() {
@@ -33,7 +34,7 @@ export default function Sidebar() {
       <header className="md:hidden fixed top-0 inset-x-0 z-[80] bg-charcoal border-b border-white/5 text-white">
         <div className="px-6 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-brand font-medium uppercase tracking-wider text-white">La Teglieria</h1>
+            <h1 className="text-2xl font-logo font-medium uppercase tracking-wider text-white">La Teglieria</h1>
             <p className="text-[10px] font-brand font-bold text-terracotta uppercase tracking-[0.25em]">Gestionale</p>
           </div>
           <button
@@ -86,7 +87,7 @@ export default function Sidebar() {
         <div className="p-3 lg:p-6 xl:p-8 mb-2 lg:mb-6 flex items-center justify-center lg:block">
           <span className="text-2xl lg:hidden">🍕</span>
           <div className="hidden lg:block">
-            <h1 className="text-xl xl:text-2xl font-brand font-medium uppercase tracking-wider text-white">La Teglieria</h1>
+            <h1 className="text-xl xl:text-2xl font-logo font-medium uppercase tracking-wider text-white">La Teglieria</h1>
             <p className="text-[10px] font-brand font-bold text-terracotta mt-2 uppercase tracking-[0.3em] leading-none">Console Gestionale</p>
           </div>
         </div>

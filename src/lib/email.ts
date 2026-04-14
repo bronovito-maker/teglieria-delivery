@@ -1,0 +1,320 @@
+import { BrevoClient, BrevoEnvironment } from "@getbrevo/brevo";
+
+const FROM_EMAIL = "ordini@lateglieria.it";
+const FROM_NAME = "La Teglieria";
+
+function getClient(): BrevoClient | null {
+  const apiKey = process.env.BREVO_API_KEY;
+  if (!apiKey) return null;
+  return new BrevoClient({ apiKey, environment: BrevoEnvironment.Default });
+}
+
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(amount);
+}
+
+function formatTime(date: Date | string | null | undefined): string | null {
+  if (!date) return null;
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return null;
+  return d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+}
+
+function emailWrapper(content: string): string {
+  return `<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body style="font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;background:#f5f0e8;margin:0;padding:0;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0e8;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:560px;">
+
+        <tr><td style="background:#1d1d1f;border-radius:24px 24px 0 0;padding:28px 32px;text-align:center;">
+          <p style="margin:0;font-size:28px;">🍕</p>
+          <p style="margin:6px 0 0;font-size:20px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#ffffff;">La Teglieria</p>
+          <p style="margin:4px 0 0;font-size:10px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">Artisan Pizza</p>
+        </td></tr>
+
+        <tr><td style="background:#ffffff;padding:36px 32px;">
+          ${content}
+        </td></tr>
+
+        <tr><td style="background:#f5f0e8;border-radius:0 0 24px 24px;padding:20px 32px;text-align:center;">
+          <p style="margin:0;font-size:10px;color:#1d1d1f;opacity:0.3;letter-spacing:0.2em;text-transform:uppercase;">
+            © ${new Date().getFullYear()} La Teglieria Artisan Pizza · Tutti i diritti riservati
+          </p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+// ─── EMAIL 1: Conferma ordine ────────────────────────────────────────────────
+
+type OrderConfirmationInput = {
+  customerEmail: string;
+  customerName: string;
+  orderNumber: number;
+  type: string;
+  items: Array<{ productName: string; quantity: number; totalPrice: number; variant?: string | null }>;
+  subtotal: number;
+  total: number;
+  deliveryCost?: number | null;
+  address?: string | null;
+  pickupTime?: Date | string | null;
+  estimatedTime?: Date | string | null;
+  paymentMethod?: string | null;
+};
+
+export async function sendOrderConfirmationEmail(order: OrderConfirmationInput): Promise<void> {
+  const client = getClient();
+  if (!client) {
+    console.info("[EMAIL][SKIPPED] BREVO_API_KEY non configurata");
+    return;
+  }
+
+  const isDelivery = order.type === "DELIVERY";
+  const timeLabel = formatTime(isDelivery ? order.estimatedTime : order.pickupTime);
+  const paymentLabel = order.paymentMethod === "POS" ? "Carta / POS" : "Contanti";
+
+  const itemsHtml = order.items.map((item) => `
+    <tr>
+      <td style="padding:10px 0;border-bottom:1px solid #f5f0e8;color:#1d1d1f;font-size:14px;">
+        <span style="color:#e66a26;font-weight:700;">${item.quantity}×</span> ${item.productName}
+        ${item.variant ? `<br/><span style="font-size:12px;color:#1d1d1f;opacity:0.4;">${item.variant}</span>` : ""}
+      </td>
+      <td style="padding:10px 0;border-bottom:1px solid #f5f0e8;text-align:right;font-weight:600;color:#1d1d1f;font-size:14px;white-space:nowrap;">
+        ${formatCurrency(Number(item.totalPrice))}
+      </td>
+    </tr>
+  `).join("");
+
+  const content = `
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">Ordine Confermato</p>
+    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Grazie, ${order.customerName}!</h1>
+    <p style="margin:0 0 24px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">Abbiamo ricevuto il tuo ordine. Ecco il riepilogo:</p>
+
+    <div style="background:#f5f0e8;border-radius:16px;padding:16px 20px;margin-bottom:24px;text-align:center;">
+      <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Numero Ordine</p>
+      <p style="margin:6px 0 0;font-size:32px;font-weight:700;color:#e66a26;">#${order.orderNumber}</p>
+    </div>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
+      ${itemsHtml}
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+      <tr>
+        <td style="padding:6px 0;font-size:13px;color:#1d1d1f;opacity:0.5;">Subtotale</td>
+        <td style="padding:6px 0;text-align:right;font-size:13px;color:#1d1d1f;opacity:0.5;">${formatCurrency(order.subtotal)}</td>
+      </tr>
+      ${isDelivery && order.deliveryCost ? `
+      <tr>
+        <td style="padding:6px 0;font-size:13px;color:#1d1d1f;opacity:0.5;">Consegna</td>
+        <td style="padding:6px 0;text-align:right;font-size:13px;color:#1d1d1f;opacity:0.5;">${formatCurrency(Number(order.deliveryCost))}</td>
+      </tr>` : ""}
+      <tr>
+        <td style="padding:12px 0 0;font-size:18px;font-weight:700;color:#1d1d1f;">Totale</td>
+        <td style="padding:12px 0 0;text-align:right;font-size:18px;font-weight:700;color:#e66a26;">${formatCurrency(order.total)}</td>
+      </tr>
+    </table>
+
+    <div style="background:#f5f0e8;border-radius:16px;padding:20px;margin-bottom:24px;">
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="padding:5px 0;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;width:40%;">Tipo</td>
+          <td style="padding:5px 0;font-size:13px;font-weight:600;color:#1d1d1f;">${isDelivery ? "Consegna a domicilio" : "Ritiro in sede"}</td>
+        </tr>
+        ${timeLabel ? `
+        <tr>
+          <td style="padding:5px 0;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">${isDelivery ? "Consegna prevista" : "Ritiro alle"}</td>
+          <td style="padding:5px 0;font-size:13px;font-weight:600;color:#1d1d1f;">${timeLabel}</td>
+        </tr>` : ""}
+        ${isDelivery && order.address ? `
+        <tr>
+          <td style="padding:5px 0;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Indirizzo</td>
+          <td style="padding:5px 0;font-size:13px;font-weight:600;color:#1d1d1f;">${order.address}</td>
+        </tr>` : ""}
+        <tr>
+          <td style="padding:5px 0;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Pagamento</td>
+          <td style="padding:5px 0;font-size:13px;font-weight:600;color:#1d1d1f;">${paymentLabel}</td>
+        </tr>
+      </table>
+    </div>
+
+    <p style="margin:0;font-size:13px;color:#1d1d1f;opacity:0.5;text-align:center;line-height:1.6;">
+      Ti invieremo un aggiornamento quando il tuo ordine sarà in consegna.
+    </p>
+  `;
+
+  try {
+    await client.transactionalEmails.sendTransacEmail({
+      sender: { name: FROM_NAME, email: FROM_EMAIL },
+      to: [{ email: order.customerEmail, name: order.customerName }],
+      subject: `✅ Ordine #${order.orderNumber} ricevuto — La Teglieria`,
+      htmlContent: emailWrapper(content),
+    });
+  } catch (err) {
+    console.error("[EMAIL][ERROR] Conferma ordine:", err);
+  }
+}
+
+// ─── EMAIL 2: Rider welcome ──────────────────────────────────────────────────
+
+type RiderWelcomeInput = {
+  email: string;
+  name: string;
+};
+
+export async function sendRiderWelcomeEmail({ email, name }: RiderWelcomeInput): Promise<void> {
+  const client = getClient();
+  if (!client) return;
+
+  const content = `
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">Benvenuto nel Team</p>
+    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Ciao, ${name}! 🛵</h1>
+    <p style="margin:0 0 20px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">
+      La tua registrazione come rider de La Teglieria è andata a buon fine. Sei ora parte del nostro team di consegne.
+    </p>
+
+    <div style="background:#f5f0e8;border-radius:16px;padding:20px;margin-bottom:24px;">
+      <p style="margin:0 0 12px;font-size:12px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Prossimi passi</p>
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr><td style="padding:6px 0;font-size:14px;color:#1d1d1f;">✅ &nbsp;Accedi alla tua dashboard rider</td></tr>
+        <tr><td style="padding:6px 0;font-size:14px;color:#1d1d1f;">📋 &nbsp;Controlla gli ordini assegnati</td></tr>
+        <tr><td style="padding:6px 0;font-size:14px;color:#1d1d1f;">🗺️ &nbsp;Aggiorna la tua posizione in tempo reale</td></tr>
+      </table>
+    </div>
+
+    <p style="margin:0;font-size:13px;color:#1d1d1f;opacity:0.4;text-align:center;line-height:1.6;">
+      Per qualsiasi necessità contatta il responsabile logistica.
+    </p>
+  `;
+
+  try {
+    await client.transactionalEmails.sendTransacEmail({
+      sender: { name: FROM_NAME, email: FROM_EMAIL },
+      to: [{ email, name }],
+      subject: `🛵 Benvenuto nel team — La Teglieria`,
+      htmlContent: emailWrapper(content),
+    });
+  } catch (err) {
+    console.error("[EMAIL][ERROR] Rider welcome:", err);
+  }
+}
+
+// ─── EMAIL 3: Cliente welcome ─────────────────────────────────────────────────
+
+type CustomerWelcomeInput = {
+  email: string;
+  name: string;
+};
+
+export async function sendCustomerWelcomeEmail({ email, name }: CustomerWelcomeInput): Promise<void> {
+  const client = getClient();
+  if (!client) return;
+
+  const content = `
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">Registrazione Completata</p>
+    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Benvenuto, ${name}! 🍕</h1>
+    <p style="margin:0 0 20px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">
+      Il tuo account La Teglieria è pronto. Ora puoi ordinare più velocemente con i tuoi dati salvati.
+    </p>
+
+    <div style="background:#f5f0e8;border-radius:16px;padding:20px;margin-bottom:24px;">
+      <p style="margin:0 0 12px;font-size:12px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Con il tuo account puoi</p>
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr><td style="padding:6px 0;font-size:14px;color:#1d1d1f;">⚡ &nbsp;Ordinare con un click (dati pre-compilati)</td></tr>
+        <tr><td style="padding:6px 0;font-size:14px;color:#1d1d1f;">📬 &nbsp;Ricevere aggiornamenti sull'ordine via email</td></tr>
+        <tr><td style="padding:6px 0;font-size:14px;color:#1d1d1f;">📦 &nbsp;Tenere traccia dei tuoi ordini passati</td></tr>
+      </table>
+    </div>
+
+    <p style="margin:0 0 4px;font-size:13px;color:#1d1d1f;opacity:0.4;text-align:center;">
+      Se non hai creato tu questo account, ignora questa email.
+    </p>
+  `;
+
+  try {
+    await client.transactionalEmails.sendTransacEmail({
+      sender: { name: FROM_NAME, email: FROM_EMAIL },
+      to: [{ email, name }],
+      subject: `🍕 Benvenuto su La Teglieria!`,
+      htmlContent: emailWrapper(content),
+    });
+  } catch (err) {
+    console.error("[EMAIL][ERROR] Customer welcome:", err);
+  }
+}
+
+// ─── EMAIL 4: Rider partito ──────────────────────────────────────────────────
+
+type RiderDepartedInput = {
+  customerEmail: string;
+  customerName: string;
+  orderNumber: number;
+  riderName?: string | null;
+  estimatedTime?: Date | string | null;
+  address?: string | null;
+};
+
+export async function sendRiderDepartedEmail(order: RiderDepartedInput): Promise<void> {
+  const client = getClient();
+  if (!client) {
+    console.info("[EMAIL][SKIPPED] BREVO_API_KEY non configurata");
+    return;
+  }
+
+  const timeLabel = formatTime(order.estimatedTime);
+
+  const content = `
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">In Consegna</p>
+    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">La tua teglia è in arrivo!</h1>
+
+    <div style="background:#f5f0e8;border-radius:16px;padding:16px 20px;margin-bottom:24px;text-align:center;">
+      <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Ordine</p>
+      <p style="margin:6px 0 0;font-size:32px;font-weight:700;color:#e66a26;">#${order.orderNumber}</p>
+    </div>
+
+    <div style="background:#f5f0e8;border-radius:16px;padding:20px;margin-bottom:24px;">
+      <table width="100%" cellpadding="0" cellspacing="0">
+        ${order.riderName ? `
+        <tr>
+          <td style="padding:5px 0;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;width:40%;">Rider</td>
+          <td style="padding:5px 0;font-size:13px;font-weight:600;color:#1d1d1f;">${order.riderName}</td>
+        </tr>` : ""}
+        ${timeLabel ? `
+        <tr>
+          <td style="padding:5px 0;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Arrivo previsto</td>
+          <td style="padding:5px 0;font-size:13px;font-weight:600;color:#1d1d1f;">${timeLabel}</td>
+        </tr>` : ""}
+        ${order.address ? `
+        <tr>
+          <td style="padding:5px 0;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Indirizzo</td>
+          <td style="padding:5px 0;font-size:13px;font-weight:600;color:#1d1d1f;">${order.address}</td>
+        </tr>` : ""}
+      </table>
+    </div>
+
+    <p style="margin:0;font-size:15px;color:#1d1d1f;opacity:0.6;text-align:center;line-height:1.6;">
+      Tieniti pronto! La tua pizza artigianale è in viaggio verso di te. 🛵
+    </p>
+  `;
+
+  try {
+    await client.transactionalEmails.sendTransacEmail({
+      sender: { name: FROM_NAME, email: FROM_EMAIL },
+      to: [{ email: order.customerEmail, name: order.customerName }],
+      subject: `🛵 Il tuo ordine #${order.orderNumber} è in consegna!`,
+      htmlContent: emailWrapper(content),
+    });
+  } catch (err) {
+    console.error("[EMAIL][ERROR] Rider partito:", err);
+  }
+}

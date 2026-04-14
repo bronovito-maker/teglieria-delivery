@@ -12,8 +12,8 @@ export default function ClientLayout({
 
       <header className="hidden md:block tomato-glass border-b text-white">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/menu" className="text-2xl font-brand font-medium uppercase tracking-wider">
-            La Teglieria
+          <Link href="/" className="text-2xl font-logo font-medium uppercase tracking-wider">
+            La <span className="text-terracotta">Teglieria</span>
           </Link>
         </div>
       </header>

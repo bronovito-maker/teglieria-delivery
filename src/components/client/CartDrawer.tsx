@@ -80,7 +80,6 @@ export default function CartDrawer({ open, onClose }: Props) {
                   {item.removals.length > 0 && (
                     <p className="text-xs text-gray-500">- {item.removals.map((r) => r.name).join(", ")}</p>
                   )}
-                  {item.notes && <p className="text-xs text-gray-400 italic">{item.notes}</p>}
                 </div>
                 <p className="font-semibold text-sm ml-2">{formatCurrency(item.totalPrice)}</p>
               </div>

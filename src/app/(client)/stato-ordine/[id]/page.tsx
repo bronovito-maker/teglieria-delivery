@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/constants";
 import { formatCurrency, formatTime } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 import type { OrderWithItems } from "@/types";
 
 const STATUS_STEPS = ["RECEIVED", "CONFIRMED", "PREPARING", "READY", "OUT", "DELIVERED"];
@@ -13,6 +14,24 @@ export default function StatoOrdinePage() {
   const { id } = useParams();
   const [order, setOrder] = useState<OrderWithItems | null>(null);
   const [error, setError] = useState(false);
+  const [showRegisterBanner, setShowRegisterBanner] = useState(false);
+  const [guestData, setGuestData] = useState<{ name: string; email: string; phone: string } | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) {
+        const raw = sessionStorage.getItem("guestOrderData");
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            setGuestData(parsed);
+            setShowRegisterBanner(true);
+          } catch {}
+        }
+      }
+    });
+  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -156,7 +175,50 @@ export default function StatoOrdinePage() {
         </div>
       </div>
 
-      <div className="mt-12 flex flex-col gap-4 items-center">
+      {/* Banner registrazione post-ordine */}
+      {showRegisterBanner && (
+        <div className="mt-8 bg-white/70 backdrop-blur-xl rounded-[2rem] border border-terracotta/10 p-6 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-500">
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <p className="text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-terracotta mb-1">Ordina più velocemente</p>
+              <h3 className="text-lg font-brand font-medium uppercase tracking-tight text-charcoal leading-tight">
+                Salva i tuoi dati<span className="text-terracotta">.</span>
+              </h3>
+            </div>
+            <button
+              onClick={() => {
+                setShowRegisterBanner(false);
+                sessionStorage.removeItem("guestOrderData");
+              }}
+              className="text-charcoal/20 hover:text-charcoal/50 transition-colors shrink-0 p-1 text-lg leading-none"
+              aria-label="Chiudi"
+            >
+              ✕
+            </button>
+          </div>
+          <p className="font-body italic text-charcoal/40 text-sm mb-5 leading-relaxed">
+            La prossima volta i tuoi dati saranno già pronti. Crea un account gratis in 30 secondi.
+          </p>
+          <Link
+            href={`/registrati?name=${encodeURIComponent(guestData?.name || "")}&email=${encodeURIComponent(guestData?.email || "")}&phone=${encodeURIComponent(guestData?.phone || "")}`}
+            onClick={() => sessionStorage.removeItem("guestOrderData")}
+            className="block w-full text-center py-3.5 bg-charcoal text-white rounded-2xl font-brand font-bold uppercase tracking-[0.2em] text-[11px] hover:bg-terracotta active:scale-95 transition-all"
+          >
+            Crea Account Gratis
+          </Link>
+          <button
+            onClick={() => {
+              setShowRegisterBanner(false);
+              sessionStorage.removeItem("guestOrderData");
+            }}
+            className="block w-full text-center mt-3 text-[10px] font-brand font-bold uppercase tracking-widest text-charcoal/25 hover:text-charcoal/50 transition-colors py-2"
+          >
+            Non ora
+          </button>
+        </div>
+      )}
+
+      <div className="mt-8 flex flex-col gap-4 items-center">
         <Link
           href="/menu"
           className="w-full text-center py-5 rounded-full bg-terracotta text-white font-brand font-bold uppercase tracking-widest text-xs shadow-[0_15px_30px_rgba(197,86,26,0.3)] hover:scale-105 active:scale-95 transition-all"
