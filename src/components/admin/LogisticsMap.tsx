@@ -71,6 +71,7 @@ export default function LogisticsMap({ orders }: Props) {
   const markersRef = useRef<any[]>([]);
   const infoWindowRef = useRef<any>(null);
   const geocodeCacheRef = useRef<Map<string, { lat: number; lng: number }>>(new Map());
+  const userInteractedRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -105,6 +106,13 @@ export default function LogisticsMap({ orders }: Props) {
           fullscreenControl: false,
         });
         infoWindowRef.current = new maps.InfoWindow();
+
+        mapRef.current.addListener("zoom_changed", () => {
+          userInteractedRef.current = true;
+        });
+        mapRef.current.addListener("dragend", () => {
+          userInteractedRef.current = true;
+        });
       } catch {
         if (!cancelled) setError("Impossibile caricare Google Maps.");
       } finally {
@@ -133,15 +141,25 @@ export default function LogisticsMap({ orders }: Props) {
       map,
       position: storePosition,
       title: "La Teglieria",
-      label: { text: "🏠", fontSize: "16px" },
+      icon: {
+        path: maps.SymbolPath.CIRCLE,
+        scale: 14,
+        fillColor: "#3b82f6",
+        fillOpacity: 1,
+        strokeColor: "#ffffff",
+        strokeWeight: 2,
+      },
+      label: { text: "🍕", fontSize: "14px" },
     });
     markersRef.current.push(storeMarker);
     bounds.extend(storePosition);
 
     const addressOrders = orders.filter((order) => Boolean(order.address?.trim()));
     if (addressOrders.length === 0) {
-      map.setCenter(storePosition);
-      map.setZoom(12);
+      if (!userInteractedRef.current) {
+        map.setCenter(storePosition);
+        map.setZoom(12);
+      }
       return;
     }
 
@@ -199,6 +217,7 @@ export default function LogisticsMap({ orders }: Props) {
     );
 
     Promise.all(geocodePromises).then(() => {
+      if (userInteractedRef.current) return;
       if (bounds.isEmpty()) {
         map.setCenter(storePosition);
         map.setZoom(12);

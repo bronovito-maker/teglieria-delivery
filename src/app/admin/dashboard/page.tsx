@@ -37,8 +37,10 @@ export default function DashboardPage() {
 
   // Browser notification permission
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (typeof Notification !== "undefined") {
       setNotifPermission(Notification.permission);
     }
@@ -191,7 +193,7 @@ export default function DashboardPage() {
         </div>
         
         <div className="flex gap-3 flex-wrap">
-          {notifPermission !== "granted" && typeof Notification !== "undefined" && (
+          {mounted && notifPermission !== "granted" && typeof Notification !== "undefined" && (
             <button
               onClick={requestNotifPermission}
               className="px-8 py-4 rounded-full border border-marigold/30 bg-marigold/5 text-marigold font-brand font-bold uppercase tracking-widest text-[10px] hover:bg-marigold hover:text-white transition-all active:scale-95 flex items-center gap-2"
@@ -199,7 +201,7 @@ export default function DashboardPage() {
               🔔 Abilita Notifiche
             </button>
           )}
-          {notifPermission === "granted" && (
+          {mounted && notifPermission === "granted" && (
             <span className="px-6 py-4 rounded-full border border-charcoal/5 bg-white text-charcoal/30 font-brand font-bold uppercase tracking-widest text-[9px] flex items-center gap-2">
               🔔 Notifiche Attive
             </span>
@@ -213,14 +215,14 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
           { label: "Ordini Oggi", value: orders.length, accent: "charcoal" },
           { label: "Attivi", value: activeOrders, accent: "terracotta" },
           { label: "In Cucina", value: preparingOrders, accent: "marigold" },
           { label: "Fatturato", value: formatCurrency(totalRevenue), accent: "charcoal" },
         ].map((stat, i) => (
-          <div key={i} className="bg-white/50 backdrop-blur-md rounded-[2rem] border border-charcoal/5 p-8 shadow-sm">
+          <div key={i} className="bg-white/50 backdrop-blur-md rounded-2xl md:rounded-[2rem] border border-charcoal/5 p-5 md:p-6 shadow-sm">
             <p className="text-[10px] uppercase font-brand font-bold tracking-[0.2em] text-charcoal/30 mb-4">{stat.label}</p>
             <p className={cn("text-3xl font-brand font-medium tracking-tight", stat.accent === "terracotta" ? "text-terracotta" : stat.accent === "marigold" ? "text-marigold" : "text-charcoal")}>
               {stat.value}
@@ -230,12 +232,12 @@ export default function DashboardPage() {
       </div>
 
       {/* Kanban */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {KANBAN_COLUMNS.map((status) => {
           const columnOrders = orders.filter((o) => o.status === status);
           return (
-            <div key={status} className="flex flex-col min-w-[280px]">
-              <div className="flex items-center justify-between px-2 mb-6">
+            <div key={status} className="flex flex-col">
+              <div className="flex items-center gap-3 px-2 mb-6">
                 <span className={`px-4 py-1.5 rounded-full text-[9px] font-brand font-bold uppercase tracking-widest shadow-sm ${getStatusBadgeClass(status)}`}>
                   {ORDER_STATUS_LABELS[status]}
                 </span>

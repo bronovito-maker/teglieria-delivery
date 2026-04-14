@@ -274,6 +274,18 @@ export default function LogisticaPage() {
     ) as Record<string, DispatchSuggestion | null>;
   }, [activeOrders, riders]);
 
+  const mapOrders = useMemo(
+    () =>
+      activeOrders.map((order) => ({
+        id: order.id,
+        orderNumber: order.orderNumber,
+        customerName: order.customerName,
+        address: order.address,
+        status: order.status,
+      })),
+    [activeOrders]
+  );
+
   useEffect(() => {
     const nextAlerts: CriticalRiderAlert[] = [];
     for (const order of allDeliveryOrders) {
@@ -430,7 +442,7 @@ export default function LogisticaPage() {
         <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH+Jj4+Lh4J/fH5+goaIiYiGgoB9fH1/goaIioqIhoJ/fHx+gYWIioqIhoJ+fHx+gYWIioqIhoN+fHt9gIWIiomHhIF+fHx+gYWHiYiHhYJ/fXx9f4KFh4iHhYOAfnx8foCDhoiHhoSBf319foGEhoeGhYOBf359f4GEhoaGhIKAf359foCDhYaFhIOBf35+foCChYWFhIOBf359foGDhIWEg4KAf35+foCChIWEg4KAf35+fn+ChISEg4F/fn5+f4GDhISDgoB/fn1+f4GDg4ODgYB/fn5+f4GCg4OCgYB/fn5+f4GCg4OCgYB/fn5+foGCgoKBgH9/fn5+f4GCgoKBgH9+fn5+f4GBgoGAgH9+fn5+f4GBgYGAgH9+fn5/f4CBAAAAAIAAAACAf4B/gH+Af4B/gICAgICAgICAgICAgA==" type="audio/wav" />
       </audio>
 
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between mb-12">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between mb-10">
         <div className="reveal active">
           <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-2 block">Dipartimento</span>
           <h1 className="text-4xl md:text-5xl font-brand font-medium uppercase tracking-tight text-charcoal">
@@ -445,37 +457,37 @@ export default function LogisticaPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4 mb-12">
-        <div className="bg-white/70 backdrop-blur-xl rounded-3xl border border-charcoal/5 p-6 shadow-sm reveal active">
-          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 mb-2">Da assegnare</p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4 mb-10">
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-charcoal/5 p-5 shadow-sm reveal active flex flex-col">
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 min-h-[2.5rem] flex items-start">Da assegnare</p>
           <p className="text-3xl font-brand font-bold text-terracotta">{kpis.pending}</p>
         </div>
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-charcoal/5 p-5 shadow-sm reveal active">
-          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 mb-2">Assegnati</p>
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-charcoal/5 p-5 shadow-sm reveal active flex flex-col">
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 min-h-[2.5rem] flex items-start">Assegnati</p>
           <p className="text-3xl font-brand font-bold text-charcoal">{kpis.assigned}</p>
         </div>
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-charcoal/5 p-5 shadow-sm reveal active">
-          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 mb-2">In consegna</p>
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-charcoal/5 p-5 shadow-sm reveal active flex flex-col">
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 min-h-[2.5rem] flex items-start">In consegna</p>
           <p className="text-3xl font-brand font-bold text-charcoal">{kpis.out}</p>
         </div>
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-charcoal/5 p-5 shadow-sm reveal active">
-          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 mb-2">Tempo medio</p>
-          <p className="text-3xl font-brand font-bold text-terracotta">{formatDuration(kpis.avgDeliveryMs)}</p>
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-charcoal/5 p-5 shadow-sm reveal active flex flex-col items-center text-center">
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 min-h-[2.5rem] flex items-start">Tempo medio</p>
+          <p className="text-3xl font-brand font-bold text-terracotta leading-none">{formatDuration(kpis.avgDeliveryMs)}</p>
         </div>
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-charcoal/5 p-5 shadow-sm reveal active">
-          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 mb-2">Resa Rider</p>
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-charcoal/5 p-5 shadow-sm reveal active flex flex-col">
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 min-h-[2.5rem] flex items-start">Resa Rider</p>
           <p className="text-3xl font-brand font-bold text-charcoal">{kpis.totalDeliveredByRiders}</p>
         </div>
-        <div className="bg-warm-light/50 backdrop-blur-xl rounded-2xl border border-marigold/20 p-5 shadow-sm reveal active">
-          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-marigold mb-2">SLA 30+</p>
+        <div className="bg-warm-light/50 backdrop-blur-xl rounded-2xl border border-marigold/20 p-5 shadow-sm reveal active flex flex-col">
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-marigold min-h-[2.5rem] flex items-start">SLA 30+</p>
           <p className="text-3xl font-brand font-bold text-marigold">{kpis.atRisk30}</p>
         </div>
-        <div className="bg-warm-light/50 backdrop-blur-xl rounded-2xl border border-terracotta/20 p-5 shadow-sm reveal active">
-          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-terracotta mb-2">SLA 40+</p>
+        <div className="bg-warm-light/50 backdrop-blur-xl rounded-2xl border border-terracotta/20 p-5 shadow-sm reveal active flex flex-col">
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-terracotta min-h-[2.5rem] flex items-start">SLA 40+</p>
           <p className="text-3xl font-brand font-bold text-terracotta">{kpis.atRisk40}</p>
         </div>
-        <div className="bg-terracotta/5 backdrop-blur-xl rounded-2xl border border-terracotta/30 p-5 shadow-sm reveal active">
-          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-terracotta mb-2">SLA 50+</p>
+        <div className="bg-terracotta/5 backdrop-blur-xl rounded-2xl border border-terracotta/30 p-5 shadow-sm reveal active flex flex-col">
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-terracotta min-h-[2.5rem] flex items-start">SLA 50+</p>
           <p className="text-3xl font-brand font-bold text-terracotta animate-pulse">{kpis.atRisk50}</p>
         </div>
       </div>
@@ -520,15 +532,7 @@ export default function LogisticaPage() {
       )}
 
       <div className="mb-4">
-        <LogisticsMap
-          orders={activeOrders.map((order) => ({
-            id: order.id,
-            orderNumber: order.orderNumber,
-            customerName: order.customerName,
-            address: order.address,
-            status: order.status,
-          }))}
-        />
+        <LogisticsMap orders={mapOrders} />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-12">

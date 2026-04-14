@@ -1,6 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { Inter } from "next/font/google";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 import PwaRegister from "@/components/PwaRegister";
 
 const kitSans = localFont({
@@ -120,7 +127,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="it">
-      <body className={`${kitSans.className} ${kitSans.variable} ${narkiss.variable} ${odile.variable} antialiased`}>
+      <body className={`${kitSans.className} ${kitSans.variable} ${narkiss.variable} ${odile.variable} ${inter.variable} antialiased`}>
         <PwaRegister />
         {children}
       </body>
