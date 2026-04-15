@@ -26,8 +26,11 @@ export default function DashboardPage() {
   const [confirmingOrder, setConfirmingOrder] = useState<OrderWithItems | null>(null);
   const [etaMinutes, setEtaMinutes] = useState(30);
   const [confirmingLoading, setConfirmingLoading] = useState(false);
+  const [isRepeatCustomer, setIsRepeatCustomer] = useState(false);
   const prevCountRef = useRef(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const alertIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const alertCtxRef = useRef<AudioContext | null>(null);
 
   // Cancel order state
   const [cancelTarget, setCancelTarget] = useState<OrderWithItems | null>(null);
@@ -58,11 +61,12 @@ export default function DashboardPage() {
     const data = await res.json();
     setOrders(data);
 
-    // Sound + browser notification on new order
-    if (prevCountRef.current > 0 && data.length > prevCountRef.current) {
-      audioRef.current?.play().catch(() => {});
+    // Sound + browser notification + auto-popup on new RECEIVED order
+    const receivedOrders = (data as OrderWithItems[]).filter((o) => o.status === "RECEIVED");
+    const prevReceived = prevCountRef.current;
+    if (prevReceived > 0 && receivedOrders.length > prevReceived) {
+      const newest = receivedOrders[receivedOrders.length - 1];
       if (typeof Notification !== "undefined" && Notification.permission === "granted") {
-        const newest = data[data.length - 1];
         new Notification("🍕 Nuovo Ordine — La Teglieria", {
           body: newest ? `#${newest.orderNumber} · ${newest.customerName} · ${newest.type === "DELIVERY" ? "Delivery" : "Asporto"}` : "Nuovo ordine ricevuto!",
           icon: "/favicon.ico",
@@ -70,8 +74,10 @@ export default function DashboardPage() {
           requireInteraction: true,
         });
       }
+      // Auto-open confirmation popup
+      if (newest) openConfirmModal(newest);
     }
-    prevCountRef.current = data.length;
+    prevCountRef.current = receivedOrders.length;
   }, []);
 
   useEffect(() => {
@@ -89,6 +95,50 @@ export default function DashboardPage() {
     fetchOrders();
   }
 
+  function playBeepPattern(ctx: AudioContext) {
+    // 3 sharp beeps at 880Hz — cuts through kitchen noise
+    [0, 0.18, 0.36].forEach((delay) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = "square";
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0, ctx.currentTime + delay);
+      gain.gain.linearRampToValueAtTime(0.35, ctx.currentTime + delay + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.14);
+      osc.start(ctx.currentTime + delay);
+      osc.stop(ctx.currentTime + delay + 0.15);
+    });
+  }
+
+  function startOrderAlert() {
+    try {
+      const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      alertCtxRef.current = ctx;
+
+      // Play immediately, then every 2.2s
+      playBeepPattern(ctx);
+      alertIntervalRef.current = setInterval(() => playBeepPattern(ctx), 2200);
+
+      // Stop on ANY touch/click anywhere
+      const stop = () => stopOrderAlert();
+      document.addEventListener("pointerdown", stop, { once: true });
+    } catch {
+      // Web Audio not available — fall back to the HTML audio element
+      audioRef.current?.play().catch(() => {});
+    }
+  }
+
+  function stopOrderAlert() {
+    if (alertIntervalRef.current) {
+      clearInterval(alertIntervalRef.current);
+      alertIntervalRef.current = null;
+    }
+    alertCtxRef.current?.close().catch(() => {});
+    alertCtxRef.current = null;
+  }
+
   function openConfirmModal(order: OrderWithItems) {
     const defaultEta = 30;
     if (order.estimatedTime) {
@@ -100,12 +150,27 @@ export default function DashboardPage() {
       setEtaMinutes(defaultEta);
     }
     setConfirmingOrder(order);
+    setIsRepeatCustomer(false);
+    startOrderAlert();
+
+    // Check historical orders for this phone number (excluding current order)
+    if (order.customerPhone) {
+      fetch(`/api/ordini?phone=${encodeURIComponent(order.customerPhone)}&countOnly=1`)
+        .then((r) => r.json())
+        .then(({ count }: { count: number }) => {
+          // count includes current order, so repeat = count > 1
+          setIsRepeatCustomer(count > 1);
+        })
+        .catch(() => {});
+    }
   }
 
   function closeConfirmModal() {
+    stopOrderAlert();
     setConfirmingOrder(null);
     setEtaMinutes(30);
     setConfirmingLoading(false);
+    setIsRepeatCustomer(false);
   }
 
   function adjustEtaMinutes(delta: number) {
@@ -326,81 +391,142 @@ export default function DashboardPage() {
         })}
       </div>
 
-      {confirmingOrder && (
-        <div className="fixed inset-0 z-[100] bg-charcoal/80 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-300">
-          <div className="w-full max-w-xl bg-warm-light rounded-[3rem] p-10 shadow-2xl border border-white/20">
-            <div className="flex justify-between items-start mb-10">
-              <div>
-                <span className="text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-terracotta mb-2 block">Confirm Order</span>
-                <h3 className="text-3xl font-brand font-medium text-charcoal uppercase tracking-tight">Ordine #{confirmingOrder.orderNumber}</h3>
+      {confirmingOrder && (() => {
+        const eta = new Date(Date.now() + etaMinutes * 60000).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+
+        return (
+          <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-6 animate-in fade-in duration-200">
+            <div className="w-full sm:max-w-sm bg-[#f5f0e8] rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden">
+
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 pt-6 pb-2">
+                <div className="w-16" />
+                <div className="text-center">
+                  <p className="font-brand font-bold text-charcoal text-lg">
+                    {confirmingOrder.type === "DELIVERY" ? "Delivery" : "Asporto"}
+                  </p>
+                  <p className="text-[11px] text-charcoal/50 font-body">#{confirmingOrder.orderNumber}</p>
+                </div>
+                <button
+                  onClick={() => { closeConfirmModal(); updateStatus(confirmingOrder.id, "CANCELLED"); }}
+                  className="text-[11px] font-brand font-bold text-charcoal/50 hover:text-red-500 transition-colors uppercase tracking-wider"
+                >
+                  Rifiuta
+                </button>
               </div>
-              <button
-                onClick={closeConfirmModal}
-                className="w-12 h-12 rounded-2xl bg-white border border-charcoal/5 text-charcoal hover:bg-charcoal hover:text-white transition-all flex items-center justify-center font-bold"
-              >
-                ✕
-              </button>
-            </div>
 
-            <div className="space-y-8 mb-12">
-               <div className="grid grid-cols-2 gap-6">
-                  <div className="bg-white/50 p-6 rounded-3xl border border-charcoal/5">
-                    <p className="text-[9px] uppercase font-brand font-bold tracking-widest text-charcoal/30 mb-2">Cliente</p>
-                    <p className="font-brand font-bold text-charcoal text-sm">{confirmingOrder.customerName}</p>
-                    <p className="text-xs font-body italic text-charcoal/50">{confirmingOrder.customerPhone}</p>
+              {/* ETA selector */}
+              <div className="px-6 py-4 text-center">
+                <p className="text-[11px] font-body text-charcoal/50 mb-3">Hai bisogno di tempo extra?</p>
+                <div className="flex items-center justify-center gap-6">
+                  <button
+                    type="button"
+                    onClick={() => adjustEtaMinutes(-5)}
+                    className="w-12 h-12 rounded-full bg-white shadow-md text-xl font-bold text-charcoal active:scale-95 transition-transform"
+                  >
+                    −
+                  </button>
+                  <div className="text-center w-20">
+                    <span className="text-4xl font-brand font-bold text-charcoal tabular-nums">{etaMinutes}</span>
+                    <p className="text-[11px] text-charcoal/40 font-body">mins</p>
+                    <p className="text-[13px] font-brand font-bold text-charcoal/70 tabular-nums">{eta}</p>
                   </div>
-                  <div className="bg-white/50 p-6 rounded-3xl border border-charcoal/5">
-                    <p className="text-[9px] uppercase font-brand font-bold tracking-widest text-charcoal/30 mb-2">Indirizzo</p>
-                    <p className="font-brand font-bold text-charcoal text-sm truncate">{confirmingOrder.address || "Ritiro Sede"}</p>
-                    <p className="text-xs font-body italic text-charcoal/50 uppercase tracking-widest">{confirmingOrder.type}</p>
-                  </div>
-               </div>
+                  <button
+                    type="button"
+                    onClick={() => adjustEtaMinutes(5)}
+                    className="w-12 h-12 rounded-full bg-white shadow-md text-xl font-bold text-charcoal active:scale-95 transition-transform"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
 
-               <div className="bg-white/50 p-8 rounded-3xl border border-charcoal/5">
-                  <p className="text-[9px] uppercase font-brand font-bold tracking-widest text-charcoal/30 mb-6">Tempo Stimato (Minuti)</p>
-                  <div className="flex items-center gap-6">
-                    <button
-                      type="button"
-                      onClick={() => adjustEtaMinutes(-5)}
-                      className="w-14 h-14 rounded-2xl bg-white border border-charcoal/5 text-xl font-bold text-charcoal hover:scale-105 active:scale-95 transition-all"
-                    >
-                      −
-                    </button>
-                    <div className="flex-1 text-center py-2">
-                       <span className="text-5xl font-brand font-medium text-terracotta leading-none">{etaMinutes}</span>
-                       <span className="text-xs font-brand font-bold text-charcoal/30 ml-2 uppercase">min</span>
+              {/* Accept button */}
+              <div className="px-6 pb-4">
+                <button
+                  type="button"
+                  onClick={confirmIncomingOrder}
+                  disabled={confirmingLoading}
+                  className="w-full py-4 rounded-[999px] bg-terracotta text-white font-brand font-bold text-base tracking-wide hover:bg-terracotta/90 active:scale-[0.98] disabled:opacity-50 transition-all shadow-lg shadow-terracotta/25"
+                >
+                  {confirmingLoading ? "Confermando..." : "Accetta"}
+                </button>
+              </div>
+
+              {/* Divider */}
+              <div className="mx-6 border-t border-charcoal/10" />
+
+              {/* Scrollable details */}
+              <div className="px-6 py-4 max-h-[40vh] overflow-y-auto space-y-4">
+
+                {/* Customer phone + repeat badge */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-brand font-bold text-charcoal text-sm">{confirmingOrder.customerPhone || confirmingOrder.customerName}</p>
+                    {confirmingOrder.address && (
+                      <p className="text-[11px] text-charcoal/50 font-body mt-0.5">📍 {confirmingOrder.address}</p>
+                    )}
+                  </div>
+                  {isRepeatCustomer && (
+                    <span className="px-3 py-1 rounded-full bg-marigold/15 text-marigold text-[10px] font-brand font-bold uppercase tracking-wider">
+                      Cliente abituale
+                    </span>
+                  )}
+                </div>
+
+                {/* Notes */}
+                {confirmingOrder.notes && (
+                  <div className="flex items-start gap-2 bg-white/60 rounded-2xl p-3 border border-charcoal/5">
+                    <span className="text-base mt-0.5">💬</span>
+                    <p className="text-[12px] font-body text-charcoal/70 italic leading-relaxed">{confirmingOrder.notes}</p>
+                  </div>
+                )}
+
+                {/* Total + payment */}
+                <div className="flex items-center justify-between">
+                  <span className="font-brand font-bold text-charcoal text-lg">{formatCurrency(Number(confirmingOrder.total))}</span>
+                  <span className="px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-brand font-bold uppercase tracking-wider border border-green-100">
+                    {confirmingOrder.paymentMethod === "CARTA" ? "Carta" : "Contanti"}
+                  </span>
+                </div>
+
+                {/* Items */}
+                <div className="space-y-2">
+                  {confirmingOrder.items.map((item) => (
+                    <div key={item.id}>
+                      <div className="flex justify-between items-baseline text-sm">
+                        <span className="text-charcoal/70 font-body">
+                          <span className="text-charcoal font-semibold">{item.quantity} ×</span> {item.productName}
+                          {item.variant && <span className="text-charcoal/40 text-xs ml-1">({item.variant})</span>}
+                        </span>
+                        <span className="font-brand font-bold text-charcoal tabular-nums text-xs">{formatCurrency(Number(item.totalPrice))}</span>
+                      </div>
+                      {Array.isArray(item.additions) && (item.additions as {name:string}[]).map((a) => (
+                        <p key={a.name} className="text-[11px] text-charcoal/40 font-body ml-5">+ {a.name}</p>
+                      ))}
+                      {Array.isArray(item.removals) && (item.removals as {name:string}[]).map((r) => (
+                        <p key={r.name} className="text-[11px] text-charcoal/40 font-body ml-5 line-through">− {r.name}</p>
+                      ))}
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => adjustEtaMinutes(5)}
-                      className="w-14 h-14 rounded-2xl bg-white border border-charcoal/5 text-xl font-bold text-charcoal hover:scale-105 active:scale-95 transition-all"
-                    >
-                      +
-                    </button>
-                  </div>
-               </div>
-            </div>
+                  ))}
+                </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                type="button"
-                onClick={() => printOrder(confirmingOrder.id)}
-                className="py-5 rounded-full border border-charcoal text-charcoal font-brand font-bold uppercase tracking-widest text-[10px] hover:bg-charcoal hover:text-white transition-all shadow-lg shadow-charcoal/5"
-              >
-                🖨️ Stampa Scontrino
-              </button>
-              <button
-                type="button"
-                onClick={confirmIncomingOrder}
-                disabled={confirmingLoading}
-                className="py-5 rounded-full bg-terracotta text-white font-brand font-bold uppercase tracking-widest text-[10px] hover:scale-105 active:scale-95 disabled:opacity-50 transition-all shadow-xl shadow-terracotta/20"
-              >
-                {confirmingLoading ? "Processing..." : "Conferma & Notifica"}
-              </button>
+              </div>
+
+              {/* Print button */}
+              <div className="px-6 pb-6 pt-2">
+                <button
+                  type="button"
+                  onClick={() => printOrder(confirmingOrder.id)}
+                  className="w-full py-3 rounded-[999px] border border-charcoal/20 text-charcoal font-brand font-bold text-[11px] uppercase tracking-widest hover:bg-charcoal/5 transition-colors"
+                >
+                  🖨️ Stampa scontrino
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Cancel Order Modal */}
       {cancelTarget && (

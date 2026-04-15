@@ -21,10 +21,10 @@ export default function MobileTopBar() {
   }, [open]);
 
   return (
-    <header className="md:hidden fixed top-0 inset-x-0 z-[70]">
+    <header className="fixed top-0 inset-x-0 z-[70]">
       {/* Topbar strip */}
       <div className="bg-warm-light/90 backdrop-blur-xl border-b border-charcoal/5 shadow-sm">
-        <div className="px-5 py-3 flex items-center justify-between">
+        <div className="px-5 md:px-10 py-3 flex items-center justify-between max-w-7xl mx-auto">
           <Link
             href="/"
             onClick={() => setOpen(false)}
@@ -34,12 +34,34 @@ export default function MobileTopBar() {
             La <span className="text-terracotta">Teglieria</span>
           </Link>
 
+          {/* Desktop nav */}
+          <nav className="hidden md:flex items-center gap-8">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="text-sm font-brand font-semibold text-charcoal/60 hover:text-charcoal transition-colors"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Desktop CTA */}
+          <Link
+            href="/menu?type=DELIVERY"
+            className="hidden md:flex items-center px-5 py-2 rounded-full text-sm font-brand font-semibold text-white bg-terracotta hover:bg-terracotta/90 transition-colors"
+          >
+            Ordina ora
+          </Link>
+
+          {/* Mobile hamburger */}
           <button
             type="button"
             aria-label={open ? "Chiudi menu" : "Apri menu"}
             aria-expanded={open}
             onClick={() => setOpen((prev) => !prev)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-charcoal/10 bg-charcoal/5 active:scale-90 transition-transform"
+            className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-full border border-charcoal/10 bg-charcoal/5 active:scale-90 transition-transform"
           >
             <div className="relative w-5 h-4 flex flex-col justify-between">
               <span className={`h-[1.5px] w-full bg-charcoal rounded-full transition-all duration-300 ${open ? "rotate-45 translate-y-[7.25px]" : ""}`} />

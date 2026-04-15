@@ -7,15 +7,24 @@ export async function GET(request: Request) {
   const status = searchParams.get("status");
   const type = searchParams.get("type");
   const date = searchParams.get("date"); // YYYY-MM-DD
+  const phone = searchParams.get("phone");
+  const countOnly = searchParams.get("countOnly") === "1";
 
   const where: any = {};
   if (status) where.status = status;
   if (type) where.type = type;
+  if (phone) where.customerPhone = phone;
   if (date) {
     const start = new Date(date);
     const end = new Date(date);
     end.setDate(end.getDate() + 1);
     where.createdAt = { gte: start, lt: end };
+  }
+
+  // Lightweight count-only query (used for repeat customer check)
+  if (countOnly) {
+    const count = await prisma.order.count({ where });
+    return NextResponse.json({ count });
   }
 
   const orders = await prisma.order.findMany({

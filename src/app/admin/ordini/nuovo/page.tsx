@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import type { CategoryWithProducts, ProductWithRelations } from "@/types";
+import AdminAddressInput from "@/components/admin/AdminAddressInput";
 
 type CartLine = {
   product: ProductWithRelations;
@@ -11,6 +12,7 @@ type CartLine = {
   variant?: string;
   variantDelta: number;
   additions: { name: string; price: number }[];
+  removals: { name: string }[];
   notes?: string;
 };
 
@@ -30,6 +32,19 @@ export default function NuovoOrdinePage() {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [search, setSearch] = useState("");
 
+  const [etaMinutes, setEtaMinutes] = useState(30);
+
+  function adjustEta(delta: number) {
+    setEtaMinutes((prev) => Math.max(5, Math.min(180, prev + delta)));
+  }
+
+  function etaTime() {
+    return new Date(Date.now() + etaMinutes * 60000).toLocaleTimeString("it-IT", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
   useEffect(() => {
     fetch("/api/menu").then((r) => r.json()).then(setCategories);
   }, []);
@@ -40,7 +55,16 @@ export default function NuovoOrdinePage() {
     : [];
 
   function addProduct(product: ProductWithRelations) {
-    setLines([...lines, { product, quantity: 1, variantDelta: 0, additions: [] }]);
+    // Pre-select first active variant if present
+    const firstVariant = product.variants.find((v) => v.active);
+    setLines([...lines, {
+      product,
+      quantity: 1,
+      variant: firstVariant?.name,
+      variantDelta: firstVariant ? Number(firstVariant.priceDelta) : 0,
+      additions: [],
+      removals: [],
+    }]);
     setSearch("");
   }
 
@@ -72,7 +96,7 @@ export default function NuovoOrdinePage() {
         totalPrice: unitPrice * l.quantity,
         variant: l.variant,
         additions: l.additions.length > 0 ? l.additions : null,
-        removals: null,
+        removals: l.removals.length > 0 ? l.removals : null,
         notes: l.notes,
       };
     });
@@ -87,6 +111,7 @@ export default function NuovoOrdinePage() {
         customerPhone,
         address: type === "DELIVERY" ? address : null,
         addressDetail: type === "DELIVERY" ? addressDetail : null,
+        estimatedTime: new Date(Date.now() + etaMinutes * 60000).toISOString(),
         subtotal,
         total: subtotal,
         notes: notes || null,
@@ -159,12 +184,36 @@ export default function NuovoOrdinePage() {
             <input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} required
               className="w-full px-3 py-2 border border-red-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#cf2a1d]" />
           </div>
+          <div className="md:col-span-2">
+            <label className="block text-xs text-gray-500 mb-2 uppercase tracking-[0.08em]">
+              Tempo {type === "DELIVERY" ? "consegna" : "ritiro"} previsto
+            </label>
+            <div className="flex items-center gap-4">
+              <button type="button" onClick={() => adjustEta(-5)}
+                className="w-10 h-10 rounded-xl border border-red-100 bg-white text-lg font-bold text-gray-600 hover:bg-red-50 transition-colors flex items-center justify-center">
+                −
+              </button>
+              <div className="flex-1 text-center">
+                <span className="text-2xl font-bold text-[#cf2a1d] tabular-nums">{etaMinutes}</span>
+                <span className="text-xs text-gray-400 ml-1">min</span>
+                <p className="text-xs text-gray-400 mt-0.5 tabular-nums">{etaTime()}</p>
+              </div>
+              <button type="button" onClick={() => adjustEta(5)}
+                className="w-10 h-10 rounded-xl border border-red-100 bg-white text-lg font-bold text-gray-600 hover:bg-red-50 transition-colors flex items-center justify-center">
+                +
+              </button>
+            </div>
+          </div>
           {type === "DELIVERY" && (
             <>
               <div>
                 <label className="block text-xs text-gray-500 mb-1 uppercase tracking-[0.08em]">Indirizzo</label>
-                <input value={address} onChange={(e) => setAddress(e.target.value)} required
-                  className="w-full px-3 py-2 border border-red-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#cf2a1d]" />
+                <AdminAddressInput
+                  value={address}
+                  onChange={setAddress}
+                  required
+                  className="w-full px-3 py-2 border border-red-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#cf2a1d]"
+                />
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1 uppercase tracking-[0.08em]">Citofono/Piano</label>
@@ -198,19 +247,151 @@ export default function NuovoOrdinePage() {
         <div className="bg-white/90 rounded-2xl border border-red-100/80 shadow-[0_10px_24px_rgba(31,38,135,0.05)] p-4 md:p-5">
           <h2 className="font-semibold text-sm mb-3">Prodotti nell&apos;ordine</h2>
           {lines.length === 0 && <p className="text-gray-400 text-sm">Nessun prodotto aggiunto.</p>}
-          <div className="space-y-2">
+          <div className="space-y-3">
             {lines.map((line, i) => {
               const unitPrice = Number(line.product.price) + line.variantDelta + line.additions.reduce((s, a) => s + a.price, 0);
+              const hasCustom = line.product.variants.filter(v => v.active).length > 0
+                || line.product.additions.filter(a => a.active).length > 0
+                || line.product.removals.filter(r => r.active).length > 0;
+
               return (
-                <div key={i} className="flex items-center gap-2 bg-red-50/35 rounded-xl p-2.5 border border-red-100/70">
-                  <div className="flex items-center border border-red-100 rounded-lg text-sm bg-white">
-                    <button type="button" onClick={() => updateLine(i, { quantity: Math.max(1, line.quantity - 1) })} className="px-2 py-1 hover:bg-red-50/60">-</button>
-                    <span className="px-2">{line.quantity}</span>
-                    <button type="button" onClick={() => updateLine(i, { quantity: line.quantity + 1 })} className="px-2 py-1 hover:bg-red-50/60">+</button>
+                <div key={i} className="border border-red-100/70 rounded-xl overflow-hidden">
+                  {/* Row header */}
+                  <div className="flex items-center gap-2 bg-red-50/35 p-2.5">
+                    <div className="flex items-center border border-red-100 rounded-lg text-sm bg-white">
+                      <button type="button" onClick={() => updateLine(i, { quantity: Math.max(1, line.quantity - 1) })} className="px-2 py-1 hover:bg-red-50/60">−</button>
+                      <span className="px-2 tabular-nums">{line.quantity}</span>
+                      <button type="button" onClick={() => updateLine(i, { quantity: line.quantity + 1 })} className="px-2 py-1 hover:bg-red-50/60">+</button>
+                    </div>
+                    <span className="flex-1 text-sm font-medium">{line.product.name}</span>
+                    {line.variant && (
+                      <span className="text-xs text-gray-400 hidden sm:inline">{line.variant}</span>
+                    )}
+                    <span className="text-sm font-semibold tabular-nums">{formatCurrency(unitPrice * line.quantity)}</span>
+                    <button type="button" onClick={() => removeLine(i)} className="text-red-400 text-xs font-bold px-1">✕</button>
                   </div>
-                  <span className="flex-1 text-sm font-medium">{line.product.name}</span>
-                  <span className="text-sm font-semibold">{formatCurrency(unitPrice * line.quantity)}</span>
-                  <button type="button" onClick={() => removeLine(i)} className="text-red-500 text-xs font-semibold">✕</button>
+
+                  {/* Customization panel */}
+                  {hasCustom && (
+                    <div className="bg-white px-3 pb-3 pt-2 space-y-3 border-t border-red-50">
+
+                      {/* Varianti */}
+                      {line.product.variants.filter(v => v.active).length > 0 && (
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-gray-400 mb-1.5">Variante</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => updateLine(i, { variant: undefined, variantDelta: 0 })}
+                              className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                                !line.variant
+                                  ? "bg-[#cf2a1d] text-white border-[#cf2a1d]"
+                                  : "bg-white text-gray-600 border-gray-200 hover:border-[#cf2a1d]/40"
+                              }`}
+                            >
+                              Standard
+                            </button>
+                            {line.product.variants.filter(v => v.active).map((v) => (
+                              <button
+                                key={v.id}
+                                type="button"
+                                onClick={() => updateLine(i, { variant: v.name, variantDelta: Number(v.priceDelta) })}
+                                className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                                  line.variant === v.name
+                                    ? "bg-[#cf2a1d] text-white border-[#cf2a1d]"
+                                    : "bg-white text-gray-600 border-gray-200 hover:border-[#cf2a1d]/40"
+                                }`}
+                              >
+                                {v.name}
+                                {Number(v.priceDelta) !== 0 && (
+                                  <span className="ml-1 opacity-70">
+                                    {Number(v.priceDelta) > 0 ? "+" : ""}{formatCurrency(Number(v.priceDelta))}
+                                  </span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Aggiunte */}
+                      {line.product.additions.filter(a => a.active).length > 0 && (
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-gray-400 mb-1.5">Extra</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {line.product.additions.filter(a => a.active).map((a) => {
+                              const selected = line.additions.some((x) => x.name === a.name);
+                              return (
+                                <button
+                                  key={a.id}
+                                  type="button"
+                                  onClick={() => {
+                                    const next = selected
+                                      ? line.additions.filter((x) => x.name !== a.name)
+                                      : [...line.additions, { name: a.name, price: Number(a.price) }];
+                                    updateLine(i, { additions: next });
+                                  }}
+                                  className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                                    selected
+                                      ? "bg-amber-500 text-white border-amber-500"
+                                      : "bg-white text-gray-600 border-gray-200 hover:border-amber-400/50"
+                                  }`}
+                                >
+                                  {a.name}
+                                  {Number(a.price) > 0 && (
+                                    <span className="ml-1 opacity-70">+{formatCurrency(Number(a.price))}</span>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Rimozioni */}
+                      {line.product.removals.filter(r => r.active).length > 0 && (
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-gray-400 mb-1.5">Rimuovi</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {line.product.removals.filter(r => r.active).map((r) => {
+                              const removed = line.removals.some((x) => x.name === r.name);
+                              return (
+                                <button
+                                  key={r.id}
+                                  type="button"
+                                  onClick={() => {
+                                    const next = removed
+                                      ? line.removals.filter((x) => x.name !== r.name)
+                                      : [...line.removals, { name: r.name }];
+                                    updateLine(i, { removals: next });
+                                  }}
+                                  className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                                    removed
+                                      ? "bg-gray-700 text-white border-gray-700 line-through"
+                                      : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
+                                  }`}
+                                >
+                                  {r.name}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Note riga */}
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-gray-400 mb-1">Note</p>
+                        <input
+                          type="text"
+                          value={line.notes ?? ""}
+                          onChange={(e) => updateLine(i, { notes: e.target.value })}
+                          placeholder="Es. senza aglio, ben cotta..."
+                          className="w-full px-2.5 py-1.5 border border-red-100 rounded-lg text-xs outline-none focus:ring-1 focus:ring-[#cf2a1d]"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}

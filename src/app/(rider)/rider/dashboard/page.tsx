@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ORDER_STATUS_COLORS, ORDER_STATUS_LABELS } from "@/lib/constants";
+import dynamic from "next/dynamic";
+
+const QRScanner = dynamic(() => import("@/components/rider/QRScanner"), { ssr: false });
 
 export default function RiderDashboard() {
   const router = useRouter();
@@ -11,6 +14,7 @@ export default function RiderDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [authUserId, setAuthUserId] = useState<string | null>(null);
+  const [scanning, setScanning] = useState(false);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -50,16 +54,18 @@ export default function RiderDashboard() {
   if (loading) return <div className="p-8 text-center text-gray-500">Caricamento...</div>;
 
   return (
-    <div className="min-h-screen bg-warm-light p-6 md:p-8">
+    <div className="min-h-screen bg-warm-light p-6 md:p-8 pb-36">
+      {scanning && <QRScanner onClose={() => setScanning(false)} />}
+
       <header className="flex justify-between items-center mb-10 reveal active">
         <div>
           <span className="text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-terracotta/60 mb-1 block">Console</span>
           <h1 className="text-3xl font-brand font-medium uppercase tracking-tight text-charcoal">Le mie <span className="text-terracotta">Consegne.</span></h1>
           <p className="font-body italic text-charcoal/40 text-[10px] mt-1 uppercase tracking-widest">Pronto per il prossimo turno</p>
         </div>
-        <button 
-          onClick={handleLogout} 
-          className="group flex items-center gap-2 px-6 py-3 bg-charcoal text-white rounded-full font-brand font-bold uppercase tracking-widest text-[9px] shadow-lg shadow-charcoal/20 hover:bg-terracotta transition-all duration-500"
+        <button
+          onClick={handleLogout}
+          className="group flex items-center gap-2 px-6 py-3 bg-charcoal text-white rounded-full font-brand font-bold uppercase tracking-widest text-[9px] shadow-lg shadow-charcoal/20 hover:bg-charcoal/80 transition-all duration-500"
         >
           Logout
           <span className="group-hover:translate-x-1 transition-transform">→</span>
@@ -132,6 +138,23 @@ export default function RiderDashboard() {
         
         {/* Decorative mask */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-terracotta/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
+      </div>
+
+      {/* FAB — scan QR, fixed bottom */}
+      <div className="fixed bottom-8 inset-x-0 px-6 z-50">
+        <button
+          onClick={() => setScanning(true)}
+          className="relative w-full flex items-center justify-center gap-3 py-5 rounded-[999px] bg-gradient-to-br from-[#f17a3c] via-terracotta to-[#c5561a] text-white font-brand font-semibold text-base shadow-[0_12px_30px_rgba(230,100,40,0.35)] active:scale-[0.97] transition-transform duration-150"
+          aria-label="Scansiona QR code"
+        >
+          {/* Pulse ring */}
+          <span className="absolute inset-0 rounded-[999px] bg-terracotta/30 animate-ping opacity-30 pointer-events-none" />
+          <svg className="w-5 h-5 relative z-10" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 15h2v2h-2zM19 15h2v2h-2zM15 19h2v2h-2zM19 19h2v2h-2z" />
+          </svg>
+          <span className="relative z-10 uppercase tracking-wide">Scansiona QR ordine</span>
+        </button>
       </div>
     </div>
   );

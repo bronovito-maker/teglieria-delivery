@@ -1,28 +1,63 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
-const SCRIPT_ID = "google-maps-places-script";
+const CALLBACK_NAME = "_mapsPlacesReady";
+let scriptLoading = false;
+let scriptReady = false;
+const pendingCallbacks: (() => void)[] = [];
 
-async function loadMapsPlaces(apiKey: string): Promise<void> {
-  // Already fully loaded
-  if (window.google?.maps?.places?.Autocomplete) return;
-
-  // Load bootstrap script if not yet in DOM
-  if (!document.getElementById(SCRIPT_ID)) {
-    await new Promise<void>((resolve, reject) => {
-      const script = document.createElement("script");
-      script.id = SCRIPT_ID;
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&loading=async&language=it`;
-      script.async = true;
-      script.onload = () => resolve();
-      script.onerror = reject;
-      document.head.appendChild(script);
-    });
+function loadMapsPlaces(apiKey: string, onReady: () => void): void {
+  if (scriptReady) {
+    onReady();
+    return;
   }
 
-  // With loading=async, libraries must be loaded explicitly after bootstrap
-  await (window.google.maps as unknown as { importLibrary: (lib: string) => Promise<void> }).importLibrary("places");
+  pendingCallbacks.push(onReady);
+
+  if (scriptLoading) return;
+  scriptLoading = true;
+
+  (window as unknown as Record<string, unknown>)[CALLBACK_NAME] = () => {
+    scriptReady = true;
+    pendingCallbacks.forEach((cb) => cb());
+    pendingCallbacks.length = 0;
+  };
+
+  const script = document.createElement("script");
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=${CALLBACK_NAME}&language=it`;
+  script.async = true;
+  script.onerror = () => {
+    scriptLoading = false;
+    pendingCallbacks.length = 0;
+  };
+  document.head.appendChild(script);
+}
+
+function setupAutocomplete(input: HTMLInputElement, onChange: (value: string) => void): void {
+  if (!window.google?.maps?.places?.Autocomplete) return;
+
+  // Bounding box centrato su Livorno (~15km raggio)
+  const livornoCenter = new window.google.maps.LatLng(43.5485, 10.3106);
+  const livornoBounds = new window.google.maps.Circle({
+    center: livornoCenter,
+    radius: 15000,
+  }).getBounds();
+
+  const autocomplete = new window.google.maps.places.Autocomplete(input, {
+    componentRestrictions: { country: "it" },
+    bounds: livornoBounds,
+    strictBounds: true,
+    fields: ["formatted_address"],
+    types: ["address"],
+  });
+
+  autocomplete.addListener("place_changed", () => {
+    const place = autocomplete.getPlace();
+    if (place?.formatted_address) {
+      onChange(place.formatted_address);
+    }
+  });
 }
 
 interface Props {
@@ -34,40 +69,19 @@ interface Props {
 
 export default function AddressAutocomplete({ value, onChange, required, placeholder }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const autocompleteInitialized = useRef(false);
   const [locating, setLocating] = useState(false);
   const [geoError, setGeoError] = useState("");
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-  useEffect(() => {
-    if (!apiKey || !inputRef.current) return;
+  function handleFocus() {
+    if (autocompleteInitialized.current || !apiKey || !inputRef.current) return;
+    autocompleteInitialized.current = true;
 
-    loadMapsPlaces(apiKey).then(() => {
-      if (!inputRef.current || !window.google?.maps?.places?.Autocomplete) return;
-
-      // Bounding box centrato su Livorno (~15km raggio)
-      const livornoCenter = new window.google.maps.LatLng(43.5485, 10.3106);
-      const livornoBounds = new window.google.maps.Circle({
-        center: livornoCenter,
-        radius: 15000,
-      }).getBounds();
-
-      const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
-        componentRestrictions: { country: "it" },
-        bounds: livornoBounds,
-        strictBounds: true,
-        fields: ["formatted_address"],
-        types: ["address"],
-      });
-
-      autocomplete.addListener("place_changed", () => {
-        const place = autocomplete.getPlace();
-        if (place?.formatted_address) {
-          onChange(place.formatted_address);
-        }
-      });
-    });
-  }, [apiKey]);
+    const input = inputRef.current;
+    loadMapsPlaces(apiKey, () => setupAutocomplete(input, onChange));
+  }
 
   async function handleGeolocate() {
     if (!navigator.geolocation) {
@@ -111,6 +125,7 @@ export default function AddressAutocomplete({ value, onChange, required, placeho
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onFocus={handleFocus}
           required={required}
           placeholder={placeholder ?? "Via, Piazza, Numero civico"}
           autoComplete="off"

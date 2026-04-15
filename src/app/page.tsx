@@ -117,14 +117,14 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-warm-light text-charcoal pt-24 md:pt-0 selection:bg-marigold/30">
+    <main className="min-h-screen bg-warm-light text-charcoal pt-24 selection:bg-marigold/30">
       <MobileTopBar />
 
       {/* 1. HERO SECTION */}
       <section
         id="ordina"
         ref={heroRef}
-        className="scroll-mt-24 relative flex flex-col items-center h-[calc(100dvh-6rem)] md:h-screen overflow-hidden px-6"
+        className="scroll-mt-24 relative flex flex-col items-center h-[calc(100dvh-6rem)] md:h-[calc(100dvh-4rem)] overflow-hidden px-6"
         style={{
           backgroundImage: "radial-gradient(rgba(0,0,0,0.018) 1px, transparent 1px)",
           backgroundSize: "20px 20px",
@@ -149,9 +149,9 @@ export default function LandingPage() {
             </span>
 
             {/* H1 */}
-            <h1 className="text-[1.9rem] leading-[1.1] sm:text-5xl md:text-9xl md:uppercase md:leading-[0.9] font-brand font-semibold text-charcoal">
-              Pizza in teglia romana.<br />
-              <span className="text-terracotta text-[1.6rem] sm:text-4xl md:text-8xl">Croccante fuori, leggera dentro.</span>
+            <h1 className="text-[1.9rem] leading-[1.1] sm:text-5xl md:text-7xl md:leading-tight font-brand font-semibold text-charcoal">
+              Pizza in teglia romana.{" "}
+              <span className="text-terracotta text-[1.6rem] sm:text-4xl md:text-6xl">Croccante fuori, leggera dentro.</span>
             </h1>
 
             {/* Pizza image — mobile only */}
@@ -179,7 +179,7 @@ export default function LandingPage() {
               🔥 Consegna in 20–30 min
             </span>
 
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:max-w-none md:gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:max-w-none md:gap-4 md:justify-center">
               {/* CTA primaria con glow pulse */}
               <div className="relative w-full sm:w-auto">
                 <div className="absolute inset-0 rounded-[999px] bg-terracotta/25 blur-md animate-pulse" />
@@ -235,7 +235,7 @@ export default function LandingPage() {
                 High Hydration
               </span>
               <p className="text-white text-2xl md:text-4xl font-brand font-semibold leading-tight drop-shadow-lg">
-                Rigorosamente in teglia. <br /> Croccantezza senza confini.
+                Croccantezza senza confini.
               </p>
             </div>
           </div>
@@ -440,7 +440,7 @@ export default function LandingPage() {
               <div className="space-y-8">
                 <h4 className="text-charcoal/30 font-bold">Contatti</h4>
                 <ul className="space-y-4 text-charcoal font-bold">
-                  <li>Via Roma 123, Roma</li>
+                  <li>Via Inghilterra, 68, 57128 Livorno LI</li>
                   <li><a href="tel:+39061234567" className="hover:text-terracotta transition-colors">+39 06 123 4567</a></li>
                   <li className="text-terracotta">Chiuso il Martedì</li>
                 </ul>
@@ -459,7 +459,7 @@ export default function LandingPage() {
             <div className="text-[10px] text-charcoal/30 font-brand font-bold uppercase tracking-[0.4em]">
               © {new Date().getFullYear()} La Teglieria Artisan Pizza • All rights reserved
             </div>
-            
+
             <div className="flex items-center gap-6">
               <Link href="/admin/login" className="text-[10px] text-charcoal/40 font-brand font-bold uppercase tracking-widest hover:text-terracotta transition-colors">Admin Area</Link>
               <div className="w-1 h-1 bg-charcoal/20 rounded-full" />
@@ -471,11 +471,10 @@ export default function LandingPage() {
 
       {/* MOBILE STICKY CTA */}
       <div
-        className={`md:hidden fixed bottom-8 inset-x-0 px-5 z-50 transition-all duration-400 ${
-          showMobileCta && !footerVisible
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-10 pointer-events-none"
-        }`}
+        className={`md:hidden fixed bottom-8 inset-x-0 px-5 z-50 transition-all duration-400 ${showMobileCta && !footerVisible
+          ? "opacity-100 translate-y-0"
+          : "opacity-0 translate-y-10 pointer-events-none"
+          }`}
       >
         <Link
           href="/menu"
