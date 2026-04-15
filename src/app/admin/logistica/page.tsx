@@ -727,91 +727,152 @@ export default function LogisticaPage() {
       </div>
 
       <section className="bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-charcoal/5 shadow-2xl overflow-hidden reveal active mb-20">
-        <div className="px-10 py-8 border-b border-charcoal/5 bg-warm-light/20">
-          <h2 className="font-brand font-bold uppercase tracking-[0.2em] text-xs text-charcoal">Anagrafica Rider e Performance Mensile</h2>
+        <div className="px-10 py-8 border-b border-charcoal/5 bg-warm-light/20 flex items-center justify-between">
+          <div>
+            <span className="text-[9px] font-brand font-bold uppercase tracking-[0.3em] text-terracotta/60 mb-1 block">Turno di oggi</span>
+            <h2 className="font-brand font-bold uppercase tracking-tight text-charcoal text-lg">Situazione Fattorini</h2>
+          </div>
+          <span className="text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/30">{riders.length} rider registrati</span>
         </div>
+
         <div className="p-10 grid grid-cols-1 md:grid-cols-2 gap-6">
-          {riders.map((rider) => (
-            <div key={rider.id} className="rounded-[2.5rem] border border-charcoal/5 bg-white p-8 transition-all hover:border-terracotta/20">
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-                <div>
-                  <p className="font-brand font-bold text-xl tracking-tight text-charcoal">{rider.name}</p>
-                  <p className="font-body italic text-xs text-charcoal/40 mt-1">{rider.phone || "No tel"} • {rider.email || "No email"}</p>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    <span className="px-2.5 py-1 rounded-full bg-terracotta/10 text-terracotta text-[9px] font-brand font-bold uppercase tracking-widest border border-terracotta/20">
-                      {VEHICLE_LABELS[rider.vehicle]}
-                    </span>
-                    {rider.zone && (
-                      <span className="px-2.5 py-1 rounded-full bg-charcoal/5 text-charcoal/70 text-[9px] font-brand font-bold uppercase tracking-widest">
-                        {rider.zone}
+          {riders.map((rider) => {
+            const riderOrders = allDeliveryOrders.filter((o) => o.riderId === rider.id);
+            const activeRiderOrders = riderOrders.filter((o) =>
+              DELIVERY_ACTIVE_STATUSES.includes(o.status as (typeof DELIVERY_ACTIVE_STATUSES)[number])
+            );
+            const deliveredRiderOrders = riderOrders.filter((o) => o.status === "DELIVERED");
+            const totalTodayOrders = riderOrders.filter((o) => o.status !== "CANCELLED").length;
+
+            const cashToDo = activeRiderOrders
+              .filter((o) => String(o.paymentMethod) === "CONTANTI")
+              .reduce((sum, o) => sum + Number(o.total), 0);
+
+            const cashCollected = deliveredRiderOrders
+              .filter((o) => String(o.paymentMethod) === "CONTANTI")
+              .reduce((sum, o) => sum + Number(o.total), 0);
+
+            const posCollected = deliveredRiderOrders
+              .filter((o) => String(o.paymentMethod) === "CARTA")
+              .reduce((sum, o) => sum + Number(o.total), 0);
+
+            return (
+              <div key={rider.id} className="rounded-[2.5rem] border border-charcoal/5 bg-white p-8 transition-all hover:border-terracotta/10 hover:shadow-md">
+
+                {/* Header */}
+                <div className="flex items-start justify-between gap-4 mb-6">
+                  <div>
+                    <p className="font-brand font-bold text-xl tracking-tight text-charcoal">{rider.name}</p>
+                    <p className="font-body italic text-xs text-charcoal/40 mt-0.5">{rider.phone || "—"} • {rider.email || "—"}</p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      <span className="px-2.5 py-1 rounded-full bg-terracotta/10 text-terracotta text-[9px] font-brand font-bold uppercase tracking-widest border border-terracotta/20">
+                        {VEHICLE_LABELS[rider.vehicle]}
                       </span>
-                    )}
-                    {rider.metrics.avgDeliveryMinutes != null && (
-                      <span className="px-2.5 py-1 rounded-full bg-marigold/10 text-marigold text-[9px] font-brand font-bold uppercase tracking-widest border border-marigold/20">
-                        media {rider.metrics.avgDeliveryMinutes}′
-                      </span>
-                    )}
+                      {rider.zone && (
+                        <span className="px-2.5 py-1 rounded-full bg-charcoal/5 text-charcoal/60 text-[9px] font-brand font-bold uppercase tracking-widest">
+                          {rider.zone}
+                        </span>
+                      )}
+                      {rider.metrics.avgDeliveryMinutes != null && (
+                        <span className="px-2.5 py-1 rounded-full bg-marigold/10 text-marigold text-[9px] font-brand font-bold uppercase tracking-widest border border-marigold/20">
+                          ⏱ {rider.metrics.avgDeliveryMinutes}′ media
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <span className={`flex-shrink-0 px-4 py-1.5 rounded-full text-[9px] font-brand font-bold uppercase tracking-widest ${
+                    rider.active ? "bg-green-50 text-green-600 border border-green-100" : "bg-charcoal/5 text-charcoal/30 border border-charcoal/10"
+                  }`}>
+                    {rider.active ? "In Servizio" : "Non Attivo"}
+                  </span>
+                </div>
+
+                {/* Oggi — primary stats */}
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  <div className="bg-warm-light/40 rounded-2xl p-4 border border-charcoal/5 text-center">
+                    <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 mb-1.5">Ordini oggi</p>
+                    <p className="text-2xl font-brand font-bold text-charcoal">{totalTodayOrders}</p>
+                    <p className="text-[8px] font-brand font-bold text-charcoal/25 mt-0.5">{rider.metrics.deliveredTodayCount} consegnati</p>
+                  </div>
+                  <div className="bg-warm-light/40 rounded-2xl p-4 border border-charcoal/5 text-center">
+                    <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 mb-1.5">In giro</p>
+                    <p className="text-2xl font-brand font-bold text-terracotta">{activeRiderOrders.length}</p>
+                    <p className="text-[8px] font-brand font-bold text-charcoal/25 mt-0.5">attivi ora</p>
+                  </div>
+                  <div className="bg-warm-light/40 rounded-2xl p-4 border border-charcoal/5 text-center">
+                    <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 mb-1.5">Tempo medio</p>
+                    <p className="text-2xl font-brand font-bold text-marigold">
+                      {rider.metrics.avgDeliveryMinutes != null ? `${rider.metrics.avgDeliveryMinutes}′` : "—"}
+                    </p>
+                    <p className="text-[8px] font-brand font-bold text-charcoal/25 mt-0.5">per consegna</p>
                   </div>
                 </div>
-                <span
-                  className={`px-4 py-1.5 rounded-full text-[9px] font-brand font-bold uppercase tracking-widest ${
-                    rider.active ? "bg-green-50 text-green-600 border border-green-100" : "bg-charcoal/5 text-charcoal/30 border border-charcoal/10"
-                  }`}
-                >
-                  {rider.active ? "In Servizio" : "Non Attivo"}
-                </span>
-              </div>
 
-              <div className="grid grid-cols-2 gap-6 text-sm mb-6 border-b border-charcoal/5 pb-6">
-                <div>
-                  <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/20 mb-1">Evasi Totali</p>
-                  <p className="font-brand font-bold text-charcoal text-lg">{rider.metrics.deliveredCount}</p>
+                {/* Cassa */}
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  {/* Cash totale a fine turno — numero principale */}
+                  <div className="col-span-2 rounded-2xl p-5 border border-amber-200 bg-amber-50/70 flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-bold text-amber-600 mb-1">Cash da versare a fine turno</p>
+                      <p className="text-2xl font-brand font-bold text-amber-800">{formatCurrency(cashCollected + cashToDo)}</p>
+                    </div>
+                    <div className="text-right space-y-1">
+                      <p className="text-[9px] font-brand font-bold text-amber-500">
+                        {formatCurrency(cashCollected)} <span className="font-normal text-amber-400">già in tasca</span>
+                      </p>
+                      <p className="text-[9px] font-brand font-bold text-amber-400">
+                        {formatCurrency(cashToDo)} <span className="font-normal">ancora da ritirare</span>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="rounded-2xl p-4 border border-blue-100 bg-blue-50/50 text-center">
+                    <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-bold text-blue-500 mb-1.5">POS riscosso</p>
+                    <p className="text-base font-brand font-bold text-blue-700">{formatCurrency(posCollected)}</p>
+                    <p className="text-[8px] font-brand text-blue-400 mt-0.5">già elettronico</p>
+                  </div>
+                  <div className="rounded-2xl p-4 border border-charcoal/5 bg-warm-light/40 text-center">
+                    <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 mb-1.5">Totale riscosso oggi</p>
+                    <p className="text-base font-brand font-bold text-charcoal">{formatCurrency(cashCollected + posCollected)}</p>
+                    <p className="text-[8px] font-brand text-charcoal/25 mt-0.5">cash + pos consegnati</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/20 mb-1">Volume Affari</p>
-                  <p className="font-brand font-bold text-charcoal text-lg">{formatCurrency(rider.metrics.deliveredRevenue)}</p>
-                </div>
-                <div>
-                  <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/20 mb-1">Evasi Oggi</p>
-                  <p className="font-brand font-bold text-terracotta text-lg">{rider.metrics.deliveredTodayCount}</p>
-                </div>
-                <div>
-                  <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/20 mb-1">Pizze Totali</p>
-                  <p className="font-brand font-bold text-charcoal text-lg">{rider.metrics.totalPizzasDelivered}</p>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-8">
-                <div className="p-4 bg-warm-light/20 rounded-2xl border border-charcoal/5">
-                  <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 mb-1">Compenso Stima</p>
-                  <p className="font-brand font-bold text-terracotta">{formatCurrency(rider.metrics.estimatedCompensation)}</p>
+                {/* Compenso + netto */}
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  <div className="p-4 bg-terracotta/5 rounded-2xl border border-terracotta/10">
+                    <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-bold text-terracotta/60 mb-1">Compenso stimato</p>
+                    <p className="font-brand font-bold text-terracotta text-lg">{formatCurrency(rider.metrics.estimatedCompensation)}</p>
+                    <p className="text-[8px] font-brand text-charcoal/25 mt-0.5">{rider.metrics.deliveredCount} consegne totali</p>
+                  </div>
+                  <div className="p-4 bg-charcoal text-white rounded-2xl">
+                    <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-bold text-white/40 mb-1">Netto Store</p>
+                    <p className="font-brand font-bold text-white text-lg">{formatCurrency(rider.metrics.netAfterRiderCompensation)}</p>
+                    <p className="text-[8px] font-brand text-white/25 mt-0.5">fatturato − compenso</p>
+                  </div>
                 </div>
-                <div className="p-4 bg-charcoal text-white rounded-2xl">
-                  <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-white/50 mb-1">Netto Store</p>
-                  <p className="font-brand font-bold">{formatCurrency(rider.metrics.netAfterRiderCompensation)}</p>
-                </div>
-              </div>
 
-              <div className="flex gap-4">
-                <button
-                  type="button"
-                  onClick={() => toggleRiderActive(rider)}
-                  disabled={savingRider}
-                  className="flex-1 py-3 bg-white border border-charcoal/10 text-charcoal rounded-full font-brand font-bold uppercase tracking-[0.2em] text-[9px] hover:bg-warm-light transition-all disabled:opacity-50"
-                >
-                  {rider.active ? "Sospendi" : "Attiva"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => removeRider(rider)}
-                  disabled={savingRider}
-                  className="px-6 py-3 bg-red-50 text-red-400 rounded-full font-brand font-bold uppercase tracking-[0.2em] text-[9px] hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
-                >
-                  X
-                </button>
+                {/* Actions */}
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => toggleRiderActive(rider)}
+                    disabled={savingRider}
+                    className="flex-1 py-3 bg-white border border-charcoal/10 text-charcoal rounded-full font-brand font-bold uppercase tracking-[0.2em] text-[9px] hover:bg-warm-light transition-all disabled:opacity-50"
+                  >
+                    {rider.active ? "Sospendi" : "Attiva"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeRider(rider)}
+                    disabled={savingRider}
+                    className="px-6 py-3 bg-red-50 text-red-400 rounded-full font-brand font-bold uppercase tracking-[0.2em] text-[9px] hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {riders.length === 0 && (
             <div className="col-span-full py-20 text-center">

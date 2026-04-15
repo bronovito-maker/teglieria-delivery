@@ -296,96 +296,101 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Kanban */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      {/* Grouped inline rows by status */}
+      <div className="space-y-3">
         {KANBAN_COLUMNS.map((status) => {
           const columnOrders = orders.filter((o) => o.status === status);
           return (
-            <div key={status} className="flex flex-col">
-              <div className="flex items-center gap-3 px-2 mb-6">
-                <span className={`px-4 py-1.5 rounded-full text-[9px] font-brand font-bold uppercase tracking-widest shadow-sm ${getStatusBadgeClass(status)}`}>
+            <div key={status} className="rounded-[2rem] border border-charcoal/5 bg-white/30 overflow-hidden">
+              {/* Row header */}
+              <div className="flex items-center gap-3 px-5 py-3 border-b border-charcoal/5">
+                <span className={`px-3 py-1 rounded-full text-[9px] font-brand font-bold uppercase tracking-widest ${getStatusBadgeClass(status)}`}>
                   {ORDER_STATUS_LABELS[status]}
                 </span>
-                <span className="text-[10px] font-brand font-bold uppercase tracking-widest text-charcoal/20">{columnOrders.length}</span>
+                <span className="text-[10px] font-brand font-bold text-charcoal/25">{columnOrders.length}</span>
               </div>
-              
-              <div className={cn("flex-1 space-y-4 min-h-[500px] rounded-[2.5rem] p-4 bg-white/30 border border-charcoal/5 transition-colors", columnOrders.length > 0 ? "bg-white/30" : "bg-transparent border-dashed")}>
-                {columnOrders.map((order) => (
-                  <div
-                    key={order.id}
-                    className="bg-white rounded-[2rem] shadow-sm p-6 border border-charcoal/5 hover:shadow-xl hover:scale-[1.02] transition-all group"
-                  >
-                    <div className="flex items-center justify-between mb-4 border-b border-charcoal/5 pb-4">
-                      <span className="font-brand font-bold text-charcoal text-lg">#{formatOrderCode(order)}</span>
-                      <span className="text-[10px] font-body text-charcoal/30 italic">{formatTime(order.createdAt)}</span>
-                    </div>
-                    
-                    <div className="mb-6 space-y-1">
-                      <p className="text-sm font-brand font-bold text-charcoal uppercase tracking-tight">{order.customerName}</p>
-                      <p className="text-[10px] font-body text-charcoal/40 italic flex items-center gap-2">
-                        <span className="w-1 h-1 rounded-full bg-charcoal/20" />
+
+              {/* Horizontal scroll of cards */}
+              {columnOrders.length === 0 ? (
+                <div className="px-5 py-4 text-[10px] font-brand font-bold uppercase tracking-widest text-charcoal/15">
+                  Vuoto
+                </div>
+              ) : (
+                <div className="flex gap-4 overflow-x-auto px-5 py-4 scrollbar-none">
+                  {columnOrders.map((order) => (
+                    <div
+                      key={order.id}
+                      className="flex-shrink-0 w-52 bg-white rounded-[1.5rem] shadow-sm border border-charcoal/5 p-5 hover:shadow-lg hover:scale-[1.02] transition-all group"
+                    >
+                      {/* Card header */}
+                      <div className="flex items-baseline justify-between mb-3">
+                        <span className="font-brand font-bold text-charcoal text-base">#{formatOrderCode(order)}</span>
+                        <span className="text-[10px] font-body text-charcoal/30">{formatTime(order.createdAt)}</span>
+                      </div>
+
+                      {/* Customer */}
+                      <p className="text-xs font-brand font-bold text-charcoal uppercase tracking-tight mb-0.5">{order.customerName}</p>
+                      <p className="text-[10px] font-body text-charcoal/40 italic mb-1">
                         {order.type === "ASPORTO" ? "Ritiro Sede" : "Consegna"}
                       </p>
                       {order.type === "DELIVERY" && order.address && (
-                        <p className="text-[10px] font-body text-charcoal/60 truncate mt-1">📍 {order.address}</p>
+                        <p className="text-[10px] font-body text-charcoal/50 truncate mb-3">📍 {order.address}</p>
                       )}
-                    </div>
 
-                    <div className="space-y-2 mb-6">
-                      {order.items.slice(0, 3).map((item) => (
-                        <div key={item.id} className="flex justify-between items-center text-[10px]">
-                          <span className="text-charcoal/60"><span className="text-terracotta mr-1">{item.quantity}×</span> {item.productName}</span>
-                        </div>
-                      ))}
-                      {order.items.length > 3 && <p className="text-[9px] text-charcoal/20 uppercase tracking-widest font-brand">+ {order.items.length - 3} altri prodotti</p>}
-                    </div>
-
-                    <div className="flex items-center justify-between pt-6 border-t border-charcoal/5">
-                      <span className="font-brand font-bold text-charcoal">{formatCurrency(Number(order.total))}</span>
-                      <div className="flex gap-2">
-                        {status === "RECEIVED" ? (
-                          <button
-                            onClick={() => openConfirmModal(order)}
-                            className="h-10 w-10 flex items-center justify-center rounded-xl bg-charcoal text-white hover:bg-terracotta transition-colors shadow-lg shadow-charcoal/10"
-                            title="Conferma Ordine"
-                          >
-                            ✓
-                          </button>
-                        ) : (
-                          ORDER_STATUS_TRANSITIONS[status]?.map((nextStatus) => (
-                            <button
-                              key={nextStatus}
-                              onClick={() => {
-                                if (nextStatus === "CANCELLED") {
-                                  setCancelTarget(order);
-                                  setCancelPassword("");
-                                  setCancelError(null);
-                                } else {
-                                  updateStatus(order.id, nextStatus);
-                                }
-                              }}
-                              className={cn(
-                                "h-10 px-4 rounded-xl font-brand font-bold text-[9px] uppercase tracking-widest transition-all",
-                                nextStatus === "CANCELLED" 
-                                  ? "bg-red-50 text-red-500 hover:bg-red-500 hover:text-white" 
-                                  : "bg-charcoal/5 text-charcoal hover:bg-charcoal hover:text-white"
-                              )}
-                            >
-                              {ORDER_STATUS_LABELS[nextStatus]}
-                            </button>
-                          ))
+                      {/* Items */}
+                      <div className="space-y-1 mb-3">
+                        {order.items.slice(0, 3).map((item) => (
+                          <p key={item.id} className="text-[10px] text-charcoal/60 truncate">
+                            <span className="text-terracotta font-semibold">{item.quantity}×</span> {item.productName}
+                          </p>
+                        ))}
+                        {order.items.length > 3 && (
+                          <p className="text-[9px] text-charcoal/20 uppercase tracking-widest font-brand">+{order.items.length - 3} altri</p>
                         )}
                       </div>
+
+                      {/* Footer */}
+                      <div className="flex items-center justify-between pt-3 border-t border-charcoal/5">
+                        <span className="font-brand font-bold text-charcoal text-sm">{formatCurrency(Number(order.total))}</span>
+                        <div className="flex gap-1.5">
+                          {status === "RECEIVED" ? (
+                            <button
+                              onClick={() => openConfirmModal(order)}
+                              className="h-8 w-8 flex items-center justify-center rounded-xl bg-charcoal text-white hover:bg-terracotta transition-colors text-xs"
+                              title="Conferma"
+                            >
+                              ✓
+                            </button>
+                          ) : (
+                            ORDER_STATUS_TRANSITIONS[status]?.map((nextStatus) => (
+                              <button
+                                key={nextStatus}
+                                onClick={() => {
+                                  if (nextStatus === "CANCELLED") {
+                                    setCancelTarget(order);
+                                    setCancelPassword("");
+                                    setCancelError(null);
+                                  } else {
+                                    updateStatus(order.id, nextStatus);
+                                  }
+                                }}
+                                className={cn(
+                                  "h-8 px-2.5 rounded-xl font-brand font-bold text-[8px] uppercase tracking-widest transition-all",
+                                  nextStatus === "CANCELLED"
+                                    ? "bg-red-50 text-red-400 hover:bg-red-500 hover:text-white"
+                                    : "bg-charcoal/5 text-charcoal hover:bg-charcoal hover:text-white"
+                                )}
+                              >
+                                {ORDER_STATUS_LABELS[nextStatus]}
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
-                {columnOrders.length === 0 && (
-                  <div className="h-full flex flex-col items-center justify-center text-charcoal/5">
-                    <span className="text-4xl mb-4 opacity-50">○</span>
-                    <p className="text-[10px] font-brand font-bold uppercase tracking-widest opacity-30">Vuoto</p>
-                  </div>
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}
