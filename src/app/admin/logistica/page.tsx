@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/constants";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatOrderCode } from "@/lib/utils";
 import type { OrderWithItems } from "@/types";
 import LogisticsMap from "@/components/admin/LogisticsMap";
 
@@ -54,6 +54,7 @@ type CriticalRiderAlert = {
   logId: string;
   orderId: string;
   orderNumber: number;
+  orderCode?: string | null;
   customerName: string;
   message: string;
   createdAt: string;
@@ -279,9 +280,14 @@ export default function LogisticaPage() {
       activeOrders.map((order) => ({
         id: order.id,
         orderNumber: order.orderNumber,
+        orderCode: order.orderCode,
+        type: order.type,
         customerName: order.customerName,
+        customerPhone: order.customerPhone,
         address: order.address,
         status: order.status,
+        createdAt: order.createdAt ? new Date(order.createdAt).toISOString() : null,
+        estimatedTime: order.estimatedTime ? new Date(order.estimatedTime).toISOString() : null,
       })),
     [activeOrders]
   );
@@ -297,6 +303,7 @@ export default function LogisticaPage() {
           logId: log.id,
           orderId: order.id,
           orderNumber: order.orderNumber,
+          orderCode: order.orderCode,
           customerName: order.customerName,
           message: log.note?.replace("[RIDER] ", "") || "Evento rider critico",
           createdAt: new Date(log.createdAt).toISOString(),
@@ -514,7 +521,7 @@ export default function LogisticaPage() {
                 <div className="flex-1">
                   <p className="font-brand font-bold text-sm tracking-tight text-charcoal flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-terracotta animate-pulse" />
-                    Ordine #{alert.orderNumber} • {alert.customerName}
+                    Ordine #{formatOrderCode({ orderCode: alert.orderCode, orderNumber: alert.orderNumber, type: "DELIVERY" })} • {alert.customerName}
                   </p>
                   <p className="font-body italic text-xs text-terracotta/80 mt-1">{alert.message}</p>
                 </div>
@@ -556,7 +563,7 @@ export default function LogisticaPage() {
                 <div key={order.id} className="rounded-[2.5rem] border border-charcoal/5 bg-white p-8 transition-all hover:shadow-lg">
                   <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                     <div>
-                      <p className="font-brand font-bold text-xl tracking-tight text-charcoal">#{order.orderNumber} • {order.customerName}</p>
+                      <p className="font-brand font-bold text-xl tracking-tight text-charcoal">#{formatOrderCode(order)} • {order.customerName}</p>
                       <p className="font-body italic text-xs text-charcoal/40 mt-1">{order.address || "Indirizzo non presente"}</p>
                     </div>
                     <span className={`px-5 py-2 rounded-full text-[9px] font-brand font-bold uppercase tracking-widest border ${ORDER_STATUS_COLORS[order.status]}`}>

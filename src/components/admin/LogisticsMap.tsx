@@ -2,13 +2,19 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ORDER_STATUS_LABELS } from "@/lib/constants";
+import { formatOrderCode } from "@/lib/utils";
 
 type OrderMapItem = {
   id: string;
   orderNumber: number;
+  orderCode?: string | null;
+  type?: string;
   customerName: string;
+  customerPhone?: string | null;
   address?: string | null;
   status: string;
+  createdAt?: string | null;
+  estimatedTime?: string | null;
 };
 
 type Props = {
@@ -144,12 +150,12 @@ export default function LogisticsMap({ orders }: Props) {
       icon: {
         path: maps.SymbolPath.CIRCLE,
         scale: 14,
-        fillColor: "#3b82f6",
+        fillColor: "#ef4444",
         fillOpacity: 1,
         strokeColor: "#ffffff",
         strokeWeight: 2,
       },
-      label: { text: "🍕", fontSize: "14px" },
+      label: { text: "👨🏼‍💻", fontSize: "14px" },
     });
     markersRef.current.push(storeMarker);
     bounds.extend(storePosition);
@@ -164,28 +170,50 @@ export default function LogisticsMap({ orders }: Props) {
     }
 
     const placeMarker = (order: OrderMapItem, position: { lat: number; lng: number }) => {
+      const color = statusColor(order.status);
+      const orderCode = order.orderCode ?? formatOrderCode({ orderCode: order.orderCode, orderNumber: order.orderNumber, type: order.type ?? "DELIVERY" });
+
+      // 🍕 emoji marker — white circle with colored border
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="42" height="42">
+        <circle cx="21" cy="21" r="19" fill="white" stroke="${color}" stroke-width="2.5"/>
+        <text x="21" y="27" text-anchor="middle" font-size="20">🍕</text>
+      </svg>`;
+
       const marker = new maps.Marker({
         map,
         position,
-        title: `#${order.orderNumber} - ${order.customerName}`,
+        title: `${orderCode} — ${order.customerName}`,
         icon: {
-          path: maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: statusColor(order.status),
-          fillOpacity: 1,
-          strokeColor: "#ffffff",
-          strokeWeight: 2,
+          url: `data:image/svg+xml,${encodeURIComponent(svg)}`,
+          scaledSize: new maps.Size(42, 42),
+          anchor: new maps.Point(21, 21),
         },
+        zIndex: 10,
       });
 
       marker.addListener("click", () => {
-        infoWindowRef.current?.setContent(
-          `<div style="font-family:var(--font-kit),sans-serif;min-width:180px">
-             <strong>Ordine #${order.orderNumber}</strong><br/>
-             ${order.customerName}<br/>
-             <small>${ORDER_STATUS_LABELS[order.status] || order.status}</small>
-           </div>`
-        );
+        const createdTime = order.createdAt
+          ? new Date(order.createdAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })
+          : null;
+        const etaTime = order.estimatedTime
+          ? new Date(order.estimatedTime).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })
+          : null;
+        const statusLabel = ORDER_STATUS_LABELS[order.status] || order.status;
+
+        infoWindowRef.current?.setContent(`
+          <div style="font-family:system-ui,sans-serif;min-width:200px;padding:4px 2px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <span style="font-size:17px;font-weight:700;color:#151b1f">${orderCode}</span>
+              <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:3px 8px;border-radius:99px;background:${color}22;color:${color}">${statusLabel}</span>
+            </div>
+            <p style="font-size:13px;font-weight:600;color:#151b1f;margin:0 0 4px">${order.customerName}</p>
+            ${order.customerPhone ? `<p style="font-size:12px;color:#555;margin:0 0 6px">📞 ${order.customerPhone}</p>` : ""}
+            ${order.address ? `<p style="font-size:12px;color:#555;margin:0 0 6px">📍 ${order.address}</p>` : ""}
+            <div style="display:flex;gap:12px;margin-top:8px;padding-top:8px;border-top:1px solid #f0f0f0">
+              ${createdTime ? `<span style="font-size:11px;color:#888">🕐 ${createdTime}</span>` : ""}
+              ${etaTime ? `<span style="font-size:11px;color:#e66a26;font-weight:600">⏱ ${etaTime}</span>` : ""}
+            </div>
+          </div>`);
         infoWindowRef.current?.open({ map, anchor: marker });
       });
 
@@ -239,7 +267,7 @@ export default function LogisticsMap({ orders }: Props) {
         <>
           <div ref={mapContainerRef} className="h-[340px] md:h-[420px] w-full rounded-xl border border-red-100/80 bg-gray-50" />
           <p className="mt-2 text-xs text-gray-500">
-            Marker ordini geocodificati da indirizzo cliente. Il marker 🏠 indica il locale.
+            Marker ordini geocodificati da indirizzo cliente. Il marker 👨🏼‍💻 indica il locale.
           </p>
           {loading && <p className="mt-1 text-xs text-gray-400">Caricamento mappa...</p>}
         </>

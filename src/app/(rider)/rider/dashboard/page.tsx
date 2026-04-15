@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ORDER_STATUS_COLORS, ORDER_STATUS_LABELS } from "@/lib/constants";
+import { formatOrderCode } from "@/lib/utils";
 import dynamic from "next/dynamic";
 
 const QRScanner = dynamic(() => import("@/components/rider/QRScanner"), { ssr: false });
@@ -90,7 +91,7 @@ export default function RiderDashboard() {
               className="reveal active group bg-white hover:bg-charcoal rounded-[2rem] p-8 flex justify-between items-center border border-charcoal/5 shadow-sm hover:shadow-2xl hover:shadow-charcoal/40 transition-all duration-500 cursor-pointer overflow-hidden relative"
             >
               <div className="relative z-10">
-                <p className="font-brand font-bold text-3xl tracking-tighter text-charcoal group-hover:text-white transition-colors">#{order.orderNumber}</p>
+                <p className="font-brand font-bold text-3xl tracking-tighter text-charcoal group-hover:text-white transition-colors">#{formatOrderCode(order)}</p>
                 <p className="font-body italic text-charcoal/60 group-hover:text-white/60 text-sm mt-1 transition-colors">{order.customerName}</p>
                 <div className="flex items-center gap-2 mt-4">
                    <div className="w-1.5 h-1.5 rounded-full bg-terracotta" />
@@ -113,7 +114,7 @@ export default function RiderDashboard() {
 
               {/* Decorative brand element */}
               <div className="absolute -bottom-4 -right-4 text-8xl font-brand font-black text-charcoal opacity-[0.03] group-hover:opacity-[0.05] transition-opacity lowercase leading-none pointer-events-none">
-                {order.orderNumber}
+                {formatOrderCode(order)}
               </div>
             </div>
           ))

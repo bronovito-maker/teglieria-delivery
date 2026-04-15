@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, ORDER_TYPE_LABELS, ORDER_CHANNEL_LABELS } from "@/lib/constants";
-import { formatCurrency, formatTime } from "@/lib/utils";
+import { formatCurrency, formatTime, formatOrderCode } from "@/lib/utils";
 import type { OrderWithItems } from "@/types";
 
 export default function OrdiniPage() {
@@ -82,7 +82,7 @@ export default function OrdiniPage() {
           <tbody className="divide-y divide-charcoal/5">
             {orders.map((o) => (
               <tr key={o.id} className="group hover:bg-warm-light/50 transition-colors">
-                <td className="px-8 py-6 font-brand font-bold text-lg text-charcoal">#{o.orderNumber}</td>
+                <td className="px-8 py-6 font-brand font-bold text-lg text-charcoal">#{formatOrderCode(o)}</td>
                 <td className="px-8 py-6 font-body italic text-xs text-charcoal/40 group-hover:text-charcoal transition-colors">{formatTime(o.createdAt)}</td>
                 <td className="px-8 py-6 font-brand font-bold uppercase tracking-widest text-[11px] text-charcoal">{o.customerName}</td>
                 <td className="px-8 py-6">
@@ -125,7 +125,7 @@ export default function OrdiniPage() {
           >
             <div className="flex items-start justify-between mb-6">
               <div>
-                <p className="text-3xl font-brand font-bold tracking-tighter text-charcoal">#{o.orderNumber}</p>
+                <p className="text-3xl font-brand font-bold tracking-tighter text-charcoal">#{formatOrderCode(o)}</p>
                 <p className="font-body italic text-xs text-charcoal/40 mt-1">{formatTime(o.createdAt)} • {ORDER_CHANNEL_LABELS[o.channel]}</p>
               </div>
               <span className={`px-4 py-1.5 rounded-full text-[9px] font-brand font-bold uppercase tracking-widest border shadow-sm transition-all duration-500 ${

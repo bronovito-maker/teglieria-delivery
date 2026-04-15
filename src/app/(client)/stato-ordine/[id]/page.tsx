@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/constants";
-import { formatCurrency, formatTime } from "@/lib/utils";
+import { formatCurrency, formatTime, formatOrderCode } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { OrderWithItems } from "@/types";
 
@@ -71,7 +71,7 @@ export default function StatoOrdinePage() {
         <h1 className="text-4xl md:text-5xl font-brand font-medium uppercase tracking-tight text-charcoal">
           Stato <span className="text-terracotta">Ordine.</span>
         </h1>
-        <p className="text-sm font-body italic text-charcoal/40 mt-4 tracking-widest uppercase">Ordine #{order.orderNumber}</p>
+        <p className="text-sm font-body italic text-charcoal/40 mt-4 tracking-widest uppercase">Ordine #{formatOrderCode(order)}</p>
       </div>
 
       {order.status === "CANCELLED" ? (

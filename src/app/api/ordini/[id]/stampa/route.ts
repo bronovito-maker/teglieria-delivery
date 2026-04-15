@@ -17,6 +17,7 @@ export async function GET(
 
   const date = new Date(order.createdAt).toLocaleDateString("it-IT");
   const time = new Date(order.createdAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+  const displayCode = order.orderCode ?? `${order.type === "ASPORTO" ? "A" : "D"}${String(order.orderNumber).padStart(3, "0")}`;
 
   const itemsHtml = order.items
     .map((item) => {
@@ -49,7 +50,7 @@ export async function GET(
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Ordine #${order.orderNumber}</title>
+<title>Ordine #${displayCode}</title>
 <style>
   @page { size: 80mm auto; margin: 0; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -74,7 +75,7 @@ export async function GET(
   </div>
   <div class="sep"></div>
   <table>
-    <tr><td class="bold">Ordine #${order.orderNumber}</td><td class="r">${date} ${time}</td></tr>
+    <tr><td class="bold">Ordine #${displayCode}</td><td class="r">${date} ${time}</td></tr>
     <tr><td>Tipo: ${order.type === "ASPORTO" ? "ASPORTO" : "DELIVERY"}</td><td class="r">${order.channel}</td></tr>
   </table>
   <div class="sep"></div>

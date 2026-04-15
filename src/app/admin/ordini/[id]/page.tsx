@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, ORDER_STATUS_TRANSITIONS } from "@/lib/constants";
-import { formatCurrency, formatDateTime, formatTime } from "@/lib/utils";
+import { formatCurrency, formatDateTime, formatTime, formatOrderCode } from "@/lib/utils";
 import type { OrderWithItems } from "@/types";
 
 export default function OrderDetailPage() {
@@ -89,7 +89,7 @@ export default function OrderDetailPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <button onClick={() => router.back()} className="text-sm text-gray-500 hover:underline mb-1">&larr; Indietro</button>
-          <h1 className="text-2xl font-bold">Ordine #{order.orderNumber}</h1>
+          <h1 className="text-2xl font-bold">Ordine #{formatOrderCode(order)}</h1>
         </div>
         <div className="flex gap-2">
           <button onClick={handlePrint}
@@ -244,7 +244,7 @@ export default function OrderDetailPage() {
             <div className="px-5 py-4 border-b border-red-100/80 flex items-center justify-between">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.14em] text-[#cf2a1d]/80 font-bold">Eliminazione ordine</p>
-                <h3 className="text-xl font-bold text-[#1d1d1f]">Ordine #{order.orderNumber}</h3>
+                <h3 className="text-xl font-bold text-[#1d1d1f]">Ordine #{formatOrderCode(order)}</h3>
               </div>
               <button
                 onClick={() => setShowDeleteModal(false)}

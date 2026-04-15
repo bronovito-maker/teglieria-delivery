@@ -33,3 +33,15 @@ export function formatTime(date: Date | string): string {
 export function formatDateTime(date: Date | string): string {
   return `${formatDate(date)} ${formatTime(date)}`;
 }
+
+/** Returns orderCode if present, otherwise derives it from type + orderNumber (legacy fallback) */
+export function formatOrderCode(order: {
+  orderCode?: string | null;
+  orderNumber: number;
+  type: string;
+}): string {
+  if (order.orderCode) return order.orderCode;
+  const prefix = order.type === "DELIVERY" ? "D" : "A";
+  const num = order.orderNumber;
+  return `${prefix}${num < 1000 ? String(num).padStart(3, "0") : num}`;
+}

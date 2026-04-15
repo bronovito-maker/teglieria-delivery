@@ -39,12 +39,25 @@ export async function GET(request: Request) {
   return NextResponse.json(orders);
 }
 
+function generateOrderCode(type: string, count: number): string {
+  const prefix = type === "DELIVERY" ? "D" : "A";
+  // 1-999 → zero-padded 3 digits; 1000+ → natural width
+  const num = count + 1;
+  const padded = num < 1000 ? String(num).padStart(3, "0") : String(num);
+  return `${prefix}${padded}`;
+}
+
 export async function POST(request: Request) {
   const body = await request.json();
 
-  const order = await prisma.order.create({
-    data: {
-      type: body.type,
+  const order = await prisma.$transaction(async (tx) => {
+    const count = await tx.order.count({ where: { type: body.type } });
+    const orderCode = generateOrderCode(body.type, count);
+
+    return tx.order.create({
+      data: {
+        orderCode,
+        type: body.type,
       channel: body.channel || "WEB",
       customerName: body.customerName,
       customerPhone: body.customerPhone,
@@ -82,6 +95,7 @@ export async function POST(request: Request) {
     },
     include: { items: true },
   });
+  }); // end $transaction
 
   if (order.customerEmail) {
     sendOrderConfirmationEmail({

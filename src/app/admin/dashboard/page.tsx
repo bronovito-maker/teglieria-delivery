@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_TRANSITIONS } from "@/lib/constants";
-import { cn, formatCurrency, formatTime } from "@/lib/utils";
+import { cn, formatCurrency, formatTime, formatOrderCode } from "@/lib/utils";
 import type { OrderWithItems } from "@/types";
 
 const KANBAN_COLUMNS = ["RECEIVED", "CONFIRMED", "PREPARING", "READY", "OUT", "DELIVERED"];
@@ -68,7 +68,7 @@ export default function DashboardPage() {
       const newest = receivedOrders[receivedOrders.length - 1];
       if (typeof Notification !== "undefined" && Notification.permission === "granted") {
         new Notification("🍕 Nuovo Ordine — La Teglieria", {
-          body: newest ? `#${newest.orderNumber} · ${newest.customerName} · ${newest.type === "DELIVERY" ? "Delivery" : "Asporto"}` : "Nuovo ordine ricevuto!",
+          body: newest ? `#${formatOrderCode(newest)} · ${newest.customerName} · ${newest.type === "DELIVERY" ? "Delivery" : "Asporto"}` : "Nuovo ordine ricevuto!",
           icon: "/favicon.ico",
           tag: newest?.id ?? "new-order",
           requireInteraction: true,
@@ -316,7 +316,7 @@ export default function DashboardPage() {
                     className="bg-white rounded-[2rem] shadow-sm p-6 border border-charcoal/5 hover:shadow-xl hover:scale-[1.02] transition-all group"
                   >
                     <div className="flex items-center justify-between mb-4 border-b border-charcoal/5 pb-4">
-                      <span className="font-brand font-bold text-charcoal text-lg">#{order.orderNumber}</span>
+                      <span className="font-brand font-bold text-charcoal text-lg">#{formatOrderCode(order)}</span>
                       <span className="text-[10px] font-body text-charcoal/30 italic">{formatTime(order.createdAt)}</span>
                     </div>
                     
@@ -405,7 +405,7 @@ export default function DashboardPage() {
                   <p className="font-brand font-bold text-charcoal text-lg">
                     {confirmingOrder.type === "DELIVERY" ? "Delivery" : "Asporto"}
                   </p>
-                  <p className="text-[11px] text-charcoal/50 font-body">#{confirmingOrder.orderNumber}</p>
+                  <p className="text-[11px] text-charcoal/50 font-body">#{formatOrderCode(confirmingOrder)}</p>
                 </div>
                 <button
                   onClick={() => { closeConfirmModal(); updateStatus(confirmingOrder.id, "CANCELLED"); }}
@@ -486,7 +486,7 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <span className="font-brand font-bold text-charcoal text-lg">{formatCurrency(Number(confirmingOrder.total))}</span>
                   <span className="px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-brand font-bold uppercase tracking-wider border border-green-100">
-                    {confirmingOrder.paymentMethod === "CARTA" ? "Carta" : "Contanti"}
+                    {String(confirmingOrder.paymentMethod) === "CARTA" ? "Carta" : "Contanti"}
                   </span>
                 </div>
 
@@ -536,7 +536,7 @@ export default function DashboardPage() {
               <div>
                 <span className="text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-red-500 mb-2 block">⚠ Azione Irreversibile</span>
                 <h3 className="text-3xl font-brand font-medium text-charcoal uppercase tracking-tight">Annulla Ordine</h3>
-                <p className="font-body italic text-charcoal/50 text-sm mt-2">#{cancelTarget.orderNumber} · {cancelTarget.customerName}</p>
+                <p className="font-body italic text-charcoal/50 text-sm mt-2">#{formatOrderCode(cancelTarget)} · {cancelTarget.customerName}</p>
               </div>
               <button
                 onClick={() => setCancelTarget(null)}

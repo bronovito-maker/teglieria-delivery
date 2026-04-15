@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { formatCurrency, formatTime } from "@/lib/utils";
+import { formatCurrency, formatTime, formatOrderCode } from "@/lib/utils";
 import { ORDER_STATUS_COLORS, ORDER_STATUS_LABELS } from "@/lib/constants";
 import RiderRouteMap from "@/components/rider/RiderRouteMap";
 
@@ -167,7 +167,7 @@ export default function RiderOrderPage() {
             <div>
               <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-2 block">Ordine in Carico</span>
               <h1 className="text-4xl font-brand font-medium uppercase tracking-tight text-charcoal">
-                #{order.orderNumber} <span className="text-terracotta">Status.</span>
+                #{formatOrderCode(order)} <span className="text-terracotta">Status.</span>
               </h1>
             </div>
             <span className={`px-6 py-2 rounded-full text-[10px] font-brand font-bold uppercase tracking-widest border shadow-sm transition-all duration-500 ${
