@@ -38,6 +38,7 @@ export async function PATCH(
       name: body.name,
       description: body.description,
       price: body.price,
+      imageUrl: body.imageUrl !== undefined ? body.imageUrl : undefined,
       categoryId: body.categoryId,
       active: body.active,
       sortOrder: body.sortOrder,

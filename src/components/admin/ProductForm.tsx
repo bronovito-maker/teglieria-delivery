@@ -1,7 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { createClient } from "@/lib/supabase/client";
+
+const BUCKET = "product-images";
 
 type Category = { id: string; name: string };
 type SubItem = { name: string; priceDelta?: number; price?: number };
@@ -12,8 +16,10 @@ interface ProductFormProps {
 
 export default function ProductForm({ productId }: ProductFormProps) {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -21,6 +27,8 @@ export default function ProductForm({ productId }: ProductFormProps) {
   const [categoryId, setCategoryId] = useState("");
   const [active, setActive] = useState(true);
   const [kitchenNotes, setKitchenNotes] = useState("");
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imagePath, setImagePath] = useState<string | null>(null); // storage path for deletion
 
   const [variants, setVariants] = useState<SubItem[]>([]);
   const [additions, setAdditions] = useState<SubItem[]>([]);
@@ -39,12 +47,64 @@ export default function ProductForm({ productId }: ProductFormProps) {
           setCategoryId(p.categoryId);
           setActive(p.active);
           setKitchenNotes(p.kitchenNotes || "");
+          setImageUrl(p.imageUrl || null);
+          // Extract storage path from URL
+          if (p.imageUrl) {
+            const match = p.imageUrl.match(/product-images\/(.+)$/);
+            if (match) setImagePath(match[1]);
+          }
           setVariants(p.variants.map((v: any) => ({ name: v.name, priceDelta: Number(v.priceDelta) })));
           setAdditions(p.additions.map((a: any) => ({ name: a.name, price: Number(a.price) })));
           setRemovals(p.removals.map((r: any) => ({ name: r.name })));
         });
     }
   }, [productId]);
+
+  async function handleImageUpload(file: File) {
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) {
+      alert("Immagine troppo grande. Massimo 3MB.");
+      return;
+    }
+
+    setUploadingImage(true);
+    const supabase = createClient();
+
+    // Delete old image if present
+    if (imagePath) {
+      await supabase.storage.from(BUCKET).remove([imagePath]);
+    }
+
+    const ext = file.name.split(".").pop();
+    const newPath = `products/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+    const { error } = await supabase.storage.from(BUCKET).upload(newPath, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+    if (error) {
+      alert(`Errore upload: ${error.message}`);
+      setUploadingImage(false);
+      return;
+    }
+
+    const { data } = supabase.storage.from(BUCKET).getPublicUrl(newPath);
+    setImageUrl(data.publicUrl);
+    setImagePath(newPath);
+    setUploadingImage(false);
+  }
+
+  async function handleRemoveImage() {
+    if (!imagePath) {
+      setImageUrl(null);
+      return;
+    }
+    const supabase = createClient();
+    await supabase.storage.from(BUCKET).remove([imagePath]);
+    setImageUrl(null);
+    setImagePath(null);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -54,6 +114,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
       name,
       description: description || null,
       price: parseFloat(price),
+      imageUrl,
       categoryId,
       active,
       kitchenNotes: kitchenNotes || null,
@@ -123,6 +184,65 @@ export default function ProductForm({ productId }: ProductFormProps) {
         </label>
       </div>
 
+      {/* Foto prodotto */}
+      <div className="bg-white rounded-xl shadow p-6 space-y-4">
+        <h2 className="font-semibold text-lg">Foto prodotto</h2>
+        <p className="text-xs text-gray-400">PNG, JPG o WebP · max 3MB · consigliato 800×800px</p>
+
+        {imageUrl ? (
+          <div className="flex items-start gap-4">
+            <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0">
+              <Image src={imageUrl} alt="Anteprima" fill className="object-cover" />
+            </div>
+            <div className="flex flex-col gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingImage}
+                className="px-4 py-2 text-xs font-semibold border border-orange-200 text-orange-600 rounded-lg hover:bg-orange-50 transition-colors disabled:opacity-50"
+              >
+                {uploadingImage ? "Caricamento..." : "Sostituisci foto"}
+              </button>
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                className="px-4 py-2 text-xs font-semibold border border-red-100 text-red-500 rounded-lg hover:bg-red-50 transition-colors"
+              >
+                Rimuovi foto
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingImage}
+            className="w-full h-32 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-orange-300 hover:text-orange-400 transition-colors disabled:opacity-50"
+          >
+            {uploadingImage ? (
+              <span className="text-sm font-medium">Caricamento in corso...</span>
+            ) : (
+              <>
+                <span className="text-3xl">📷</span>
+                <span className="text-sm font-medium">Clicca per caricare una foto</span>
+              </>
+            )}
+          </button>
+        )}
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) handleImageUpload(file);
+            e.target.value = "";
+          }}
+        />
+      </div>
+
       {/* Varianti */}
       <div className="bg-white rounded-xl shadow p-6 space-y-3">
         <div className="flex items-center justify-between">
@@ -184,7 +304,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
       </div>
 
       <div className="flex gap-3">
-        <button type="submit" disabled={loading}
+        <button type="submit" disabled={loading || uploadingImage}
           className="px-6 py-2 tomato-glass border text-white rounded-xl font-semibold hover:brightness-105 disabled:opacity-50 transition-all">
           {loading ? "Salvataggio..." : productId ? "Salva modifiche" : "Crea prodotto"}
         </button>

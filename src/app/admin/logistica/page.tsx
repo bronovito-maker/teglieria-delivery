@@ -881,6 +881,160 @@ export default function LogisticaPage() {
           )}
         </div>
       </section>
+
+      {/* STATISTICHE STORICHE RIDER */}
+      {riders.length > 0 && (
+        <section className="bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-charcoal/5 shadow-2xl overflow-hidden reveal active mb-20">
+          <div className="px-10 py-8 border-b border-charcoal/5 bg-warm-light/20 flex items-center justify-between">
+            <div>
+              <span className="text-[9px] font-brand font-bold uppercase tracking-[0.3em] text-terracotta/60 mb-1 block">Tutti i tempi</span>
+              <h2 className="font-brand font-bold uppercase tracking-tight text-charcoal text-lg">Statistiche <span className="text-terracotta">Storiche</span></h2>
+            </div>
+            <span className="text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/30">
+              {riders.reduce((s, r) => s + r.metrics.deliveredCount, 0)} consegne totali
+            </span>
+          </div>
+
+          {/* Tabella desktop */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-charcoal/5 bg-warm-light/10">
+                  <th className="text-left px-8 py-4 text-[8px] font-brand font-bold uppercase tracking-[0.25em] text-charcoal/30">#</th>
+                  <th className="text-left px-4 py-4 text-[8px] font-brand font-bold uppercase tracking-[0.25em] text-charcoal/30">Fattorino</th>
+                  <th className="text-right px-4 py-4 text-[8px] font-brand font-bold uppercase tracking-[0.25em] text-charcoal/30">Consegne</th>
+                  <th className="text-right px-4 py-4 text-[8px] font-brand font-bold uppercase tracking-[0.25em] text-charcoal/30">Fatturato</th>
+                  <th className="text-right px-4 py-4 text-[8px] font-brand font-bold uppercase tracking-[0.25em] text-charcoal/30">Pizze</th>
+                  <th className="text-right px-4 py-4 text-[8px] font-brand font-bold uppercase tracking-[0.25em] text-charcoal/30">Scontrino medio</th>
+                  <th className="text-right px-4 py-4 text-[8px] font-brand font-bold uppercase tracking-[0.25em] text-charcoal/30">Tempo medio</th>
+                  <th className="text-right px-4 py-4 text-[8px] font-brand font-bold uppercase tracking-[0.25em] text-charcoal/30">Compenso</th>
+                  <th className="text-right px-8 py-4 text-[8px] font-brand font-bold uppercase tracking-[0.25em] text-charcoal/30">Netto store</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...riders]
+                  .sort((a, b) => b.metrics.deliveredCount - a.metrics.deliveredCount)
+                  .map((rider, idx) => {
+                    const rank = idx + 1;
+                    const rankColor = rank === 1 ? "text-marigold" : rank === 2 ? "text-charcoal/40" : rank === 3 ? "text-amber-700/60" : "text-charcoal/20";
+                    return (
+                      <tr key={rider.id} className="border-b border-charcoal/5 last:border-0 hover:bg-warm-light/20 transition-colors">
+                        <td className={`px-8 py-5 font-brand font-bold text-lg ${rankColor}`}>{rank}</td>
+                        <td className="px-4 py-5">
+                          <div className="flex items-center gap-3">
+                            <div>
+                              <p className="font-brand font-bold text-sm text-charcoal">{rider.name}</p>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="text-[8px] font-brand font-bold uppercase tracking-widest text-charcoal/30">{VEHICLE_LABELS[rider.vehicle]}</span>
+                                {rider.zone && <span className="text-[8px] font-brand text-charcoal/20">· {rider.zone}</span>}
+                              </div>
+                            </div>
+                            <span className={`px-2 py-0.5 rounded-full text-[8px] font-brand font-bold uppercase tracking-widest ${
+                              rider.active ? "bg-green-50 text-green-500 border border-green-100" : "bg-charcoal/5 text-charcoal/25 border border-charcoal/10"
+                            }`}>
+                              {rider.active ? "Attivo" : "Stop"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-5 text-right">
+                          <p className="font-brand font-bold text-xl text-charcoal">{rider.metrics.deliveredCount}</p>
+                        </td>
+                        <td className="px-4 py-5 text-right">
+                          <p className="font-brand font-bold text-sm text-charcoal">{formatCurrency(rider.metrics.deliveredRevenue)}</p>
+                        </td>
+                        <td className="px-4 py-5 text-right">
+                          <p className="font-brand font-bold text-sm text-charcoal">{rider.metrics.totalPizzasDelivered}</p>
+                        </td>
+                        <td className="px-4 py-5 text-right">
+                          <p className="font-brand font-bold text-sm text-charcoal">{formatCurrency(rider.metrics.averageTicket)}</p>
+                        </td>
+                        <td className="px-4 py-5 text-right">
+                          <p className={`font-brand font-bold text-sm ${rider.metrics.avgDeliveryMinutes != null && rider.metrics.avgDeliveryMinutes <= 25 ? "text-green-600" : rider.metrics.avgDeliveryMinutes != null && rider.metrics.avgDeliveryMinutes >= 35 ? "text-terracotta" : "text-marigold"}`}>
+                            {rider.metrics.avgDeliveryMinutes != null ? `${rider.metrics.avgDeliveryMinutes}′` : "—"}
+                          </p>
+                        </td>
+                        <td className="px-4 py-5 text-right">
+                          <p className="font-brand font-bold text-sm text-terracotta">{formatCurrency(rider.metrics.estimatedCompensation)}</p>
+                        </td>
+                        <td className="px-8 py-5 text-right">
+                          <p className="font-brand font-bold text-sm text-charcoal">{formatCurrency(rider.metrics.netAfterRiderCompensation)}</p>
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+              <tfoot>
+                <tr className="border-t-2 border-charcoal/10 bg-warm-light/20">
+                  <td className="px-8 py-4" />
+                  <td className="px-4 py-4">
+                    <p className="text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/40">Totale</p>
+                  </td>
+                  <td className="px-4 py-4 text-right">
+                    <p className="font-brand font-bold text-sm text-charcoal">{riders.reduce((s, r) => s + r.metrics.deliveredCount, 0)}</p>
+                  </td>
+                  <td className="px-4 py-4 text-right">
+                    <p className="font-brand font-bold text-sm text-charcoal">{formatCurrency(riders.reduce((s, r) => s + r.metrics.deliveredRevenue, 0))}</p>
+                  </td>
+                  <td className="px-4 py-4 text-right">
+                    <p className="font-brand font-bold text-sm text-charcoal">{riders.reduce((s, r) => s + r.metrics.totalPizzasDelivered, 0)}</p>
+                  </td>
+                  <td className="px-4 py-4" />
+                  <td className="px-4 py-4" />
+                  <td className="px-4 py-4 text-right">
+                    <p className="font-brand font-bold text-sm text-terracotta">{formatCurrency(riders.reduce((s, r) => s + r.metrics.estimatedCompensation, 0))}</p>
+                  </td>
+                  <td className="px-8 py-4 text-right">
+                    <p className="font-brand font-bold text-sm text-charcoal">{formatCurrency(riders.reduce((s, r) => s + r.metrics.netAfterRiderCompensation, 0))}</p>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          {/* Cards mobile */}
+          <div className="md:hidden p-6 space-y-4">
+            {[...riders]
+              .sort((a, b) => b.metrics.deliveredCount - a.metrics.deliveredCount)
+              .map((rider, idx) => {
+                const rank = idx + 1;
+                const rankColor = rank === 1 ? "text-marigold" : rank === 2 ? "text-charcoal/40" : rank === 3 ? "text-amber-700/60" : "text-charcoal/20";
+                return (
+                  <div key={rider.id} className="bg-white rounded-[2rem] border border-charcoal/5 p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <span className={`font-brand font-bold text-2xl ${rankColor}`}>#{rank}</span>
+                        <div>
+                          <p className="font-brand font-bold text-base text-charcoal">{rider.name}</p>
+                          <p className="text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/30">{VEHICLE_LABELS[rider.vehicle]}{rider.zone ? ` · ${rider.zone}` : ""}</p>
+                        </div>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-full text-[8px] font-brand font-bold uppercase tracking-widest ${
+                        rider.active ? "bg-green-50 text-green-500 border border-green-100" : "bg-charcoal/5 text-charcoal/25 border border-charcoal/10"
+                      }`}>
+                        {rider.active ? "Attivo" : "Stop"}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { label: "Consegne", value: rider.metrics.deliveredCount, color: "text-charcoal" },
+                        { label: "Fatturato", value: formatCurrency(rider.metrics.deliveredRevenue), color: "text-charcoal" },
+                        { label: "Pizze", value: rider.metrics.totalPizzasDelivered, color: "text-charcoal" },
+                        { label: "Scontrino medio", value: formatCurrency(rider.metrics.averageTicket), color: "text-charcoal" },
+                        { label: "Tempo medio", value: rider.metrics.avgDeliveryMinutes != null ? `${rider.metrics.avgDeliveryMinutes}′` : "—", color: "text-marigold" },
+                        { label: "Compenso", value: formatCurrency(rider.metrics.estimatedCompensation), color: "text-terracotta" },
+                      ].map((stat) => (
+                        <div key={stat.label} className="bg-warm-light/40 rounded-xl p-3 border border-charcoal/5 text-center">
+                          <p className="text-[7px] font-brand font-bold uppercase tracking-widest text-charcoal/30 mb-1">{stat.label}</p>
+                          <p className={`font-brand font-bold text-sm ${stat.color}`}>{stat.value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

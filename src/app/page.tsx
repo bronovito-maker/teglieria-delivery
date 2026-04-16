@@ -61,63 +61,74 @@ const useScrollReveal = () => {
 
 export default function LandingPage() {
   const [highlights, setHighlights] = useState<any[]>([]);
-  const [showMobileCta, setShowMobileCta] = useState(false);
-  const [footerVisible, setFooterVisible] = useState(false);
   const heroRef = useRef<HTMLElement | null>(null);
   const footerRef = useRef<HTMLElement | null>(null);
   useScrollReveal();
 
   useEffect(() => {
-    const footer = footerRef.current;
-    if (!footer) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setFooterVisible(entry.isIntersecting),
-      { threshold: 0.05 }
-    );
-    observer.observe(footer);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
     fetch("/api/menu")
       .then((r) => r.json())
       .then((data) => {
-        // Flatten and take 3 random products as highlights
         const allProducts = data.flatMap((c: any) => c.products);
         setHighlights(allProducts.slice(0, 3));
       });
   }, []);
 
-  useEffect(() => {
-    let ticking = false;
-
-    const updateCtaVisibility = () => {
-      const heroHeight = heroRef.current?.offsetHeight || window.innerHeight;
-      const triggerPoint = Math.max(260, heroHeight - 92);
-      setShowMobileCta(window.scrollY > triggerPoint);
-    };
-
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        updateCtaVisibility();
-        ticking = false;
-      });
-    };
-
-    updateCtaVisibility();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
-  }, []);
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    name: "La Teglieria",
+    image: "https://www.lateglieria.it/images/pizza-teglia-hero.png",
+    url: "https://www.lateglieria.it",
+    telephone: "+390612345678",
+    email: "ordini@lateglieria.it",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Via Inghilterra, 68",
+      addressLocality: "Livorno",
+      postalCode: "57128",
+      addressRegion: "LI",
+      addressCountry: "IT",
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: 43.5485,
+      longitude: 10.3106,
+    },
+    servesCuisine: ["Pizza", "Pizza in teglia", "Cucina italiana"],
+    priceRange: "€€",
+    openingHoursSpecification: [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Monday", "Wednesday", "Thursday", "Friday"],
+        opens: "18:30",
+        closes: "22:30",
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Saturday", "Sunday"],
+        opens: "17:30",
+        closes: "23:00",
+      },
+    ],
+    hasMenu: "https://www.lateglieria.it/menu",
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: "4.8",
+      reviewCount: "500",
+    },
+    amenityFeature: [
+      { "@type": "LocationFeatureSpecification", name: "Consegna a domicilio", value: true },
+      { "@type": "LocationFeatureSpecification", name: "Asporto", value: true },
+    ],
+  };
 
   return (
     <main className="min-h-screen bg-warm-light text-charcoal pt-24 selection:bg-marigold/30">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <MobileTopBar />
 
       {/* 1. HERO SECTION */}
@@ -139,41 +150,32 @@ export default function LandingPage() {
         </div>
 
         {/* ── MOBILE layout ── */}
-        <div className="md:hidden w-full flex-1 flex flex-col justify-between animate-fade-in relative z-10 text-center pt-4 pb-6">
-
-          {/* Top: label + titolo + immagine */}
-          <div className="flex flex-col items-center gap-3 w-full">
-            <span className="text-[0.75rem] font-brand font-bold uppercase tracking-[0.25em] text-terracotta/70 px-4 py-1.5 border border-terracotta/20 rounded-full bg-warm-light/90 shadow-sm backdrop-blur-sm">
-              Livorno • Scopaia
-            </span>
-            <h1 className="text-[3rem] leading-none font-display text-charcoal px-2">
-              La tua pizzeria<br />
-              <span className="text-terracotta">di quartiere.</span>
-            </h1>
-            <div className="relative w-full h-[62vw] min-h-[300px] max-h-[480px] rounded-[1.5rem] overflow-hidden shadow-xl border border-charcoal/5">
-              <Image src="/images/pizza-teglia-hero.png" alt="Pizza in teglia La Teglieria" fill className="object-cover object-center" priority />
-              <div className="absolute inset-0 bg-gradient-to-t from-charcoal/40 via-transparent to-transparent" />
-              <span className="absolute bottom-4 left-4 px-4 py-2 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-brand font-bold uppercase tracking-widest text-charcoal shadow-sm">🔥 Tempo medio consegna 34 min</span>
-            </div>
-            <div className="flex items-center justify-center gap-3 w-full py-1">
-              <div className="w-6 h-px bg-terracotta/25 shrink-0" />
-              <span className="text-[11px] font-brand font-bold uppercase tracking-[0.1em] text-terracotta/55 whitespace-nowrap">&ldquo;Croccante fuori, leggera dentro&rdquo;</span>
-              <div className="w-6 h-px bg-terracotta/25 shrink-0" />
-            </div>
+        <div className="md:hidden w-full flex-1 flex flex-col items-center gap-3 animate-fade-in relative z-10 text-center pt-4 pb-6">
+          <span className="text-[0.75rem] font-brand font-bold uppercase tracking-[0.25em] text-terracotta/70 px-4 py-1.5 border border-terracotta/20 rounded-full bg-warm-light/90 shadow-sm backdrop-blur-sm">
+            Livorno • Scopaia
+          </span>
+          <h1 className="text-[3.5rem] leading-none font-display text-charcoal px-2">
+            La tua pizzeria<br />
+            <span className="text-terracotta">di quartiere.</span>
+          </h1>
+          <div className="relative w-full h-[62vw] min-h-[300px] max-h-[480px] rounded-[1.5rem] overflow-hidden shadow-xl border border-charcoal/5">
+            <Image src="/images/pizza-teglia-hero.png" alt="Pizza in teglia La Teglieria" fill className="object-cover object-center" priority />
+            <div className="absolute inset-0 bg-gradient-to-t from-charcoal/40 via-transparent to-transparent" />
+            <span className="absolute bottom-4 left-4 px-4 py-2 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-brand font-bold uppercase tracking-widest text-charcoal shadow-sm">🔥 Tempo medio consegna 34 min</span>
           </div>
-
-          {/* Bottom: CTAs — z-20 per stare sopra ingredienti */}
-          <div className="relative z-20 flex flex-col items-center gap-2.5 w-full pt-2">
+          <Link href="/menu" className="text-base font-brand font-semibold text-charcoal underline underline-offset-4 decoration-charcoal/30 hover:decoration-terracotta hover:text-terracotta transition-colors">
+            Vediamo il menù →
+          </Link>
+          <div className="relative z-20 flex flex-col items-center gap-2.5 w-full pt-1">
             <div className="relative w-full">
               <div className="absolute inset-0 rounded-[999px] bg-terracotta/30 blur-lg animate-pulse" />
-              <Link href="/menu?type=DELIVERY" className="relative flex items-center justify-center w-full py-5 rounded-[999px] text-[2.2rem] leading-none font-display text-white bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] shadow-[0_12px_30px_rgba(230,100,40,0.35)] active:scale-95 transition-all">
+              <Link href="/menu?type=DELIVERY" className="relative flex items-center justify-center w-full py-4 rounded-[999px] text-[1.85rem] leading-none font-display text-white bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] shadow-[0_10px_24px_rgba(230,100,40,0.35)] active:scale-95 transition-all">
                 Ordina ora
               </Link>
             </div>
             <Link href="/menu?type=ASPORTO" className="flex items-center justify-center w-full py-3.5 bg-white/60 backdrop-blur-md text-charcoal border border-charcoal/20 rounded-[999px] text-[1.6rem] leading-none font-display active:scale-95 transition-all hover:bg-white/75">
               Ritira in sede
             </Link>
-            <span className="text-xs text-charcoal/40 font-body tracking-wide">⭐ 4.8 su 500+ recensioni</span>
           </div>
         </div>
 
@@ -208,7 +210,6 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            <span className="text-sm text-charcoal/40 font-body tracking-wide">⭐ 4.8 su 500+ recensioni</span>
           </div>
 
           {/* Colonna destra — immagine pizza */}
@@ -237,127 +238,16 @@ export default function LandingPage() {
         </div>
       </section>
 
-
-      {/* 1.5 PRODUCT SPOTLIGHT (TEGLIA INTERA) */}
-      <section className="reveal py-16 md:py-24 px-6 max-w-6xl mx-auto">
-        <div className="text-center mb-12 md:mb-16">
-          <p className="text-sm font-brand font-bold uppercase tracking-[0.3em] leading-none text-terracotta mb-4">
-            Il Nostro Orgoglio
-          </p>
-          <h2 className="text-6xl md:text-7xl font-display leading-none text-charcoal">
-            La <span className="text-terracotta">Teglia</span> Perfetta
-          </h2>
+      {/* SOCIAL PROOF BADGE */}
+      <div className="flex justify-center py-5">
+        <div className="flex items-center gap-2.5 px-5 py-3 bg-white/80 backdrop-blur-md border border-marigold/30 rounded-full shadow-sm">
+          <span className="text-marigold text-base tracking-wider">★★★★★</span>
+          <span className="text-sm font-brand font-bold text-charcoal/70 tracking-wide">4.8 · 500+ recensioni</span>
         </div>
-        <div className="relative aspect-[16/10] md:aspect-[21/9] rounded-[3rem] overflow-hidden shadow-2xl border border-charcoal/5 group">
-          <Image
-            src="/images/pizza-teglia-hero.png"
-            alt="Pizza in Teglia Artigianale"
-            fill
-            className="object-cover transition-transform duration-[2s] group-hover:scale-110"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-transparent to-transparent flex items-end p-8 md:p-16">
-            <div className="space-y-4">
-              <span className="inline-block px-4 py-1 bg-marigold text-charcoal text-[10px] font-bold uppercase tracking-widest rounded-full shadow-lg">
-                High Hydration
-              </span>
-              <p className="text-white text-4xl md:text-6xl font-display leading-none drop-shadow-lg">
-                Croccantezza senza confini.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      </div>
 
-      {/* 2. LA NOSTRA STORIA */}
-      <section id="chi-siamo" className="scroll-mt-24 py-20 md:py-32 px-6 max-w-7xl mx-auto overflow-hidden">
-        <div className="grid md:grid-cols-12 gap-16 items-center">
-          <div className="md:col-span-7 reveal space-y-10">
-            <header>
-              <p className="text-sm font-brand font-bold uppercase tracking-[0.3em] leading-none text-terracotta mb-4">
-                L&apos;Eredità
-              </p>
-              <h2 className="text-6xl md:text-7xl font-display leading-none text-charcoal">
-                Dietro ogni teglia <br /> <span className="text-terracotta">c&apos;è ricerca.</span>
-              </h2>
-            </header>
-            <div className="space-y-6 text-lg md:text-xl text-charcoal/60 leading-relaxed font-body italic">
-              <p>
-                Nata nel cuore della città, <span className="text-charcoal font-bold not-italic">La Teglieria</span> non è solo una pizzeria. È un laboratorio dove la tradizione incontra le tecniche di lievitazione più avanzate.
-              </p>
-              <p>
-                Il segreto? <span className="text-terracotta font-bold not-italic">7d 48 ore</span> di maturazione, farina di grani antichi e una passione ossessiva per il &quot;crunch&quot; perfetto. Ogni nostra teglia racconta un viaggio tra sapori autentici e innovazione.
-              </p>
-            </div>
-            <div className="pt-6">
-              <Link href="/menu" className="group flex items-center gap-4 text-charcoal font-brand font-semibold text-base leading-none transition-all border-b-2 border-terracotta/20 pb-2 w-fit hover:border-terracotta">
-                Scopri la collezione
-                <span className="group-hover:translate-x-2 transition-transform">→</span>
-              </Link>
-            </div>
-          </div>
-          <div className="md:col-span-5 reveal relative">
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-marigold/10 rounded-full blur-3xl" />
-            <div className="relative aspect-[3/4] rounded-[3rem] overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.15)] border-8 border-white/40">
-              <Image
-                src="/images/pizzeria-interior.png"
-                alt="Interno Pizzeria"
-                fill
-                sizes="(max-width: 768px) 100vw, 40vw"
-                className="object-cover transition-transform duration-1000 group-hover:scale-110"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. QUALITÀ (INGREDIENTI) */}
-      <section className="py-24 md:py-40 bg-charcoal/5 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-terracotta/5 rounded-full blur-[150px]" />
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="text-center mb-24 reveal">
-            <p className="text-sm font-brand font-bold uppercase tracking-[0.3em] leading-none text-terracotta mb-4">
-              La Materia Prima
-            </p>
-            <h2 className="text-6xl md:text-8xl font-display text-charcoal leading-none">
-              Meno ingredienti, <br /> <span className="text-terracotta">più ricerca.</span>
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-12">
-            {[
-              { emoji: "🌾", title: "Impasto 48h", desc: "Lunga maturazione per una digeribilità senza precedenti e un alveolatura perfetta.", delay: "0.1s" },
-              { emoji: "🍅", title: "San Marzano DOP", desc: "Solo pomodori selezionati dai migliori ettari dell'agro sarnese-nocerino.", delay: "0.2s" },
-              { emoji: "🌿", title: "Olio EVO", desc: "Estratto a freddo, aggiunto a crudo per preservare ogni nota aromatica.", delay: "0.3s" }
-            ].map((item, i) => (
-              <div key={i} className="reveal bg-warm-light p-12 rounded-[2.5rem] space-y-6 hover:shadow-2xl transition-all duration-500 border border-charcoal/5 group hover:-translate-y-2" style={{ transitionDelay: item.delay }}>
-                <div className="w-16 h-16 bg-charcoal/5 rounded-2xl flex items-center justify-center text-4xl group-hover:scale-110 transition-transform">
-                  {item.emoji}
-                </div>
-                <h3 className="text-4xl font-display leading-none text-charcoal">{item.title}</h3>
-                <p className="text-charcoal/50 leading-relaxed font-body">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-20 md:mt-32 reveal relative h-[500px] w-full rounded-[3.5rem] overflow-hidden shadow-2xl border border-charcoal/10 group">
-            <Image
-              src="/images/ingredients.png"
-              alt="Ingredienti Premium"
-              fill
-              className="object-cover transition-transform duration-[3s] group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 to-transparent flex items-center justify-center">
-              <span className="text-white text-4xl md:text-6xl font-display drop-shadow-2xl text-center px-10 leading-none">
-                Qualità senza <br /> compromessi.
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. MENU HIGHLIGHTS */}
-      <section id="menu" className="scroll-mt-24 py-24 md:py-40 px-6 max-w-7xl mx-auto">
+      {/* 2. MENU HIGHLIGHTS */}
+      <section id="menu" className="scroll-mt-24 py-16 md:py-24 px-6 max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 reveal">
           <div>
             <p className="text-sm font-brand font-bold uppercase tracking-[0.3em] leading-none text-terracotta mb-4">
@@ -385,6 +275,37 @@ export default function LandingPage() {
               <p className="text-charcoal/50 font-body line-clamp-2 leading-relaxed italic">{p.description || "Un&apos;esplosione di sapori artigianali creata con amore."}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* 4. PRODUCT SPOTLIGHT (TEGLIA INTERA) */}
+      <section className="reveal py-16 md:py-24 px-6 max-w-6xl mx-auto">
+        <div className="text-center mb-12 md:mb-16">
+          <p className="text-sm font-brand font-bold uppercase tracking-[0.3em] leading-none text-terracotta mb-4">
+            Il Nostro Orgoglio
+          </p>
+          <h2 className="text-6xl md:text-7xl font-display leading-none text-charcoal">
+            La <span className="text-terracotta">Teglia</span> Perfetta
+          </h2>
+        </div>
+        <div className="relative aspect-[16/10] md:aspect-[21/9] rounded-[3rem] overflow-hidden shadow-2xl border border-charcoal/5 group">
+          <Image
+            src="/images/pizza-teglia-hero.png"
+            alt="Pizza in Teglia Artigianale"
+            fill
+            className="object-cover transition-transform duration-[2s] group-hover:scale-110"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-transparent to-transparent flex items-end p-8 md:p-16">
+            <div className="space-y-4">
+              <span className="inline-block px-4 py-1 bg-marigold text-charcoal text-[10px] font-bold uppercase tracking-widest rounded-full shadow-lg">
+                High Hydration
+              </span>
+              <p className="text-white text-4xl md:text-6xl font-display leading-none drop-shadow-lg">
+                Croccantezza senza confini.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -430,7 +351,113 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* FOOTER & STICKY CTA */}
+      {/* 6. LA NOSTRA STORIA */}
+      <section id="chi-siamo" className="scroll-mt-24 py-20 md:py-32 px-6 max-w-7xl mx-auto overflow-hidden">
+        <div className="grid md:grid-cols-12 gap-16 items-center">
+          <div className="md:col-span-7 reveal space-y-10">
+            <header>
+              <p className="text-sm font-brand font-bold uppercase tracking-[0.3em] leading-none text-terracotta mb-4">
+                L&apos;Eredità
+              </p>
+              <h2 className="text-6xl md:text-7xl font-display leading-none text-charcoal">
+                Dietro ogni teglia <br /> <span className="text-terracotta">c&apos;è ricerca.</span>
+              </h2>
+            </header>
+            <div className="space-y-6 text-lg md:text-xl text-charcoal/60 leading-relaxed font-body italic">
+              <p>
+                Nata nel cuore della città, <span className="text-charcoal font-bold not-italic">La Teglieria</span> non è solo una pizzeria. È un laboratorio dove la tradizione incontra le tecniche di lievitazione più avanzate.
+              </p>
+              <p>
+                Il segreto? <span className="text-terracotta font-bold not-italic">7d 48 ore</span> di maturazione, farina di grani antichi e una passione ossessiva per il &quot;crunch&quot; perfetto. Ogni nostra teglia racconta un viaggio tra sapori autentici e innovazione.
+              </p>
+            </div>
+            <div className="pt-6">
+              <Link href="/menu" className="group flex items-center gap-4 text-charcoal font-brand font-semibold text-base leading-none transition-all border-b-2 border-terracotta/20 pb-2 w-fit hover:border-terracotta">
+                Scopri la collezione
+                <span className="group-hover:translate-x-2 transition-transform">→</span>
+              </Link>
+            </div>
+          </div>
+          <div className="md:col-span-5 reveal relative">
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-marigold/10 rounded-full blur-3xl" />
+            <div className="relative aspect-[3/4] rounded-[3rem] overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.15)] border-8 border-white/40">
+              <Image
+                src="/images/pizzeria-interior.png"
+                alt="Interno Pizzeria"
+                fill
+                sizes="(max-width: 768px) 100vw, 40vw"
+                className="object-cover transition-transform duration-1000 group-hover:scale-110"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. QUALITÀ (INGREDIENTI) */}
+      <section className="py-24 md:py-40 bg-charcoal/5 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-terracotta/5 rounded-full blur-[150px]" />
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="text-center mb-24 reveal">
+            <p className="text-sm font-brand font-bold uppercase tracking-[0.3em] leading-none text-terracotta mb-4">
+              La Materia Prima
+            </p>
+            <h2 className="text-6xl md:text-8xl font-display text-charcoal leading-none">
+              Meno ingredienti, <br /> <span className="text-terracotta">più ricerca.</span>
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-12">
+            {[
+              { emoji: "🌾", title: "Impasto 48h", desc: "Lunga maturazione per una digeribilità senza precedenti e un alveolatura perfetta.", delay: "0.1s" },
+              { emoji: "🍅", title: "San Marzano DOP", desc: "Solo pomodori selezionati dai migliori ettari dell'agro sarnese-nocerino.", delay: "0.2s" },
+              { emoji: "🌿", title: "Olio EVO", desc: "Estratto a freddo, aggiunto a crudo per preservare ogni nota aromatica.", delay: "0.3s" }
+            ].map((item, i) => (
+              <div key={i} className="reveal bg-warm-light p-12 rounded-[2.5rem] space-y-6 hover:shadow-2xl transition-all duration-500 border border-charcoal/5 group hover:-translate-y-2" style={{ transitionDelay: item.delay }}>
+                <div className="w-16 h-16 bg-charcoal/5 rounded-2xl flex items-center justify-center text-4xl group-hover:scale-110 transition-transform">
+                  {item.emoji}
+                </div>
+                <h3 className="text-4xl font-display leading-none text-charcoal">{item.title}</h3>
+                <p className="text-charcoal/50 leading-relaxed font-body">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-20 md:mt-32 reveal relative h-[500px] w-full rounded-[3.5rem] overflow-hidden shadow-2xl border border-charcoal/10 group">
+            <Image
+              src="/images/ingredients.png"
+              alt="Ingredienti Premium"
+              fill
+              className="object-cover transition-transform duration-[3s] group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 to-transparent flex items-center justify-center">
+              <span className="text-white text-4xl md:text-6xl font-display drop-shadow-2xl text-center px-10 leading-none">
+                Qualità senza <br /> compromessi.
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA FINALE */}
+      <section className="py-16 md:py-24 px-6">
+        <div className="max-w-xl mx-auto flex flex-col items-center gap-3">
+          <div className="text-center mb-6">
+            <p className="text-sm font-brand font-bold uppercase tracking-[0.3em] text-terracotta mb-3">Dal forno a casa tua</p>
+            <h2 className="text-5xl md:text-6xl font-display leading-none text-charcoal">Ti abbiamo fatto <span className="text-terracotta">venire fame?</span></h2>
+          </div>
+          <div className="relative w-full">
+            <div className="absolute inset-0 rounded-[999px] bg-terracotta/30 blur-lg animate-pulse" />
+            <Link href="/menu?type=DELIVERY" className="relative flex items-center justify-center w-full py-5 rounded-[999px] text-[1.85rem] leading-none font-display text-white bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] shadow-[0_10px_24px_rgba(230,100,40,0.35)] active:scale-95 transition-all">
+              Ordina ora
+            </Link>
+          </div>
+          <Link href="/menu?type=ASPORTO" className="flex items-center justify-center w-full py-4 bg-white/60 backdrop-blur-md text-charcoal border border-charcoal/20 rounded-[999px] text-[1.6rem] leading-none font-display active:scale-95 transition-all hover:bg-white/75">
+            Ritira in sede
+          </Link>
+        </div>
+      </section>
+
+      {/* FOOTER */}
       <footer
         ref={footerRef}
         id="contatti"
@@ -487,7 +514,11 @@ export default function LandingPage() {
               © {new Date().getFullYear()} La Teglieria Artisan Pizza • All rights reserved
             </div>
 
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-6 flex-wrap justify-center md:justify-end">
+              <Link href="/privacy" className="text-[10px] text-charcoal/40 font-brand font-bold uppercase tracking-widest hover:text-terracotta transition-colors">Privacy Policy</Link>
+              <div className="w-1 h-1 bg-charcoal/20 rounded-full" />
+              <Link href="/cookie-policy" className="text-[10px] text-charcoal/40 font-brand font-bold uppercase tracking-widest hover:text-terracotta transition-colors">Cookie Policy</Link>
+              <div className="w-1 h-1 bg-charcoal/20 rounded-full" />
               <Link href="/admin/login" className="text-[10px] text-charcoal/40 font-brand font-bold uppercase tracking-widest hover:text-terracotta transition-colors">Admin Area</Link>
               <div className="w-1 h-1 bg-charcoal/20 rounded-full" />
               <Link href="/rider/login" className="text-[10px] text-charcoal/40 font-brand font-bold uppercase tracking-widest hover:text-terracotta transition-colors">Rider Access</Link>
@@ -496,20 +527,7 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* MOBILE STICKY CTA */}
-      <div
-        className={`md:hidden fixed bottom-8 inset-x-0 px-5 z-50 transition-all duration-400 ${showMobileCta && !footerVisible
-          ? "opacity-100 translate-y-0"
-          : "opacity-0 translate-y-10 pointer-events-none"
-          }`}
-      >
-        <Link
-          href="/menu"
-          className="flex items-center justify-center w-full py-4 rounded-[999px] text-2xl leading-none text-white font-display bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] shadow-[0_10px_25px_rgba(230,100,40,0.25)] active:scale-95 transition-all"
-        >
-          🍕 Ordina ORA la tua Teglia
-        </Link>
-      </div>
+      {/* MOBILE STICKY CTA — nascosto per ora */}
     </main>
   );
 }

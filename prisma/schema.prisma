@@ -23,6 +23,7 @@ model Product {
   name         String
   description  String?
   price        Decimal            @db.Decimal(8, 2)
+  imageUrl     String?
   categoryId   String
   category     Category           @relation(fields: [categoryId], references: [id])
   active       Boolean            @default(true)

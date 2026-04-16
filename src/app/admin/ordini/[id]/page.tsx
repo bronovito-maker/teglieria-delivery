@@ -157,6 +157,11 @@ export default function OrderDetailPage() {
                 <p className="font-medium">{order.address}</p>
                 {order.addressDetail && <p>{order.addressDetail}</p>}
                 {order.deliveryZone && <p className="text-gray-500">Zona: {order.deliveryZone}</p>}
+                {order.rider ? (
+                  <p className="mt-1 text-sm font-medium text-orange-600">🛵 {order.rider.name}</p>
+                ) : (
+                  <p className="mt-1 text-xs text-gray-400 italic">Nessun fattorino assegnato</p>
+                )}
               </div>
             )}
             <div className="mt-2 pt-2 border-t col-span-2 flex items-center gap-2">

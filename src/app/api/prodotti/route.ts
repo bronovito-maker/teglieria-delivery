@@ -21,6 +21,7 @@ export async function POST(request: Request) {
       name: body.name,
       description: body.description,
       price: body.price,
+      imageUrl: body.imageUrl ?? null,
       categoryId: body.categoryId,
       active: body.active ?? true,
       sortOrder: body.sortOrder ?? 0,

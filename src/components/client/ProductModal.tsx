@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
 import type { ProductWithRelations } from "@/types";
@@ -60,6 +61,28 @@ export default function ProductModal({ product, onClose }: Props) {
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center backdrop-blur-sm" onClick={onClose}>
       <div className="bg-warm-light w-full sm:max-w-md sm:rounded-[2.5rem] rounded-t-[2.5rem] max-h-[90vh] overflow-y-auto border border-charcoal/5 shadow-2xl transition-all duration-500 ease-out translate-y-0" onClick={(e) => e.stopPropagation()}>
+
+        {/* Immagine hero (se presente) */}
+        {(product as any).imageUrl && (
+          <div className="relative w-full h-52 rounded-t-[2.5rem] overflow-hidden">
+            <Image
+              src={(product as any).imageUrl}
+              alt={product.name}
+              fill
+              className="object-cover"
+              sizes="(max-width: 448px) 100vw, 448px"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-warm-light/60 to-transparent" />
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-sm text-charcoal/60 hover:text-terracotta transition-colors text-xl shadow-sm"
+            >
+              &times;
+            </button>
+          </div>
+        )}
+
         <div className="p-8">
           <div className="flex items-start justify-between mb-6">
             <div className="flex-1">
@@ -74,12 +97,14 @@ export default function ProductModal({ product, onClose }: Props) {
                 )}
               </div>
             </div>
-            <button 
-              onClick={onClose} 
-              className="ml-4 w-10 h-10 flex items-center justify-center rounded-full bg-charcoal/5 text-charcoal/40 hover:text-terracotta transition-colors text-2xl"
-            >
-              &times;
-            </button>
+            {!(product as any).imageUrl && (
+              <button
+                onClick={onClose}
+                className="ml-4 w-10 h-10 flex items-center justify-center rounded-full bg-charcoal/5 text-charcoal/40 hover:text-terracotta transition-colors text-2xl"
+              >
+                &times;
+              </button>
+            )}
           </div>
 
           <div className="space-y-8">

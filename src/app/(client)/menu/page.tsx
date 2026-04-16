@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
 import CartDrawer from "@/components/client/CartDrawer";
@@ -12,20 +13,16 @@ export default function MenuPage() {
   const [categories, setCategories] = useState<CategoryWithProducts[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<ProductWithRelations | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const navRef = useRef<HTMLDivElement>(null);
   const itemCount = useCartStore((s) => s.getItemCount());
 
   useEffect(() => {
-    // Handle order type from landing page
     const params = new URLSearchParams(window.location.search);
     const type = params.get("type");
     const openCartParam = params.get("openCart");
-    if (type === "DELIVERY" || type === "ASPORTO") {
-      setOrderType(type);
-    }
-    if (openCartParam === "1") {
-      setCartOpen(true);
-    }
-
+    if (type === "DELIVERY" || type === "ASPORTO") setOrderType(type);
+    if (openCartParam === "1") setCartOpen(true);
     fetch("/api/menu").then((r) => r.json()).then(setCategories);
   }, [setOrderType]);
 
@@ -34,17 +31,49 @@ export default function MenuPage() {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("active");
-          }
+          if (entry.isIntersecting) entry.target.classList.add("active");
         });
       },
       { threshold: 0.1 }
     );
-
     document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
     return () => observer.disconnect();
   }, [categories]);
+
+  // Active category tracking
+  useEffect(() => {
+    if (!categories.length) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveCategory(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: "-30% 0px -60% 0px", threshold: 0 }
+    );
+    categories.forEach((cat) => {
+      const el = document.getElementById(`cat-${cat.id}`);
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
+  }, [categories]);
+
+  // Scroll active pill into view in nav
+  useEffect(() => {
+    if (!activeCategory || !navRef.current) return;
+    const pill = navRef.current.querySelector(`[data-cat="${activeCategory}"]`) as HTMLElement;
+    if (pill) pill.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  }, [activeCategory]);
+
+  const scrollToCategory = (catId: string) => {
+    const el = document.getElementById(`cat-${catId}`);
+    if (!el) return;
+    const offset = 100;
+    const top = el.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top, behavior: "smooth" });
+  };
 
   return (
     <div className="max-w-3xl mx-auto pb-32 bg-warm-light min-h-screen">
@@ -64,10 +93,39 @@ export default function MenuPage() {
         </p>
       </div>
 
+      {/* CATEGORY NAV */}
+      {categories.length > 0 && (
+        <div className="sticky top-0 z-30 bg-warm-light/95 backdrop-blur-md border-b border-charcoal/5">
+          <div
+            ref={navRef}
+            className="flex gap-2 px-4 py-3 overflow-x-auto"
+            style={{ scrollbarWidth: "none" }}
+          >
+            {categories.map((cat) => {
+              const isActive = activeCategory === `cat-${cat.id}`;
+              return (
+                <button
+                  key={cat.id}
+                  data-cat={`cat-${cat.id}`}
+                  onClick={() => scrollToCategory(String(cat.id))}
+                  className={`shrink-0 px-4 py-2 rounded-full text-[10px] font-brand font-bold uppercase tracking-widest transition-all ${
+                    isActive
+                      ? "bg-terracotta text-white shadow-sm"
+                      : "bg-white/60 text-charcoal border border-charcoal/10 hover:bg-white"
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {categories.map((cat, idx) => (
-        <div key={cat.id} className="mb-16">
+        <div key={cat.id} id={`cat-${cat.id}`} className="mb-16">
           {/* CATEGORY HEADER - Sticky Glass */}
-          <div className="sticky top-0 z-20 px-6 py-5 mb-6 backdrop-blur-md bg-warm-light/90 border-b border-charcoal/5 flex items-center justify-between">
+          <div className="sticky top-[49px] z-20 px-6 py-5 mb-6 backdrop-blur-md bg-warm-light/90 border-b border-charcoal/5 flex items-center justify-between">
             <h2 className="text-sm font-brand font-bold uppercase tracking-[0.3em] text-charcoal">
               {cat.name}
             </h2>
@@ -103,15 +161,31 @@ export default function MenuPage() {
                       {product.description}
                     </p>
                   )}
-                </div>
-                
-                <div className="flex flex-col items-end gap-4 relative z-10 min-w-fit">
-                  <span className="font-brand font-bold text-lg text-charcoal">
+                  <span className="mt-3 inline-block font-brand font-bold text-lg text-charcoal">
                     {formatCurrency(Number(product.price))}
                   </span>
-                  <div className="w-10 h-10 rounded-full bg-charcoal/5 flex items-center justify-center text-charcoal/40 group-hover:bg-terracotta group-hover:text-white transition-all shadow-sm active:scale-90">
-                    <span className="text-xl font-light">+</span>
-                  </div>
+                </div>
+
+                {/* Immagine o pulsante + */}
+                <div className="relative z-10 flex-shrink-0 flex flex-col items-end justify-between h-full gap-3">
+                  {(product as any).imageUrl ? (
+                    <div className="relative w-24 h-24 rounded-2xl overflow-hidden border border-charcoal/5 shadow-sm">
+                      <Image
+                        src={(product as any).imageUrl}
+                        alt={product.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        sizes="96px"
+                      />
+                      <div className="absolute bottom-1.5 right-1.5 w-7 h-7 rounded-full bg-terracotta flex items-center justify-center text-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-base font-light leading-none">+</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-charcoal/5 flex items-center justify-center text-charcoal/40 group-hover:bg-terracotta group-hover:text-white transition-all shadow-sm active:scale-90 mt-auto">
+                      <span className="text-xl font-light">+</span>
+                    </div>
+                  )}
                 </div>
               </button>
             ))}
