@@ -8,9 +8,14 @@ import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 import { writeAuditLog } from "@/lib/audit";
 
-const ACTIVE_ORDER_STATUSES: OrderStatus[] = ["CONFIRMED", "PREPARING", "READY", "OUT"];
+const ACTIVE_ORDER_STATUSES: OrderStatus[] = ["CONFIRMED", "READY", "OUT"];
 
 export async function GET() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
+  if (isAdminRbacStrictEnabled() && !isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
+
   const riders = await prisma.rider.findMany({
     orderBy: { name: "asc" },
   });

@@ -1,7 +1,6 @@
 export const ORDER_STATUS_LABELS: Record<string, string> = {
   RECEIVED: "Ricevuto",
   CONFIRMED: "Confermato",
-  PREPARING: "In preparazione",
   READY: "Pronto",
   OUT: "In uscita",
   DELIVERED: "Completato",
@@ -10,8 +9,7 @@ export const ORDER_STATUS_LABELS: Record<string, string> = {
 
 export const ORDER_STATUS_COLORS: Record<string, string> = {
   RECEIVED: "bg-marigold/20 text-marigold border border-marigold/20",
-  CONFIRMED: "bg-marigold/10 text-marigold border border-marigold/10",
-  PREPARING: "bg-terracotta/20 text-terracotta border border-terracotta/20",
+  CONFIRMED: "bg-terracotta/20 text-terracotta border border-terracotta/20",
   READY: "bg-terracotta/10 text-terracotta border border-terracotta/10",
   OUT: "bg-charcoal/80 text-white shadow-sm",
   DELIVERED: "bg-charcoal/10 text-charcoal/60 border border-charcoal/10",
@@ -39,8 +37,7 @@ export const DELIVERY_STATUS_LABELS: Record<string, string> = {
 // Valid next states for each order status
 export const ORDER_STATUS_TRANSITIONS: Record<string, string[]> = {
   RECEIVED: ["CONFIRMED", "CANCELLED"],
-  CONFIRMED: ["PREPARING", "CANCELLED"],
-  PREPARING: ["READY", "CANCELLED"],
+  CONFIRMED: ["READY", "CANCELLED"],
   READY: ["OUT", "CANCELLED"],
   OUT: ["DELIVERED"],
   DELIVERED: [],

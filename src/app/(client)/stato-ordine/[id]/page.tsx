@@ -8,7 +8,7 @@ import { formatCurrency, formatTime, formatOrderCode } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { OrderWithItems } from "@/types";
 
-const STATUS_STEPS = ["RECEIVED", "CONFIRMED", "PREPARING", "READY", "OUT", "DELIVERED"];
+const STATUS_STEPS = ["RECEIVED", "CONFIRMED", "READY", "OUT", "DELIVERED"];
 
 export default function StatoOrdinePage() {
   const { id } = useParams();

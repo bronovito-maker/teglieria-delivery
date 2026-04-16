@@ -60,7 +60,7 @@ type CriticalRiderAlert = {
   createdAt: string;
 };
 
-const DELIVERY_ACTIVE_STATUSES = ["CONFIRMED", "PREPARING", "READY", "OUT"] as const;
+const DELIVERY_ACTIVE_STATUSES = ["CONFIRMED", "READY", "OUT"] as const;
 const SLA_WARNING_MINUTES = 30;
 const SLA_CRITICAL_MINUTES = 40;
 const SLA_URGENT_MINUTES = 50;
@@ -288,6 +288,7 @@ export default function LogisticaPage() {
         status: order.status,
         createdAt: order.createdAt ? new Date(order.createdAt).toISOString() : null,
         estimatedTime: order.estimatedTime ? new Date(order.estimatedTime).toISOString() : null,
+        riderName: order.rider?.name ?? null,
       })),
     [activeOrders]
   );
@@ -539,7 +540,7 @@ export default function LogisticaPage() {
       )}
 
       <div className="mb-4">
-        <LogisticsMap orders={mapOrders} />
+        <LogisticsMap orders={mapOrders} onStatusChange={fetchData} />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-12">
@@ -756,6 +757,19 @@ export default function LogisticaPage() {
               .filter((o) => String(o.paymentMethod) === "CARTA")
               .reduce((sum, o) => sum + Number(o.total), 0);
 
+            // Tempo medio calcolato sulle consegne di oggi (OUT → actualTime)
+            const todayDeliveryTimes = deliveredRiderOrders
+              .map((o) => {
+                const outLog = o.statusHistory.find((l) => l.status === "OUT");
+                if (!outLog || !o.actualTime) return null;
+                const ms = new Date(o.actualTime).getTime() - new Date(outLog.createdAt).getTime();
+                return ms > 0 ? Math.round(ms / 60000) : null;
+              })
+              .filter((v): v is number => v !== null);
+            const avgTodayMinutes = todayDeliveryTimes.length
+              ? Math.round(todayDeliveryTimes.reduce((s, v) => s + v, 0) / todayDeliveryTimes.length)
+              : null;
+
             return (
               <div key={rider.id} className="rounded-[2.5rem] border border-charcoal/5 bg-white p-8 transition-all hover:border-terracotta/10 hover:shadow-md">
 
@@ -763,7 +777,7 @@ export default function LogisticaPage() {
                 <div className="flex items-start justify-between gap-4 mb-6">
                   <div>
                     <p className="font-brand font-bold text-xl tracking-tight text-charcoal">{rider.name}</p>
-                    <p className="font-body italic text-xs text-charcoal/40 mt-0.5">{rider.phone || "—"} • {rider.email || "—"}</p>
+                    <p className="font-body italic text-xs text-charcoal/40 mt-0.5">{rider.phone || "—"}</p>
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       <span className="px-2.5 py-1 rounded-full bg-terracotta/10 text-terracotta text-[9px] font-brand font-bold uppercase tracking-widest border border-terracotta/20">
                         {VEHICLE_LABELS[rider.vehicle]}
@@ -771,11 +785,6 @@ export default function LogisticaPage() {
                       {rider.zone && (
                         <span className="px-2.5 py-1 rounded-full bg-charcoal/5 text-charcoal/60 text-[9px] font-brand font-bold uppercase tracking-widest">
                           {rider.zone}
-                        </span>
-                      )}
-                      {rider.metrics.avgDeliveryMinutes != null && (
-                        <span className="px-2.5 py-1 rounded-full bg-marigold/10 text-marigold text-[9px] font-brand font-bold uppercase tracking-widest border border-marigold/20">
-                          ⏱ {rider.metrics.avgDeliveryMinutes}′ media
                         </span>
                       )}
                     </div>
@@ -787,7 +796,7 @@ export default function LogisticaPage() {
                   </span>
                 </div>
 
-                {/* Oggi — primary stats */}
+                {/* Statistiche turno */}
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   <div className="bg-warm-light/40 rounded-2xl p-4 border border-charcoal/5 text-center">
                     <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 mb-1.5">Ordini oggi</p>
@@ -802,16 +811,15 @@ export default function LogisticaPage() {
                   <div className="bg-warm-light/40 rounded-2xl p-4 border border-charcoal/5 text-center">
                     <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 mb-1.5">Tempo medio</p>
                     <p className="text-2xl font-brand font-bold text-marigold">
-                      {rider.metrics.avgDeliveryMinutes != null ? `${rider.metrics.avgDeliveryMinutes}′` : "—"}
+                      {avgTodayMinutes != null ? `${avgTodayMinutes}′` : "—"}
                     </p>
-                    <p className="text-[8px] font-brand font-bold text-charcoal/25 mt-0.5">per consegna</p>
+                    <p className="text-[8px] font-brand font-bold text-charcoal/25 mt-0.5">oggi</p>
                   </div>
                 </div>
 
-                {/* Cassa */}
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  {/* Cash totale a fine turno — numero principale */}
-                  <div className="col-span-2 rounded-2xl p-5 border border-amber-200 bg-amber-50/70 flex items-center justify-between gap-4">
+                {/* Cassa — card unica con cash + POS integrato */}
+                <div className="rounded-2xl p-5 border border-amber-200 bg-amber-50/70 mb-6">
+                  <div className="flex items-start justify-between gap-4 mb-3">
                     <div>
                       <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-bold text-amber-600 mb-1">Cash da versare a fine turno</p>
                       <p className="text-2xl font-brand font-bold text-amber-800">{formatCurrency(cashCollected + cashToDo)}</p>
@@ -825,30 +833,12 @@ export default function LogisticaPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="rounded-2xl p-4 border border-blue-100 bg-blue-50/50 text-center">
-                    <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-bold text-blue-500 mb-1.5">POS riscosso</p>
-                    <p className="text-base font-brand font-bold text-blue-700">{formatCurrency(posCollected)}</p>
-                    <p className="text-[8px] font-brand text-blue-400 mt-0.5">già elettronico</p>
-                  </div>
-                  <div className="rounded-2xl p-4 border border-charcoal/5 bg-warm-light/40 text-center">
-                    <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 mb-1.5">Totale riscosso oggi</p>
-                    <p className="text-base font-brand font-bold text-charcoal">{formatCurrency(cashCollected + posCollected)}</p>
-                    <p className="text-[8px] font-brand text-charcoal/25 mt-0.5">cash + pos consegnati</p>
-                  </div>
-                </div>
-
-                {/* Compenso + netto */}
-                <div className="grid grid-cols-2 gap-3 mb-6">
-                  <div className="p-4 bg-terracotta/5 rounded-2xl border border-terracotta/10">
-                    <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-bold text-terracotta/60 mb-1">Compenso stimato</p>
-                    <p className="font-brand font-bold text-terracotta text-lg">{formatCurrency(rider.metrics.estimatedCompensation)}</p>
-                    <p className="text-[8px] font-brand text-charcoal/25 mt-0.5">{rider.metrics.deliveredCount} consegne totali</p>
-                  </div>
-                  <div className="p-4 bg-charcoal text-white rounded-2xl">
-                    <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-bold text-white/40 mb-1">Netto Store</p>
-                    <p className="font-brand font-bold text-white text-lg">{formatCurrency(rider.metrics.netAfterRiderCompensation)}</p>
-                    <p className="text-[8px] font-brand text-white/25 mt-0.5">fatturato − compenso</p>
-                  </div>
+                  {posCollected > 0 && (
+                    <div className="pt-3 border-t border-amber-200/60 flex items-center justify-between">
+                      <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-bold text-blue-500">POS già elettronico</p>
+                      <p className="text-sm font-brand font-bold text-blue-700">{formatCurrency(posCollected)}</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Actions */}

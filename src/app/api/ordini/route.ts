@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendOrderConfirmationEmail } from "@/lib/email";
+import { createClient } from "@/lib/supabase/server";
+import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -21,11 +23,17 @@ export async function GET(request: Request) {
     where.createdAt = { gte: start, lt: end };
   }
 
-  // Lightweight count-only query (used for repeat customer check)
+  // Lightweight count-only query (used for repeat customer check) — public
   if (countOnly) {
     const count = await prisma.order.count({ where });
     return NextResponse.json({ count });
   }
+
+  // Full order list requires admin auth
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
+  if (isAdminRbacStrictEnabled() && !isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
 
   const orders = await prisma.order.findMany({
     where,

@@ -14,7 +14,6 @@ export default function RiderDashboard() {
   const supabase = useMemo(() => createClient(), []);
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [authUserId, setAuthUserId] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
 
   useEffect(() => {
@@ -25,9 +24,8 @@ export default function RiderDashboard() {
       if (!user) {
         router.push("/rider/login");
       } else {
-        setAuthUserId(user.id);
-        await fetchRiderOrders(user.id);
-        interval = setInterval(() => fetchRiderOrders(user.id), 10000);
+        await fetchRiderOrders();
+        interval = setInterval(fetchRiderOrders, 10000);
       }
     }
 
@@ -38,8 +36,8 @@ export default function RiderDashboard() {
     };
   }, [router, supabase]);
 
-  async function fetchRiderOrders(authUserId: string) {
-    const res = await fetch(`/api/rider/ordini?authUserId=${authUserId}`);
+  async function fetchRiderOrders() {
+    const res = await fetch("/api/rider/ordini");
     if (res.ok) {
       const data = await res.json();
       setOrders(data);
@@ -129,12 +127,10 @@ export default function RiderDashboard() {
             Quando uno scontrino viene stampato, scansiona il QR code per assegnarti la consegna. 
             L&apos;ordine apparirà qui automaticamente e potrai aggiornarne lo stato in tempo reale.
           </p>
-          {authUserId && (
-            <div className="flex items-center gap-2 mt-8 py-2 px-4 bg-white/5 w-fit rounded-full">
-               <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-               <p className="text-[9px] font-brand font-bold uppercase tracking-widest text-white/40">In ascolto per nuovi ordini...</p>
-            </div>
-          )}
+          <div className="flex items-center gap-2 mt-8 py-2 px-4 bg-white/5 w-fit rounded-full">
+             <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+             <p className="text-[9px] font-brand font-bold uppercase tracking-widest text-white/40">In ascolto per nuovi ordini...</p>
+          </div>
         </div>
         
         {/* Decorative mask */}

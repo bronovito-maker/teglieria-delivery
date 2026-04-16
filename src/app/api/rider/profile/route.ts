@@ -1,16 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { createClient } from "@/lib/supabase/server";
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const authUserId = searchParams.get("authUserId");
+export async function GET() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!authUserId) {
-    return NextResponse.json({ error: "Missing authUserId" }, { status: 400 });
+  if (!user) {
+    return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
   }
 
   const rider = await prisma.rider.findUnique({
-    where: { authUserId },
+    where: { authUserId: user.id },
   });
 
   if (!rider) {

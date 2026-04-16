@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 import { writeAuditLog } from "@/lib/audit";
 
-const ACTIVE_ORDER_STATUSES: OrderStatus[] = ["CONFIRMED", "PREPARING", "READY", "OUT"];
+const ACTIVE_ORDER_STATUSES: OrderStatus[] = ["CONFIRMED", "READY", "OUT"];
 
 export async function PATCH(
   request: Request,

@@ -46,7 +46,7 @@ export default function RiderOrderPage() {
       } else {
         setUser(user);
         try {
-          const profileRes = await fetch(`/api/rider/profile?authUserId=${user.id}`);
+          const profileRes = await fetch("/api/rider/profile");
           if (profileRes.ok) {
             const profile = await profileRes.json();
             if (profile?.vehicle) setRiderVehicle(profile.vehicle);
@@ -67,8 +67,7 @@ export default function RiderOrderPage() {
     if (!user) return;
     setAssigning(true);
     
-    // First, find the Rider ID from the authUserId
-    const riderRes = await fetch(`/api/rider/profile?authUserId=${user.id}`);
+    const riderRes = await fetch("/api/rider/profile");
     if (!riderRes.ok) {
       alert("Profilo rider non trovato.");
       setAssigning(false);

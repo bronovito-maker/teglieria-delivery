@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_TRANSITIONS } from "@/lib/constants";
 import { cn, formatCurrency, formatTime, formatOrderCode } from "@/lib/utils";
 import type { OrderWithItems } from "@/types";
 
-const KANBAN_COLUMNS = ["RECEIVED", "CONFIRMED", "PREPARING", "READY", "OUT", "DELIVERED"];
+const KANBAN_COLUMNS = ["RECEIVED", "CONFIRMED", "READY", "OUT", "DELIVERED"];
 
 const STATUS_BADGE_STYLES: Record<string, string> = {
   RECEIVED: "bg-marigold/10 text-marigold border-marigold/20",
-  CONFIRMED: "bg-marigold/5 text-marigold border-marigold/10",
-  PREPARING: "bg-terracotta/10 text-terracotta border-terracotta/20",
+  CONFIRMED: "bg-terracotta/10 text-terracotta border-terracotta/20",
   READY: "bg-terracotta/5 text-terracotta border-terracotta/10",
   OUT: "bg-charcoal text-white border-charcoal",
   DELIVERED: "bg-charcoal/10 text-charcoal/40 border-charcoal/10",
@@ -22,6 +22,7 @@ function getStatusBadgeClass(status: string) {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [orders, setOrders] = useState<OrderWithItems[]>([]);
   const [confirmingOrder, setConfirmingOrder] = useState<OrderWithItems | null>(null);
   const [etaMinutes, setEtaMinutes] = useState(30);
@@ -228,7 +229,7 @@ export default function DashboardPage() {
   }
 
   const activeOrders = orders.filter((o) => o.status !== "DELIVERED" && o.status !== "CANCELLED").length;
-  const preparingOrders = orders.filter((o) => o.status === "PREPARING" || o.status === "READY").length;
+  const preparingOrders = orders.filter((o) => o.status === "CONFIRMED" || o.status === "READY").length;
   const totalRevenue = orders
     .filter((o) => o.status !== "CANCELLED")
     .reduce((sum, order) => sum + Number(order.total), 0);
@@ -320,7 +321,8 @@ export default function DashboardPage() {
                   {columnOrders.map((order) => (
                     <div
                       key={order.id}
-                      className="flex-shrink-0 w-52 bg-white rounded-[1.5rem] shadow-sm border border-charcoal/5 p-5 hover:shadow-lg hover:scale-[1.02] transition-all group"
+                      onClick={() => router.push(`/admin/ordini/${order.id}`)}
+                      className="flex-shrink-0 w-52 bg-white rounded-[1.5rem] shadow-sm border border-charcoal/5 p-5 hover:shadow-lg hover:scale-[1.02] transition-all group cursor-pointer"
                     >
                       {/* Card header */}
                       <div className="flex items-baseline justify-between mb-3">
@@ -352,34 +354,23 @@ export default function DashboardPage() {
                       {/* Footer */}
                       <div className="flex items-center justify-between pt-3 border-t border-charcoal/5">
                         <span className="font-brand font-bold text-charcoal text-sm">{formatCurrency(Number(order.total))}</span>
-                        <div className="flex gap-1.5">
+                        <div className="flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
                           {status === "RECEIVED" ? (
                             <button
-                              onClick={() => openConfirmModal(order)}
-                              className="h-8 w-8 flex items-center justify-center rounded-xl bg-charcoal text-white hover:bg-terracotta transition-colors text-xs"
+                              onClick={(e) => { e.stopPropagation(); openConfirmModal(order); }}
+                              className="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-xl bg-charcoal text-white hover:bg-terracotta transition-colors text-xs"
                               title="Conferma"
                             >
                               ✓
                             </button>
                           ) : (
-                            ORDER_STATUS_TRANSITIONS[status]?.map((nextStatus) => (
+                            ORDER_STATUS_TRANSITIONS[status]
+                              ?.filter((nextStatus) => nextStatus !== "CANCELLED")
+                              .map((nextStatus) => (
                               <button
                                 key={nextStatus}
-                                onClick={() => {
-                                  if (nextStatus === "CANCELLED") {
-                                    setCancelTarget(order);
-                                    setCancelPassword("");
-                                    setCancelError(null);
-                                  } else {
-                                    updateStatus(order.id, nextStatus);
-                                  }
-                                }}
-                                className={cn(
-                                  "h-8 px-2.5 rounded-xl font-brand font-bold text-[8px] uppercase tracking-widest transition-all",
-                                  nextStatus === "CANCELLED"
-                                    ? "bg-red-50 text-red-400 hover:bg-red-500 hover:text-white"
-                                    : "bg-charcoal/5 text-charcoal hover:bg-charcoal hover:text-white"
-                                )}
+                                onClick={(e) => { e.stopPropagation(); updateStatus(order.id, nextStatus); }}
+                                className="flex-shrink-0 h-8 px-2.5 rounded-xl font-brand font-bold text-[8px] uppercase tracking-widest whitespace-nowrap transition-all bg-charcoal/5 text-charcoal hover:bg-charcoal hover:text-white"
                               >
                                 {ORDER_STATUS_LABELS[nextStatus]}
                               </button>
