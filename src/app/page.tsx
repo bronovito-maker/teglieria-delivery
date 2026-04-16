@@ -124,7 +124,7 @@ export default function LandingPage() {
       <section
         id="ordina"
         ref={heroRef}
-        className="scroll-mt-24 relative flex flex-col items-center h-[calc(100dvh-6rem)] md:h-[calc(100dvh-4rem)] overflow-hidden px-6"
+        className="scroll-mt-24 relative flex flex-col items-center h-[calc(100dvh-6rem)] md:h-[calc(100dvh-4rem)] overflow-hidden px-6 md:px-12 lg:px-20"
         style={{
           backgroundImage: "radial-gradient(rgba(0,0,0,0.018) 1px, transparent 1px)",
           backgroundSize: "20px 20px",
@@ -138,69 +138,97 @@ export default function LandingPage() {
           <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-marigold/20 rounded-full blur-[120px] opacity-20 animate-pulse" />
         </div>
 
-        <div className="max-w-lg md:max-w-4xl w-full flex-1 flex flex-col items-center justify-between md:justify-center animate-fade-in relative z-10 md:gap-12 text-center pt-6 pb-7 md:pt-0 md:pb-0">
+        {/* ── MOBILE layout ── */}
+        <div className="md:hidden w-full flex-1 flex flex-col justify-between animate-fade-in relative z-10 text-center pt-4 pb-6">
 
-          {/* Top group: label + headline + image + subheadline */}
+          {/* Top: label + titolo + immagine */}
           <div className="flex flex-col items-center gap-3 w-full">
-            {/* Label */}
-            <span className="text-[0.8rem] font-brand font-bold uppercase tracking-[0.25em] text-terracotta/70 px-4 py-1.5 border border-terracotta/20 rounded-full bg-warm-light/90 shadow-sm backdrop-blur-sm">
-              Livorno • Dal 2026
+            <span className="text-[0.75rem] font-brand font-bold uppercase tracking-[0.25em] text-terracotta/70 px-4 py-1.5 border border-terracotta/20 rounded-full bg-warm-light/90 shadow-sm backdrop-blur-sm">
+              Livorno • Scopaia
             </span>
-
-            {/* H1 */}
-            <h1 className="text-[2.4rem] leading-none sm:text-6xl md:text-8xl font-display text-charcoal">
-              Pizza in teglia romana.{" "}
-              <span className="text-terracotta text-[2rem] sm:text-5xl md:text-7xl">Croccante fuori, leggera dentro.</span>
+            <h1 className="text-[3rem] leading-none font-display text-charcoal px-2">
+              La tua pizzeria<br />
+              <span className="text-terracotta">di quartiere.</span>
             </h1>
-
-            {/* Pizza image — mobile only */}
-            <div className="md:hidden relative w-full h-[300px] rounded-[1.5rem] overflow-hidden shadow-xl border border-charcoal/5 mt-1">
-              <Image
-                src="/images/pizza-teglia-hero.png"
-                alt="Pizza in teglia La Teglieria"
-                fill
-                className="object-cover object-center scale-105"
-                priority
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-charcoal/25 via-transparent to-transparent" />
+            <div className="relative w-full h-[62vw] min-h-[300px] max-h-[480px] rounded-[1.5rem] overflow-hidden shadow-xl border border-charcoal/5">
+              <Image src="/images/pizza-teglia-hero.png" alt="Pizza in teglia La Teglieria" fill className="object-cover object-center" priority />
+              <div className="absolute inset-0 bg-gradient-to-t from-charcoal/40 via-transparent to-transparent" />
+              <span className="absolute bottom-4 left-4 px-4 py-2 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-brand font-bold uppercase tracking-widest text-charcoal shadow-sm">🔥 Tempo medio consegna 34 min</span>
             </div>
-
-            {/* Subheadline — una riga */}
-            <p className="text-[1.15rem] sm:text-lg md:text-2xl text-charcoal/50 font-subtitle font-medium italic leading-relaxed md:max-w-2xl">
-              La tua pizzeria di quartiere.
-            </p>
+            <div className="flex items-center justify-center gap-3 w-full py-1">
+              <div className="w-6 h-px bg-terracotta/25 shrink-0" />
+              <span className="text-[11px] font-brand font-bold uppercase tracking-[0.1em] text-terracotta/55 whitespace-nowrap">&ldquo;Croccante fuori, leggera dentro&rdquo;</span>
+              <div className="w-6 h-px bg-terracotta/25 shrink-0" />
+            </div>
           </div>
 
-          {/* Bottom group: badge + CTAs + trust */}
-          <div className="flex flex-col items-center gap-2.5 w-full">
-            {/* Delivery badge — above CTA */}
-            <span className="md:hidden text-[0.78rem] font-brand font-bold uppercase tracking-[0.15em] text-terracotta/80 px-4 py-1.5 rounded-full border border-terracotta/20 bg-terracotta/5">
-              🔥 Consegna in 20–30 min
+          {/* Bottom: CTAs — z-20 per stare sopra ingredienti */}
+          <div className="relative z-20 flex flex-col items-center gap-2.5 w-full pt-2">
+            <div className="relative w-full">
+              <div className="absolute inset-0 rounded-[999px] bg-terracotta/30 blur-lg animate-pulse" />
+              <Link href="/menu?type=DELIVERY" className="relative flex items-center justify-center w-full py-5 rounded-[999px] text-[2.2rem] leading-none font-display text-white bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] shadow-[0_12px_30px_rgba(230,100,40,0.35)] active:scale-95 transition-all">
+                Ordina ora
+              </Link>
+            </div>
+            <Link href="/menu?type=ASPORTO" className="flex items-center justify-center w-full py-3.5 bg-white/60 backdrop-blur-md text-charcoal border border-charcoal/20 rounded-[999px] text-[1.6rem] leading-none font-display active:scale-95 transition-all hover:bg-white/75">
+              Ritira in sede
+            </Link>
+            <span className="text-xs text-charcoal/40 font-body tracking-wide">⭐ 4.8 su 500+ recensioni</span>
+          </div>
+        </div>
+
+        {/* ── DESKTOP layout: 2 colonne ── */}
+        <div className="hidden md:grid md:grid-cols-2 md:gap-12 lg:gap-20 w-full max-w-7xl flex-1 items-center animate-fade-in relative z-10">
+
+          {/* Colonna sinistra — testo */}
+          <div className="flex flex-col justify-center gap-8">
+            <span className="text-[0.8rem] font-brand font-bold uppercase tracking-[0.25em] text-terracotta/70 px-4 py-1.5 border border-terracotta/20 rounded-full bg-warm-light/90 shadow-sm backdrop-blur-sm w-fit">
+              Livorno • Scopaia
             </span>
 
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:max-w-none md:gap-4 md:justify-center">
-              {/* CTA primaria con glow pulse */}
-              <div className="relative w-full sm:w-auto">
-                <div className="absolute inset-0 rounded-[999px] bg-terracotta/25 blur-md animate-pulse" />
-                <Link
-                  href="/menu?type=DELIVERY"
-                  className="relative flex items-center justify-center w-full sm:w-auto px-7 py-[0.95rem] md:px-14 md:py-6 rounded-[999px] text-[1.65rem] leading-none md:text-3xl font-display text-white bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] shadow-[0_10px_25px_rgba(230,100,40,0.25)] hover:scale-[1.02] active:scale-95 transition-all"
-                >
+            <h1 className="text-[5.5rem] lg:text-[7rem] xl:text-[8.5rem] leading-none font-display text-charcoal">
+              La tua<br />
+              pizzeria<br />
+              <span className="text-terracotta">di quartiere.</span>
+            </h1>
+
+            <p className="text-xl lg:text-2xl text-charcoal/50 font-subtitle font-medium italic leading-relaxed max-w-md">
+              Croccante fuori, leggera dentro.
+            </p>
+
+            <div className="flex gap-3 items-center flex-wrap">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-[999px] bg-terracotta/30 blur-lg animate-pulse" />
+                <Link href="/menu?type=DELIVERY" className="relative flex items-center justify-center px-12 py-5 rounded-[999px] text-3xl leading-none font-display text-white bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] shadow-[0_12px_30px_rgba(230,100,40,0.35)] hover:scale-[1.02] active:scale-95 transition-all">
                   Ordina ora
                 </Link>
               </div>
-              <Link
-                href="/menu?type=ASPORTO"
-                className="flex items-center justify-center w-full sm:w-auto px-7 py-[0.95rem] md:px-14 md:py-6 bg-white/50 text-charcoal border-2 border-charcoal/50 rounded-[999px] text-[1.65rem] leading-none md:text-3xl font-display hover:bg-white/80 hover:border-charcoal/60 transition-all"
-              >
+              <Link href="/menu?type=ASPORTO" className="flex items-center justify-center px-9 py-4 bg-white/60 backdrop-blur-md text-charcoal border border-charcoal/20 rounded-[999px] text-2xl leading-none font-display hover:bg-white/75 active:scale-95 transition-all">
                 Ritira in sede
               </Link>
             </div>
 
-            {/* Trust badge */}
-            <span className="text-sm text-charcoal/55 font-body tracking-wide">
-              ⭐ 4.8 su 500+ recensioni
-            </span>
+            <span className="text-sm text-charcoal/40 font-body tracking-wide">⭐ 4.8 su 500+ recensioni</span>
+          </div>
+
+          {/* Colonna destra — immagine pizza */}
+          <div className="relative h-[70vh] max-h-[640px] rounded-[2.5rem] overflow-hidden shadow-2xl border border-charcoal/5">
+            <Image
+              src="/images/pizza-teglia-hero.png"
+              alt="Pizza in teglia La Teglieria"
+              fill
+              className="object-cover object-center hover:scale-105 transition-transform duration-[3s]"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-charcoal/30 via-transparent to-transparent" />
+            <div className="absolute bottom-6 left-6 flex gap-2">
+              <span className="px-4 py-2 bg-white/90 backdrop-blur-md rounded-full text-xs font-brand font-bold uppercase tracking-widest text-charcoal shadow-sm">
+                🔥 Tempo medio consegna 34 min
+              </span>
+              <span className="px-4 py-2 bg-marigold text-charcoal rounded-full text-xs font-brand font-bold uppercase tracking-widest shadow-sm">
+                High Hydration
+              </span>
+            </div>
           </div>
         </div>
 
@@ -479,7 +507,7 @@ export default function LandingPage() {
           href="/menu"
           className="flex items-center justify-center w-full py-4 rounded-[999px] text-2xl leading-none text-white font-display bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] shadow-[0_10px_25px_rgba(230,100,40,0.25)] active:scale-95 transition-all"
         >
-          🍕 Ordina la tua Teglia
+          🍕 Ordina ORA la tua Teglia
         </Link>
       </div>
     </main>
