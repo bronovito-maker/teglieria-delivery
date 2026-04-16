@@ -72,7 +72,7 @@ function RegisterForm() {
       <div className="min-h-[60vh] flex items-center justify-center px-4">
         <div className="w-full max-w-sm text-center space-y-6">
           <div className="text-5xl">📬</div>
-          <h1 className="text-3xl font-brand font-medium uppercase tracking-tight text-charcoal">
+          <h1 className="text-3xl font-display tracking-tight text-charcoal">
             Controlla la <span className="text-terracotta">Email!</span>
           </h1>
           <p className="font-body italic text-charcoal/50 leading-relaxed">
@@ -97,7 +97,7 @@ function RegisterForm() {
           <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-3 block">
             Nuovo Account
           </span>
-          <h1 className="text-4xl font-brand font-medium uppercase tracking-tight text-charcoal">
+          <h1 className="text-4xl font-display tracking-tight text-charcoal">
             Registrati<span className="text-terracotta">.</span>
           </h1>
           <p className="font-body italic text-charcoal/40 mt-2 text-sm">

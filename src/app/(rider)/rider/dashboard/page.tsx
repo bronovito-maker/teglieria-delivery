@@ -61,7 +61,7 @@ export default function RiderDashboard() {
       <header className="flex justify-between items-center mb-10 reveal active">
         <div>
           <span className="text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-terracotta/60 mb-1 block">Console</span>
-          <h1 className="text-3xl font-brand font-medium uppercase tracking-tight text-charcoal">Le mie <span className="text-terracotta">Consegne.</span></h1>
+          <h1 className="text-3xl font-display tracking-tight text-charcoal">Le mie <span className="text-terracotta">Consegne.</span></h1>
           <p className="font-body italic text-charcoal/40 text-[10px] mt-1 uppercase tracking-widest">Pronto per il prossimo turno</p>
         </div>
         <button
@@ -124,7 +124,7 @@ export default function RiderDashboard() {
       <div className="mt-12 reveal active p-10 bg-charcoal rounded-[3rem] text-white overflow-hidden relative shadow-2xl shadow-charcoal/40">
         <div className="relative z-10">
           <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-marigold mb-4 block">Guida Operativa</span>
-          <h3 className="text-2xl font-brand font-medium uppercase tracking-tight mb-4">Flusso di <span className="text-terracotta">Lavoro.</span></h3>
+          <h3 className="text-2xl font-display tracking-tight mb-4">Flusso di <span className="text-terracotta">Lavoro.</span></h3>
           <p className="font-body italic text-white/60 text-sm leading-relaxed max-w-md">
             Quando uno scontrino viene stampato, scansiona il QR code per assegnarti la consegna. 
             L&apos;ordine apparirà qui automaticamente e potrai aggiornarne lo stato in tempo reale.

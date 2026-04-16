@@ -1,39 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
-import { DM_Sans } from "next/font/google";
+import { DM_Sans, Bebas_Neue } from "next/font/google";
 import "./globals.css";
+import PwaRegister from "@/components/PwaRegister";
 
 const inter = DM_Sans({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
 });
-import PwaRegister from "@/components/PwaRegister";
 
-const narkiss = localFont({
-  src: [
-    {
-      path: "../../public/fonts/fonnts.com-Narkiss_Tam_Condensed_Regular.otf",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/fonnts.com-Narkiss_Tam_Condensed_Medium.otf",
-      weight: "500",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/fonnts.com-Narkiss_Tam_Condensed_Bold.otf",
-      weight: "700",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/fonnts.com-Narkiss_Tam_Condensed_Black.otf",
-      weight: "900",
-      style: "normal",
-    },
-  ],
-  variable: "--font-narkiss",
+const bebas = Bebas_Neue({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-bebas",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -68,7 +48,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="it">
-      <body className={`${inter.className} ${inter.variable} ${narkiss.variable} antialiased`} data-gramm="false" data-gramm_editor="false">
+      <body className={`${inter.className} ${inter.variable} ${bebas.variable} antialiased`} data-gramm="false" data-gramm_editor="false">
         <PwaRegister />
         {children}
       </body>

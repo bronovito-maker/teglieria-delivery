@@ -43,7 +43,7 @@ export default function AdminConfigPage() {
     <div className="max-w-4xl animate-in fade-in duration-700">
       <div className="reveal active mb-12">
         <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-2 block">Parametri Sistema</span>
-        <h1 className="text-4xl md:text-5xl font-brand font-medium uppercase tracking-tight text-charcoal">
+        <h1 className="text-5xl md:text-6xl font-display tracking-tight text-charcoal">
           Configurazione <span className="text-terracotta">Locale.</span>
         </h1>
         <p className="font-body italic text-charcoal/40 mt-2 tracking-widest uppercase text-[10px]">Ottimizzazione flussi e capacità</p>

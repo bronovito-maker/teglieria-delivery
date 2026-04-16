@@ -138,8 +138,8 @@ export default function NuovoOrdinePage() {
         <p className="text-[11px] md:text-xs font-bold uppercase tracking-[0.22em] text-[#cf2a1d]/80 mb-2">
           Ordini
         </p>
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-[#1d1d1f]">
-          Nuovo ordine manuale
+        <h1 className="text-5xl md:text-6xl font-display tracking-tight text-[#1d1d1f]">
+          <span className="text-terracotta">Nuovo</span> ordine manuale
         </h1>
       </div>
 

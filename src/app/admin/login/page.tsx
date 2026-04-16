@@ -56,7 +56,7 @@ export default function AdminLogin() {
           <div className="bg-charcoal flex flex-col items-center justify-center p-10 md:p-12 md:w-2/5 gap-6 py-12 md:py-0">
             <span className="text-5xl md:text-6xl">🍕</span>
             <div className="text-center">
-              <h2 className="text-2xl md:text-3xl font-logo font-medium uppercase tracking-wider text-white leading-tight">
+              <h2 className="text-2xl md:text-3xl font-display tracking-wider text-white leading-tight">
                 La Teglieria
               </h2>
               <p className="text-[10px] font-brand font-bold text-terracotta mt-2 uppercase tracking-[0.3em]">
@@ -75,7 +75,7 @@ export default function AdminLogin() {
               <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-4 block">
                 Area Riservata
               </span>
-              <h1 className="text-3xl md:text-4xl font-brand font-medium uppercase tracking-tight text-charcoal">
+              <h1 className="text-3xl md:text-4xl font-display tracking-tight text-charcoal">
                 Admin <span className="text-terracotta">Login.</span>
               </h1>
               <p className="font-brand text-charcoal/30 mt-2 uppercase tracking-widest text-[10px]">

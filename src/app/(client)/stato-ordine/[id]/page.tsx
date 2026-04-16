@@ -68,7 +68,7 @@ export default function StatoOrdinePage() {
         <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-4 px-4 py-1.5 border border-terracotta/20 rounded-full bg-white/50">
           Tracking Online
         </span>
-        <h1 className="text-4xl md:text-5xl font-brand font-medium uppercase tracking-tight text-charcoal">
+        <h1 className="text-4xl md:text-5xl font-display tracking-tight text-charcoal">
           Stato <span className="text-terracotta">Ordine.</span>
         </h1>
         <p className="text-sm font-body italic text-charcoal/40 mt-4 tracking-widest uppercase">Ordine #{formatOrderCode(order)}</p>
@@ -77,7 +77,7 @@ export default function StatoOrdinePage() {
       {order.status === "CANCELLED" ? (
         <div className="bg-charcoal border border-charcoal rounded-[2.5rem] p-10 text-center mb-10 shadow-2xl">
           <div className="text-4xl mb-6">✕</div>
-          <p className="text-white font-brand font-medium uppercase tracking-widest text-xl mb-2">Ordine annullato</p>
+          <p className="text-white font-display tracking-widest text-xl mb-2">Ordine annullato</p>
           <p className="text-sm text-white/50 font-body italic">Contatta il locale per maggiori informazioni.</p>
         </div>
       ) : (
@@ -181,7 +181,7 @@ export default function StatoOrdinePage() {
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
               <p className="text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-terracotta mb-1">Ordina più velocemente</p>
-              <h3 className="text-lg font-brand font-medium uppercase tracking-tight text-charcoal leading-tight">
+              <h3 className="text-lg font-display tracking-tight text-charcoal leading-tight">
                 Salva i tuoi dati<span className="text-terracotta">.</span>
               </h3>
             </div>

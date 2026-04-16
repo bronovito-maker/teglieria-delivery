@@ -40,7 +40,7 @@ export default function ReportPage() {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between mb-12">
         <div className="reveal active">
           <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-2 block">Performance Store</span>
-          <h1 className="text-4xl md:text-5xl font-brand font-medium uppercase tracking-tight text-charcoal">
+          <h1 className="text-5xl md:text-6xl font-display tracking-tight text-charcoal">
             Analitica <span className="text-terracotta">Report.</span>
           </h1>
           <p className="font-body italic text-charcoal/40 mt-2 tracking-widest uppercase text-[10px]">Bilancio giornaliero e flussi</p>

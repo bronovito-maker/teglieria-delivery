@@ -166,7 +166,7 @@ export default function RiderOrderPage() {
           <div className="flex items-center justify-between">
             <div>
               <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-2 block">Ordine in Carico</span>
-              <h1 className="text-4xl font-brand font-medium uppercase tracking-tight text-charcoal">
+              <h1 className="text-4xl font-display tracking-tight text-charcoal">
                 #{formatOrderCode(order)} <span className="text-terracotta">Status.</span>
               </h1>
             </div>
@@ -192,7 +192,7 @@ export default function RiderOrderPage() {
           <div className="p-10 space-y-10">
             <section className="relative">
               <span className="text-[9px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/30 mb-3 block">Destinatario</span>
-              <p className="text-2xl font-brand font-bold text-charcoal">{order.customerName}</p>
+              <p className="text-3xl font-display text-charcoal">{order.customerName}</p>
               <a href={`tel:${order.customerPhone}`} className="inline-flex items-center gap-2 mt-3 px-6 py-3 bg-warm-light rounded-full text-[11px] font-brand font-bold uppercase tracking-widest text-charcoal hover:bg-charcoal hover:text-white transition-all">
                 <span>📞</span> Chiama Cliente
               </a>
@@ -203,7 +203,7 @@ export default function RiderOrderPage() {
               <div className="flex items-start gap-4">
                 <div className="w-2 h-2 rounded-full bg-terracotta mt-2 flex-shrink-0" />
                 <div>
-                  <p className="text-xl font-brand font-bold text-charcoal leading-tight">{order.address}</p>
+                  <p className="text-2xl font-display text-charcoal leading-tight">{order.address}</p>
                   {order.addressDetail && <p className="font-body italic text-sm text-charcoal/50 mt-2">&quot;{order.addressDetail}&quot;</p>}
                   {order.deliveryZone && (
                     <div className="mt-4 inline-block px-4 py-1.5 bg-charcoal rounded-full text-[8px] font-brand font-bold uppercase tracking-widest text-white/60">

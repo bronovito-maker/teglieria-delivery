@@ -130,8 +130,7 @@ export default function LandingPage() {
           backgroundSize: "20px 20px",
         }}
       >
-        {/* Floating ingredients — desktop only */}
-        <div className="hidden md:block"><FloatingIngredients /></div>
+        <FloatingIngredients />
 
         {/* Ambient gradients */}
         <div className="absolute inset-0 -z-10">
@@ -149,9 +148,9 @@ export default function LandingPage() {
             </span>
 
             {/* H1 */}
-            <h1 className="text-[1.9rem] leading-[1.1] sm:text-5xl md:text-7xl md:leading-tight font-brand font-semibold text-charcoal">
+            <h1 className="text-[2.4rem] leading-none sm:text-6xl md:text-8xl font-display text-charcoal">
               Pizza in teglia romana.{" "}
-              <span className="text-terracotta text-[1.6rem] sm:text-4xl md:text-6xl">Croccante fuori, leggera dentro.</span>
+              <span className="text-terracotta text-[2rem] sm:text-5xl md:text-7xl">Croccante fuori, leggera dentro.</span>
             </h1>
 
             {/* Pizza image — mobile only */}
@@ -185,14 +184,14 @@ export default function LandingPage() {
                 <div className="absolute inset-0 rounded-[999px] bg-terracotta/25 blur-md animate-pulse" />
                 <Link
                   href="/menu?type=DELIVERY"
-                  className="relative flex items-center justify-center w-full sm:w-auto px-7 py-[0.95rem] md:px-14 md:py-6 rounded-[999px] text-[1.05rem] leading-none md:text-xl font-brand font-semibold uppercase tracking-wide text-white bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] shadow-[0_10px_25px_rgba(230,100,40,0.25)] hover:scale-[1.02] active:scale-95 transition-all"
+                  className="relative flex items-center justify-center w-full sm:w-auto px-7 py-[0.95rem] md:px-14 md:py-6 rounded-[999px] text-[1.65rem] leading-none md:text-3xl font-display text-white bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] shadow-[0_10px_25px_rgba(230,100,40,0.25)] hover:scale-[1.02] active:scale-95 transition-all"
                 >
                   Ordina ora
                 </Link>
               </div>
               <Link
                 href="/menu?type=ASPORTO"
-                className="flex items-center justify-center w-full sm:w-auto px-7 py-[0.95rem] md:px-14 md:py-6 bg-white/50 text-charcoal border-2 border-charcoal/50 rounded-[999px] text-[1.05rem] leading-none md:text-xl font-brand font-semibold uppercase tracking-wide hover:bg-white/80 hover:border-charcoal/60 transition-all"
+                className="flex items-center justify-center w-full sm:w-auto px-7 py-[0.95rem] md:px-14 md:py-6 bg-white/50 text-charcoal border-2 border-charcoal/50 rounded-[999px] text-[1.65rem] leading-none md:text-3xl font-display hover:bg-white/80 hover:border-charcoal/60 transition-all"
               >
                 Ritira in sede
               </Link>
@@ -217,7 +216,7 @@ export default function LandingPage() {
           <p className="text-sm font-brand font-bold uppercase tracking-[0.3em] leading-none text-terracotta mb-4">
             Il Nostro Orgoglio
           </p>
-          <h2 className="text-5xl md:text-6xl font-brand font-semibold leading-none text-charcoal">
+          <h2 className="text-6xl md:text-7xl font-display leading-none text-charcoal">
             La <span className="text-terracotta">Teglia</span> Perfetta
           </h2>
         </div>
@@ -234,7 +233,7 @@ export default function LandingPage() {
               <span className="inline-block px-4 py-1 bg-marigold text-charcoal text-[10px] font-bold uppercase tracking-widest rounded-full shadow-lg">
                 High Hydration
               </span>
-              <p className="text-white text-2xl md:text-4xl font-brand font-semibold leading-tight drop-shadow-lg">
+              <p className="text-white text-4xl md:text-6xl font-display leading-none drop-shadow-lg">
                 Croccantezza senza confini.
               </p>
             </div>
@@ -250,7 +249,7 @@ export default function LandingPage() {
               <p className="text-sm font-brand font-bold uppercase tracking-[0.3em] leading-none text-terracotta mb-4">
                 L&apos;Eredità
               </p>
-              <h2 className="text-5xl md:text-6xl font-brand font-semibold leading-none text-charcoal">
+              <h2 className="text-6xl md:text-7xl font-display leading-none text-charcoal">
                 Dietro ogni teglia <br /> <span className="text-terracotta">c&apos;è ricerca.</span>
               </h2>
             </header>
@@ -292,7 +291,7 @@ export default function LandingPage() {
             <p className="text-sm font-brand font-bold uppercase tracking-[0.3em] leading-none text-terracotta mb-4">
               La Materia Prima
             </p>
-            <h2 className="text-5xl md:text-7xl font-brand font-semibold text-charcoal leading-none">
+            <h2 className="text-6xl md:text-8xl font-display text-charcoal leading-none">
               Meno ingredienti, <br /> <span className="text-terracotta">più ricerca.</span>
             </h2>
           </div>
@@ -307,7 +306,7 @@ export default function LandingPage() {
                 <div className="w-16 h-16 bg-charcoal/5 rounded-2xl flex items-center justify-center text-4xl group-hover:scale-110 transition-transform">
                   {item.emoji}
                 </div>
-                <h3 className="text-3xl font-brand font-semibold leading-none text-charcoal">{item.title}</h3>
+                <h3 className="text-4xl font-display leading-none text-charcoal">{item.title}</h3>
                 <p className="text-charcoal/50 leading-relaxed font-body">{item.desc}</p>
               </div>
             ))}
@@ -321,7 +320,7 @@ export default function LandingPage() {
               className="object-cover transition-transform duration-[3s] group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 to-transparent flex items-center justify-center">
-              <span className="text-white text-3xl md:text-5xl font-brand font-semibold drop-shadow-2xl text-center px-10">
+              <span className="text-white text-4xl md:text-6xl font-display drop-shadow-2xl text-center px-10 leading-none">
                 Qualità senza <br /> compromessi.
               </span>
             </div>
@@ -336,7 +335,7 @@ export default function LandingPage() {
             <p className="text-sm font-brand font-bold uppercase tracking-[0.3em] leading-none text-terracotta mb-4">
               I Protagonisti
             </p>
-            <h2 className="text-5xl md:text-6xl font-brand font-semibold leading-none text-charcoal">
+            <h2 className="text-6xl md:text-7xl font-display leading-none text-charcoal">
               Consigli <span className="text-terracotta">artigianali.</span>
             </h2>
           </div>
@@ -354,7 +353,7 @@ export default function LandingPage() {
                   {formatCurrency(p.price)}
                 </div>
               </div>
-              <h3 className="text-3xl font-brand font-semibold leading-none text-charcoal mb-2 group-hover:text-terracotta transition-colors">{p.name}</h3>
+              <h3 className="text-4xl font-display leading-none text-charcoal mb-2 group-hover:text-terracotta transition-colors">{p.name}</h3>
               <p className="text-charcoal/50 font-body line-clamp-2 leading-relaxed italic">{p.description || "Un&apos;esplosione di sapori artigianali creata con amore."}</p>
             </div>
           ))}
@@ -372,7 +371,7 @@ export default function LandingPage() {
             <p className="text-sm font-brand font-bold uppercase tracking-[0.3em] leading-none text-terracotta mb-4">
               Community
             </p>
-            <h2 className="text-5xl md:text-7xl font-brand font-semibold leading-none text-charcoal">
+            <h2 className="text-6xl md:text-8xl font-display leading-none text-charcoal">
               Cosa dicono <br /> <span className="text-terracotta">di noi.</span>
             </h2>
           </div>
@@ -412,17 +411,17 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="mb-24 flex flex-col md:flex-row justify-between items-start gap-12">
             <div className="space-y-6 max-w-md">
-              <h3 className="text-[1.65rem] leading-none font-logo font-semibold uppercase tracking-[0.08em] text-charcoal">
+              <h3 className="text-4xl leading-none font-logo text-charcoal">
                 La <span className="text-terracotta">Teglieria</span>
               </h3>
               <p className="text-lg text-charcoal/50 leading-relaxed font-body italic">
                 Laboratorio artigianale di pizza in teglia ad alta idratazione. Dedizione, tempo e croccantezza nel cuore pulsante della città.
               </p>
               <div className="flex gap-3">
-                <a href="#" className="px-5 py-2.5 rounded-full bg-charcoal/5 text-xs font-brand font-semibold text-charcoal hover:bg-terracotta hover:text-white transition-all">
+                <a href="#" className="px-5 py-2.5 rounded-full bg-charcoal/5 text-xl leading-none font-display text-charcoal hover:bg-terracotta hover:text-white transition-all">
                   Instagram
                 </a>
-                <a href="#" className="px-5 py-2.5 rounded-full bg-charcoal/5 text-xs font-brand font-semibold text-charcoal hover:bg-terracotta hover:text-white transition-all">
+                <a href="#" className="px-5 py-2.5 rounded-full bg-charcoal/5 text-xl leading-none font-display text-charcoal hover:bg-terracotta hover:text-white transition-all">
                   Facebook
                 </a>
               </div>
@@ -478,7 +477,7 @@ export default function LandingPage() {
       >
         <Link
           href="/menu"
-          className="flex items-center justify-center w-full py-4 rounded-[999px] text-base text-white font-brand font-semibold tracking-wide bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] shadow-[0_10px_25px_rgba(230,100,40,0.25)] active:scale-95 transition-all"
+          className="flex items-center justify-center w-full py-4 rounded-[999px] text-2xl leading-none text-white font-display bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] shadow-[0_10px_25px_rgba(230,100,40,0.25)] active:scale-95 transition-all"
         >
           🍕 Ordina la tua Teglia
         </Link>

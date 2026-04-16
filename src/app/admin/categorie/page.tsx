@@ -64,7 +64,7 @@ export default function CategoriePage() {
     <div className="max-w-4xl animate-in fade-in duration-700">
       <div className="reveal active mb-12">
         <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-2 block">Organizzazione</span>
-        <h1 className="text-4xl md:text-5xl font-brand font-medium uppercase tracking-tight text-charcoal">
+        <h1 className="text-5xl md:text-6xl font-display tracking-tight text-charcoal">
           Categorie <span className="text-terracotta">Menu.</span>
         </h1>
         <p className="font-body italic text-charcoal/40 mt-2 tracking-widest uppercase text-[10px]">Struttura delle portate</p>

@@ -29,7 +29,7 @@ export default function MobileTopBar() {
             href="/"
             onClick={() => setOpen(false)}
             translate="no"
-            className="text-[1.65rem] leading-none font-logo font-semibold uppercase tracking-[0.08em] text-charcoal"
+            className="text-4xl leading-none font-logo text-charcoal"
           >
             La <span className="text-terracotta">Teglieria</span>
           </Link>
@@ -40,7 +40,7 @@ export default function MobileTopBar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-sm font-brand font-semibold text-charcoal/60 hover:text-charcoal transition-colors"
+                className="text-lg leading-none font-display text-charcoal/60 hover:text-charcoal transition-colors"
               >
                 {item.label}
               </Link>
@@ -50,7 +50,7 @@ export default function MobileTopBar() {
           {/* Desktop CTA */}
           <Link
             href="/menu?type=DELIVERY"
-            className="hidden md:flex items-center px-5 py-2 rounded-full text-sm font-brand font-semibold text-white bg-terracotta hover:bg-terracotta/90 transition-colors"
+            className="hidden md:flex items-center px-6 py-2 rounded-full text-xl leading-none font-display text-white bg-terracotta hover:bg-terracotta/90 transition-colors"
           >
             Ordina ora
           </Link>
@@ -84,7 +84,7 @@ export default function MobileTopBar() {
             href="/"
             onClick={() => setOpen(false)}
             translate="no"
-            className="text-[1.65rem] leading-none font-logo font-semibold uppercase tracking-[0.08em] text-charcoal"
+            className="text-4xl leading-none font-logo text-charcoal"
           >
             La <span className="text-terracotta">Teglieria</span>
           </Link>
@@ -110,13 +110,13 @@ export default function MobileTopBar() {
               key={item.href}
               href={item.href}
               onClick={() => setOpen(false)}
-              className={`flex items-center justify-between px-5 py-5 rounded-2xl border border-charcoal/8 text-[1.3rem] leading-none font-brand font-bold uppercase tracking-wider text-charcoal active:bg-terracotta/5 active:text-terracotta transition-all duration-300 ${
+              className={`flex items-center justify-between px-5 py-4 rounded-2xl border border-charcoal/8 text-[2rem] leading-none font-display text-charcoal active:bg-terracotta/5 active:text-terracotta transition-all duration-300 ${
                 open ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
               }`}
               style={{ transitionDelay: open ? `${80 + idx * 50}ms` : "0ms" }}
             >
               {item.label}
-              <span className="text-terracotta/40 text-base">→</span>
+              <span className="text-terracotta/40 text-base font-brand">→</span>
             </Link>
           ))}
 
@@ -129,14 +129,14 @@ export default function MobileTopBar() {
             <Link
               href="/menu?type=DELIVERY"
               onClick={() => setOpen(false)}
-              className="flex items-center justify-center w-full px-7 py-[0.85rem] rounded-[999px] text-[1.65rem] leading-none font-brand font-bold uppercase tracking-widest text-white bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] shadow-[0_10px_25px_rgba(230,100,40,0.25)] active:scale-95 transition-all"
+              className="flex items-center justify-center w-full px-7 py-[0.9rem] rounded-[999px] text-[2rem] leading-none font-display text-white bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] shadow-[0_10px_25px_rgba(230,100,40,0.25)] active:scale-95 transition-all"
             >
               Ordina ora
             </Link>
             <Link
               href="/menu?type=ASPORTO"
               onClick={() => setOpen(false)}
-              className="flex items-center justify-center w-full px-7 py-[0.85rem] rounded-[999px] text-[1.65rem] leading-none font-brand font-bold uppercase tracking-widest text-charcoal/80 border-2 border-charcoal/35 active:scale-95 transition-all"
+              className="flex items-center justify-center w-full px-7 py-[0.9rem] rounded-[999px] text-[2rem] leading-none font-display text-charcoal/80 border-2 border-charcoal/35 active:scale-95 transition-all"
             >
               Ritira in sede
             </Link>

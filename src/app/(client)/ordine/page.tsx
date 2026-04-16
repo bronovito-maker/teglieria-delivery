@@ -116,7 +116,7 @@ export default function OrdinePage() {
     return (
       <div className="text-center py-24 px-6">
         <div className="text-6xl mb-6 opacity-20">🛒</div>
-        <h2 className="text-2xl font-bold mb-4">Il carrello è vuoto</h2>
+        <h2 className="text-3xl font-display mb-4">Il carrello è vuoto</h2>
         <button 
           onClick={() => router.push("/menu")} 
           className="px-8 py-3 bg-charcoal text-white rounded-full font-semibold hover:scale-105 transition-transform"
@@ -203,7 +203,7 @@ export default function OrdinePage() {
   return (
     <div className="max-w-2xl mx-auto pb-24 pt-8 px-4">
       <header className="mb-12">
-        <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gradient mb-2">
+        <h1 className="text-5xl md:text-6xl font-display tracking-tight text-charcoal mb-2">
           Concludi l&apos;Ordine
         </h1>
         <p className="text-gray-500 text-lg">

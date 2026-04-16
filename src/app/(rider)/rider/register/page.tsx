@@ -65,7 +65,7 @@ export default function RiderRegisterPage() {
           <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-marigold mb-6 block px-4 py-1.5 border border-marigold/20 rounded-full bg-white/50 w-fit mx-auto">
             Nuova Collaborazione
           </span>
-          <h1 className="text-4xl md:text-5xl font-brand font-medium uppercase tracking-tight text-charcoal">
+          <h1 className="text-4xl md:text-5xl font-display tracking-tight text-charcoal">
             Unisciti al <span className="text-terracotta">Team.</span>
           </h1>
           <p className="font-body italic text-charcoal/40 mt-4 tracking-widest uppercase text-[10px]">Crea il tuo profilo Rider</p>

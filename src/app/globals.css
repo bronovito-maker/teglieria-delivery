@@ -12,8 +12,8 @@
 @layer utilities {
   /*
    * FONT SYSTEM
-   * font-logo  → Narkiss Tam — SOLO "La Teglieria" logo (definito in tailwind.config.ts)
-   * font-brand / font-body / font-subtitle → DM Sans (tutto il resto)
+   * font-logo / font-display → Bebas Neue — titoli display, logo "La Teglieria"
+   * font-brand / font-body / font-subtitle → DM Sans — tutto il resto
    */
   .font-brand,
   .font-subtitle,
@@ -67,7 +67,7 @@
   }
 }
 
-/* Admin: Inter per tutto, font-logo mantiene Narkiss Tam per il logo */
+/* Admin/Rider: DM Sans come tutto il resto del sito */
 .admin-layout,
 .admin-layout .font-brand,
 .admin-layout .font-subtitle,

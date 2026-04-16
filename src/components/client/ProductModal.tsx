@@ -63,7 +63,7 @@ export default function ProductModal({ product, onClose }: Props) {
         <div className="p-8">
           <div className="flex items-start justify-between mb-6">
             <div className="flex-1">
-              <h2 className="text-3xl font-brand uppercase tracking-tight text-charcoal leading-none mb-2">{product.name}</h2>
+              <h2 className="text-4xl font-display tracking-tight text-charcoal leading-none mb-2">{product.name}</h2>
               {product.description && (
                 <p className="text-base text-charcoal/60 font-body leading-relaxed">{product.description}</p>
               )}

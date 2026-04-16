@@ -251,7 +251,7 @@ export default function DashboardPage() {
           <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-4 block">
             Monitoraggio Operativo
           </span>
-          <h1 className="text-4xl md:text-5xl font-brand font-medium uppercase tracking-tight text-charcoal">
+          <h1 className="text-5xl md:text-6xl font-display tracking-tight text-charcoal">
             Overview <span className="text-terracotta">Ordini.</span>
           </h1>
           <p className="font-body italic text-charcoal/40 mt-4 tracking-widest uppercase text-xs">Live Update • {today}</p>

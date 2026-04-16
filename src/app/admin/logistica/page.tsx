@@ -452,7 +452,7 @@ export default function LogisticaPage() {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between mb-10">
         <div className="reveal active">
           <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-2 block">Dipartimento</span>
-          <h1 className="text-4xl md:text-5xl font-brand font-medium uppercase tracking-tight text-charcoal">
+          <h1 className="text-5xl md:text-6xl font-display tracking-tight text-charcoal">
             Logistica <span className="text-terracotta">Rider.</span>
           </h1>
           <p className="font-body italic text-charcoal/40 mt-2 tracking-widest uppercase text-[10px]">Monitoraggio e assegnazione in tempo reale</p>
@@ -504,7 +504,7 @@ export default function LogisticaPage() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-10">
             <div>
               <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta mb-2 block">Alert Operativi</span>
-              <h3 className="text-3xl font-brand font-medium uppercase tracking-tight text-charcoal">Eventi Rider <span className="text-terracotta">Critici.</span></h3>
+              <h3 className="text-4xl font-display tracking-tight text-charcoal">Eventi Rider <span className="text-terracotta">Critici.</span></h3>
             </div>
             <button
               type="button"

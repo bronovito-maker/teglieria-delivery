@@ -17,9 +17,10 @@ const config: Config = {
         marigold: "#ffa941",
       },
       fontFamily: {
-        // SOLO per "La Teglieria" logo — mai per altro testo
-        logo: ["var(--font-narkiss)", "sans-serif"],
-        // DM Sans — font di default per tutto il sito client
+        // Bebas Neue — logo "La Teglieria" + titoli display
+        logo:    ["var(--font-bebas)", "sans-serif"],
+        display: ["var(--font-bebas)", "sans-serif"],
+        // DM Sans — tutto il resto (body, brand, admin, rider)
         brand:    ["var(--font-inter)", "sans-serif"],
         body:     ["var(--font-inter)", "sans-serif"],
         subtitle: ["var(--font-inter)", "sans-serif"],

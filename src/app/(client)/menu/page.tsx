@@ -54,7 +54,7 @@ export default function MenuPage() {
           <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60">
             Artigianato Romano
           </span>
-          <h1 className="text-5xl md:text-7xl font-brand font-medium uppercase tracking-tight text-charcoal leading-none">
+          <h1 className="text-5xl md:text-7xl font-display tracking-tight text-charcoal leading-none">
             I Nostri <span className="text-terracotta">Impasti.</span>
           </h1>
           <div className="w-12 h-1 bg-terracotta/20 rounded-full mt-2" />
@@ -89,7 +89,7 @@ export default function MenuPage() {
                 
                 <div className="flex-1 relative z-10 pr-4">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-xl font-brand uppercase tracking-tight text-charcoal group-hover:text-terracotta transition-colors">
+                    <h3 className="text-2xl font-display tracking-tight text-charcoal group-hover:text-terracotta transition-colors">
                       {product.name}
                     </h3>
                     {pIdx === 0 && (
@@ -122,7 +122,7 @@ export default function MenuPage() {
       {categories.length === 0 && (
         <div className="text-center py-32 px-6">
           <div className="text-7xl mb-6 opacity-10 grayscale scale-150 transform transition-transform duration-1000 animate-pulse">🍕</div>
-          <h3 className="text-xl font-brand uppercase tracking-widest text-charcoal mb-2">Menu non disponibile</h3>
+          <h3 className="text-2xl font-display tracking-tight text-charcoal mb-2">Menu non disponibile</h3>
           <p className="text-charcoal/40 font-body italic text-sm">Torna a trovarci tra poco!</p>
         </div>
       )}

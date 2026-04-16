@@ -58,7 +58,7 @@ function LoginForm() {
           <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-3 block">
             Il tuo account
           </span>
-          <h1 className="text-4xl font-brand font-medium uppercase tracking-tight text-charcoal">
+          <h1 className="text-4xl font-display tracking-tight text-charcoal">
             Accedi<span className="text-terracotta">.</span>
           </h1>
           <p className="font-body italic text-charcoal/40 mt-2 text-sm">

@@ -57,7 +57,7 @@ export default function RiderLoginPage() {
               <p className="text-[10px] font-logo font-bold text-terracotta uppercase tracking-[0.3em]">
                 La Teglieria
               </p>
-              <h2 className="text-lg font-brand font-medium uppercase tracking-wide text-white leading-tight">
+              <h2 className="text-2xl font-display tracking-wide text-white leading-tight">
                 Area Rider
               </h2>
             </div>
@@ -66,7 +66,7 @@ export default function RiderLoginPage() {
           {/* Form */}
           <div className="p-7">
             <div className="mb-7">
-              <h1 className="text-2xl font-brand font-medium uppercase tracking-tight text-charcoal">
+              <h1 className="text-4xl font-display tracking-tight text-charcoal">
                 Rider <span className="text-terracotta">Login.</span>
               </h1>
               <p className="font-brand text-charcoal/30 mt-1 uppercase tracking-widest text-[10px]">
