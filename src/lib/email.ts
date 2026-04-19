@@ -97,9 +97,9 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmationInput):
   `).join("");
 
   const content = `
-    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">Ordine Confermato</p>
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">Ordine Ricevuto</p>
     <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Grazie, ${order.customerName}!</h1>
-    <p style="margin:0 0 24px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">Abbiamo ricevuto il tuo ordine. Ecco il riepilogo:</p>
+    <p style="margin:0 0 24px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">Abbiamo ricevuto il tuo ordine — ti confermiamo a breve. Ecco il riepilogo:</p>
 
     <div style="background:#f5f0e8;border-radius:16px;padding:16px 20px;margin-bottom:24px;text-align:center;">
       <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Numero Ordine</p>
@@ -187,7 +187,10 @@ type RiderInviteInput = {
 
 export async function sendRiderInviteEmail({ email, name, registerUrl }: RiderInviteInput): Promise<void> {
   const client = getClient();
-  if (!client) return;
+  if (!client) {
+    console.warn("[EMAIL][SKIPPED] BREVO_API_KEY non configurata — rider invite non inviata a", email);
+    return;
+  }
 
   const content = `
     <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">Benvenuto nel Team</p>

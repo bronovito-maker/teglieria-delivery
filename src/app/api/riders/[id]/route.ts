@@ -87,48 +87,45 @@ export async function DELETE(
 
   const rider = await prisma.rider.findUnique({
     where: { id: params.id },
-    select: { id: true, active: true },
+    select: { id: true, name: true, authUserId: true },
   });
 
   if (!rider) {
     return NextResponse.json({ error: "Rider non trovato" }, { status: 404 });
   }
 
-  const result = await prisma.$transaction(async (tx) => {
-    const unassigned = await tx.order.updateMany({
-      where: {
-        riderId: params.id,
-        status: {
-          in: ACTIVE_ORDER_STATUSES,
-        },
-      },
-      data: {
-        riderId: null,
-      },
-    });
-
-    const updatedRider = await tx.rider.update({
-      where: { id: params.id },
-      data: { active: false },
-    });
-
-    return { unassignedCount: unassigned.count, rider: updatedRider };
+  // Sgancia tutti gli ordini (attivi e storici) prima di eliminare il rider
+  const unassigned = await prisma.order.updateMany({
+    where: { riderId: params.id },
+    data: { riderId: null },
   });
 
+  await prisma.rider.delete({ where: { id: params.id } });
+
+  // Revoca account Supabase se il rider aveva completato la registrazione
+  if (rider.authUserId) {
+    const { createClient: createAdminClient } = await import("@supabase/supabase-js");
+    const adminClient = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    await adminClient.auth.admin.deleteUser(rider.authUserId).catch((err) =>
+      console.error("[RIDER DELETE] Supabase user deletion failed:", err)
+    );
+  }
+
   writeAuditLog({
-    action: "rider.remove",
+    action: "rider.delete",
     entity: "rider",
     entityId: params.id,
     actorEmail: user.email,
     actorId: user.id,
     metadata: {
-      unassignedCount: result.unassignedCount,
+      riderName: rider.name,
+      hadAuthAccount: Boolean(rider.authUserId),
+      unassignedOrdersCount: unassigned.count,
     },
   });
 
-  return NextResponse.json({
-    success: true,
-    unassignedCount: result.unassignedCount,
-    rider: result.rider,
-  });
+  return NextResponse.json({ success: true, unassignedCount: unassigned.count });
 }

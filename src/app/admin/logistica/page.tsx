@@ -397,13 +397,13 @@ export default function LogisticaPage() {
   }
 
   async function removeRider(rider: RiderSummary) {
-    const ok = window.confirm(`Rimuovere ${rider.name}? Gli ordini attivi verranno sganciati.`);
+    const ok = window.confirm(
+      `Licenziare ${rider.name}?\n\nIl profilo verrà eliminato definitivamente, l'accesso all'app revocato e tutti gli ordini verranno sganciati.\n\nQuesta operazione non è reversibile.`
+    );
     if (!ok) return;
 
     setSavingRider(true);
-    await fetch(`/api/riders/${rider.id}`, {
-      method: "DELETE",
-    });
+    await fetch(`/api/riders/${rider.id}`, { method: "DELETE" });
     setSavingRider(false);
     fetchData();
   }
