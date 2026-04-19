@@ -70,6 +70,7 @@ type OrderConfirmationInput = {
   pickupTime?: Date | string | null;
   estimatedTime?: Date | string | null;
   paymentMethod?: string | null;
+  accountLink?: string | null; // magic link per accesso senza password
 };
 
 export async function sendOrderConfirmationEmail(order: OrderConfirmationInput): Promise<void> {
@@ -151,6 +152,17 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmationInput):
     <p style="margin:0;font-size:13px;color:#1d1d1f;opacity:0.5;text-align:center;line-height:1.6;">
       Ti invieremo un aggiornamento quando il tuo ordine sarà in consegna.
     </p>
+
+    ${order.accountLink ? `
+    <div style="margin-top:28px;padding-top:24px;border-top:1px solid #f5f0e8;text-align:center;">
+      <p style="margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;color:#1d1d1f;opacity:0.35;">Riordina in 10 secondi la prossima volta</p>
+      <p style="margin:0 0 16px;font-size:13px;color:#1d1d1f;opacity:0.5;">I tuoi dati sono già salvati — clicca e sei dentro.</p>
+      <a href="${order.accountLink}" style="display:inline-block;padding:14px 32px;background:#e66a26;color:#ffffff;text-decoration:none;border-radius:99px;font-size:12px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;">
+        Attiva il tuo account →
+      </a>
+      <p style="margin:12px 0 0;font-size:11px;color:#1d1d1f;opacity:0.25;">Nessuna password richiesta. Un solo click.</p>
+    </div>
+    ` : ""}
   `;
 
   try {

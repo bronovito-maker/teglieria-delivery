@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -14,9 +15,20 @@ export async function GET(request: Request) {
     if (!error) {
       const role = data.user?.user_metadata?.role;
 
-      // Se è un flusso customer OAuth e il ruolo non è ancora impostato, lo settiamo
+      // Se è un flusso customer OAuth/magic-link e il ruolo non è ancora impostato, lo settiamo
       if (type === "customer" && !role) {
         await supabase.auth.updateUser({ data: { role: "customer" } });
+      }
+
+      // Retroactive linking: collega ordini guest (authUserId null) all'account per email
+      const isCustomer = type === "customer" || role === "customer" || (!role && type !== "admin");
+      if (isCustomer && data.user?.email) {
+        prisma.order
+          .updateMany({
+            where: { customerEmail: data.user.email, authUserId: null },
+            data: { authUserId: data.user.id },
+          })
+          .catch((err) => console.error("[CALLBACK] Retroactive linking fallito:", err));
       }
 
       if (next) return NextResponse.redirect(`${origin}${next}`);

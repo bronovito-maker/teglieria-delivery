@@ -51,7 +51,12 @@ function RegisterForm() {
     });
 
     if (authError) {
-      setError(authError.message);
+      const msg = authError.message.toLowerCase();
+      if (msg.includes("already registered") || msg.includes("already been registered") || authError.status === 422) {
+        setError("EMAIL_EXISTS");
+      } else {
+        setError(authError.message);
+      }
       setLoading(false);
       return;
     }
@@ -142,6 +147,7 @@ function RegisterForm() {
             </label>
             <input
               type="tel"
+              required
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="333 123 4567"
@@ -184,11 +190,23 @@ function RegisterForm() {
             </div>
           </div>
 
-          {error && (
+          {error === "EMAIL_EXISTS" ? (
+            <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 text-center space-y-2">
+              <p className="text-[11px] text-amber-700 font-brand font-bold uppercase tracking-widest">
+                Hai già un account con questa email
+              </p>
+              <a
+                href={`/accedi?next=/account/orders`}
+                className="inline-block text-sm font-semibold text-terracotta hover:underline"
+              >
+                Accedi al tuo account →
+              </a>
+            </div>
+          ) : error ? (
             <div className="p-4 bg-red-50 rounded-2xl border border-red-100">
               <p className="text-[11px] text-red-600 font-brand font-bold uppercase tracking-widest text-center">{error}</p>
             </div>
-          )}
+          ) : null}
 
           <button
             type="submit"

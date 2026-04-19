@@ -180,9 +180,9 @@ export default function StatoOrdinePage() {
         <div className="mt-8 bg-white/70 backdrop-blur-xl rounded-[2rem] border border-terracotta/10 p-6 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-500">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
-              <p className="text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-terracotta mb-1">Ordina più velocemente</p>
+              <p className="text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-terracotta mb-1">La prossima pizza in 10 secondi</p>
               <h3 className="text-lg font-display tracking-tight text-charcoal leading-tight">
-                Salva i tuoi dati<span className="text-terracotta">.</span>
+                Riordina con un click<span className="text-terracotta">.</span>
               </h3>
             </div>
             <button
@@ -197,14 +197,14 @@ export default function StatoOrdinePage() {
             </button>
           </div>
           <p className="font-body italic text-charcoal/40 text-sm mb-5 leading-relaxed">
-            La prossima volta i tuoi dati saranno già pronti. Crea un account gratis in 30 secondi.
+            I tuoi dati sono già qui — bastano 20 secondi per non doverli ridigitare mai più.
           </p>
           <Link
             href={`/registrati?name=${encodeURIComponent(guestData?.name || "")}&email=${encodeURIComponent(guestData?.email || "")}&phone=${encodeURIComponent(guestData?.phone || "")}`}
             onClick={() => sessionStorage.removeItem("guestOrderData")}
-            className="block w-full text-center py-3.5 bg-charcoal text-white rounded-2xl font-brand font-bold uppercase tracking-[0.2em] text-[11px] hover:bg-terracotta active:scale-95 transition-all"
+            className="block w-full text-center py-3.5 bg-terracotta text-white rounded-2xl font-brand font-bold uppercase tracking-[0.2em] text-[11px] hover:brightness-110 active:scale-95 transition-all shadow-[0_8px_20px_rgba(230,106,38,0.3)]"
           >
-            Crea Account Gratis
+            Riordina in 1 click la prossima volta
           </Link>
           <button
             onClick={() => {

@@ -67,6 +67,7 @@ model Order {
   id             String          @id @default(cuid())
   orderNumber    Int             @default(autoincrement())
   orderCode      String?         @unique  // e.g. "A001", "D042"
+  authUserId     String?                  // Supabase auth user ID (null per ordini guest)
   type           OrderType
   channel        OrderChannel
   status         OrderStatus     @default(RECEIVED)

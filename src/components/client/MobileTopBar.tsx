@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 
 const navItems = [
   { label: "Ordina", href: "/#ordina" },
@@ -13,6 +14,17 @@ const navItems = [
 
 export default function MobileTopBar() {
   const [open, setOpen] = useState(false);
+  const [isCustomer, setIsCustomer] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      const role = user?.user_metadata?.role;
+      if (user && role !== "admin" && role !== "rider") {
+        setIsCustomer(true);
+      }
+    });
+  }, []);
 
   // Lock body scroll when menu is open
   useEffect(() => {
@@ -46,6 +58,16 @@ export default function MobileTopBar() {
               </Link>
             ))}
           </nav>
+
+          {/* Desktop account link */}
+          {isCustomer && (
+            <Link
+              href="/account/orders"
+              className="hidden md:flex items-center px-4 py-2 rounded-full text-sm font-semibold text-charcoal/70 border border-charcoal/15 hover:border-charcoal/30 transition-colors"
+            >
+              I miei ordini
+            </Link>
+          )}
 
           {/* Desktop CTA */}
           <Link
@@ -140,6 +162,15 @@ export default function MobileTopBar() {
             >
               Ritira in sede
             </Link>
+            {isCustomer && (
+              <Link
+                href="/account/orders"
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-center w-full px-7 py-[0.9rem] rounded-[999px] text-lg leading-none font-semibold text-charcoal/60 border border-charcoal/15 active:scale-95 transition-all"
+              >
+                I miei ordini
+              </Link>
+            )}
           </div>
         </nav>
       </div>
