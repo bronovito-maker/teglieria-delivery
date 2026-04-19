@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { notifyCustomerOrderStatus } from "@/lib/customer-notifications";
-import { sendRiderDepartedEmail } from "@/lib/email";
+import { sendRiderDepartedEmail, sendTimeUpdateEmail } from "@/lib/email";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 import { writeAuditLog } from "@/lib/audit";
@@ -82,6 +82,19 @@ export async function PATCH(
         estimatedTime: order.estimatedTime,
         address: order.address,
       }).catch((err) => console.error("[EMAIL] Rider partito fallita:", err));
+    }
+  }
+
+  // Notifica email su aggiornamento orario (solo se ordine attivo e cliente ha email)
+  if (body.estimatedTime && !body.status && order.customerEmail) {
+    const activeStatuses = ["RECEIVED", "CONFIRMED", "PREPARING", "READY", "OUT"];
+    if (activeStatuses.includes(order.status)) {
+      sendTimeUpdateEmail({
+        customerEmail: order.customerEmail,
+        customerName: order.customerName,
+        orderNumber: order.orderNumber,
+        newEstimatedTime: order.estimatedTime!,
+      }).catch((err) => console.error("[EMAIL] Time update fallita:", err));
     }
   }
 

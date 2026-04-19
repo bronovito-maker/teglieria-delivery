@@ -4,10 +4,28 @@ import { sendRiderWelcomeEmail } from "@/lib/email";
 
 export async function POST(request: Request) {
   try {
-    const { authUserId, name, email, phone } = await request.json();
+    const { authUserId, name, email, phone, checkOnly } = await request.json();
 
-    const rider = await prisma.rider.create({
-      data: { authUserId, name, email, phone },
+    // Solo i rider pre-creati dall'admin possono completare la registrazione
+    const existing = email
+      ? await prisma.rider.findFirst({ where: { email } })
+      : null;
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: "Email non autorizzata. Contatta lo staff de La Teglieria per essere aggiunto come rider." },
+        { status: 403 }
+      );
+    }
+
+    // checkOnly = verifica pre-registrazione senza modificare nulla
+    if (checkOnly) {
+      return NextResponse.json({ ok: true });
+    }
+
+    const rider = await prisma.rider.update({
+      where: { id: existing.id },
+      data: { authUserId, phone: phone || existing.phone },
     });
 
     sendRiderWelcomeEmail({ email, name }).catch((err) =>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { OrderStatus, RiderVehicle } from "@prisma/client";
+import { sendRiderInviteEmail } from "@/lib/email";
 
 const VALID_VEHICLES: RiderVehicle[] = ["BIKE", "SCOOTER", "CAR"];
 import { calculateRiderCompensation } from "@/lib/finance";
@@ -172,6 +173,16 @@ export async function POST(request: Request) {
       actorId: user.id,
       metadata: { riderName: rider.name },
     });
+
+    // Manda email di invito se il rider ha una email
+    if (rider.email) {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.lateglieria.it";
+      sendRiderInviteEmail({
+        email: rider.email,
+        name: rider.name,
+        registerUrl: `${siteUrl}/rider/register`,
+      }).catch((err) => console.error("[EMAIL] Rider invite fallita:", err));
+    }
 
     return NextResponse.json(rider, { status: 201 });
   } catch {

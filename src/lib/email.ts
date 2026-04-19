@@ -177,7 +177,106 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmationInput):
   }
 }
 
-// ─── EMAIL 2: Rider welcome ──────────────────────────────────────────────────
+// ─── EMAIL 2: Invito rider (creato da admin) ────────────────────────────────
+
+type RiderInviteInput = {
+  email: string;
+  name: string;
+  registerUrl: string;
+};
+
+export async function sendRiderInviteEmail({ email, name, registerUrl }: RiderInviteInput): Promise<void> {
+  const client = getClient();
+  if (!client) return;
+
+  const content = `
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">Benvenuto nel Team</p>
+    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Ciao, ${name}! 🛵</h1>
+    <p style="margin:0 0 24px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">
+      Sei stato aggiunto come rider de <strong>La Teglieria</strong>. Completa la registrazione per accedere alla tua dashboard e iniziare le consegne.
+    </p>
+
+    <div style="text-align:center;margin-bottom:28px;">
+      <a href="${registerUrl}" style="display:inline-block;padding:16px 36px;background:#e66a26;color:#ffffff;text-decoration:none;border-radius:99px;font-size:13px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;">
+        Completa la registrazione →
+      </a>
+    </div>
+
+    <div style="background:#f5f0e8;border-radius:16px;padding:20px;margin-bottom:24px;">
+      <p style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Come accedere</p>
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr><td style="padding:5px 0;font-size:14px;color:#1d1d1f;">1. Clicca il tasto qui sopra</td></tr>
+        <tr><td style="padding:5px 0;font-size:14px;color:#1d1d1f;">2. Inserisci <strong>${email}</strong> come email</td></tr>
+        <tr><td style="padding:5px 0;font-size:14px;color:#1d1d1f;">3. Scegli una password</td></tr>
+        <tr><td style="padding:5px 0;font-size:14px;color:#1d1d1f;">4. Accedi alla tua dashboard rider</td></tr>
+      </table>
+    </div>
+
+    <p style="margin:0;font-size:12px;color:#1d1d1f;opacity:0.35;text-align:center;">
+      Per assistenza contatta lo staff de La Teglieria.
+    </p>
+  `;
+
+  try {
+    await client.transactionalEmails.sendTransacEmail({
+      sender: { name: FROM_NAME, email: FROM_EMAIL },
+      to: [{ email, name }],
+      subject: `🛵 Sei stato aggiunto al team — La Teglieria`,
+      htmlContent: emailWrapper(content),
+    });
+  } catch (err) {
+    console.error("[EMAIL][ERROR] Rider invite:", err);
+  }
+}
+
+// ─── EMAIL 4: Aggiornamento orario ──────────────────────────────────────────
+
+type TimeUpdateInput = {
+  customerEmail: string;
+  customerName: string;
+  orderNumber: number;
+  newEstimatedTime: Date | string;
+};
+
+export async function sendTimeUpdateEmail(order: TimeUpdateInput): Promise<void> {
+  const client = getClient();
+  if (!client) return;
+
+  const timeLabel = formatTime(order.newEstimatedTime);
+  if (!timeLabel) return;
+
+  const content = `
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">Orario Aggiornato</p>
+    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Nuova stima per il tuo ordine</h1>
+
+    <div style="background:#f5f0e8;border-radius:16px;padding:16px 20px;margin-bottom:24px;text-align:center;">
+      <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Ordine</p>
+      <p style="margin:6px 0 0;font-size:32px;font-weight:700;color:#e66a26;">#${order.orderNumber}</p>
+    </div>
+
+    <div style="background:#f5f0e8;border-radius:16px;padding:20px;margin-bottom:24px;text-align:center;">
+      <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Arrivo stimato</p>
+      <p style="margin:0;font-size:48px;font-weight:700;color:#1d1d1f;line-height:1;">${timeLabel}</p>
+    </div>
+
+    <p style="margin:0;font-size:13px;color:#1d1d1f;opacity:0.5;text-align:center;line-height:1.6;">
+      Il nostro staff ha aggiornato l'orario stimato per il tuo ordine. 🍕
+    </p>
+  `;
+
+  try {
+    await client.transactionalEmails.sendTransacEmail({
+      sender: { name: FROM_NAME, email: FROM_EMAIL },
+      to: [{ email: order.customerEmail, name: order.customerName }],
+      subject: `⏱ Orario aggiornato per il tuo ordine #${order.orderNumber}`,
+      htmlContent: emailWrapper(content),
+    });
+  } catch (err) {
+    console.error("[EMAIL][ERROR] Time update:", err);
+  }
+}
+
+// ─── EMAIL 3: Rider welcome ──────────────────────────────────────────────────
 
 type RiderWelcomeInput = {
   email: string;

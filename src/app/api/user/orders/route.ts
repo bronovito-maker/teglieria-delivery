@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import type { UserOrder } from "@/components/account/orders/types";
 import type { Order, OrderItem } from "@prisma/client";
 
+export const dynamic = "force-dynamic";
+
 type OrderWithItems = Order & { items: OrderItem[] };
 
 function mapOrder(order: OrderWithItems): UserOrder {

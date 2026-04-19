@@ -59,11 +59,16 @@ export default function DashboardPage() {
   const fetchOrders = useCallback(async () => {
     const today = new Date().toISOString().split("T")[0];
     const res = await fetch(`/api/ordini?date=${today}`);
+    if (res.status === 401 || res.status === 403) {
+      router.replace("/admin/login");
+      return;
+    }
     const data = await res.json();
+    if (!Array.isArray(data)) return;
     setOrders(data);
 
     // Sound + browser notification + auto-popup on new RECEIVED order
-    const receivedOrders = (data as OrderWithItems[]).filter((o) => o.status === "RECEIVED");
+    const receivedOrders = data.filter((o: OrderWithItems) => o.status === "RECEIVED");
     const prevReceived = prevCountRef.current;
     if (prevReceived > 0 && receivedOrders.length > prevReceived) {
       const newest = receivedOrders[receivedOrders.length - 1];

@@ -19,15 +19,24 @@ export default function RiderRegisterPage() {
     setLoading(true);
     setError(null);
 
+    // 1. Verifica che l'email sia stata pre-approvata dall'admin
+    const checkRes = await fetch("/api/rider/setup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, checkOnly: true }),
+    });
+    if (!checkRes.ok) {
+      const data = await checkRes.json().catch(() => ({}));
+      setError(data.error ?? "Email non autorizzata. Contatta lo staff.");
+      setLoading(false);
+      return;
+    }
+
+    // 2. Crea account Supabase
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: {
-          role: "rider",
-          full_name: name,
-        },
-      },
+      options: { data: { role: "rider", full_name: name } },
     });
 
     if (authError) {
@@ -36,23 +45,20 @@ export default function RiderRegisterPage() {
       return;
     }
 
+    // 3. Collega authUserId al record rider esistente
     if (authData.user) {
-      // Create Rider record linked to auth user
       const res = await fetch("/api/rider/setup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          authUserId: authData.user.id,
-          name,
-          email,
-          phone,
-        }),
+        body: JSON.stringify({ authUserId: authData.user.id, name, email, phone }),
       });
 
       if (res.ok) {
-        router.push("/rider/login?message=Registrazione completata. Controlla l'email per confermare.");
+        router.push("/rider/login?message=Registrazione completata! Puoi accedere con email e password.");
       } else {
-        setError("Errore durante la creazione del profilo Rider.");
+        const data = await res.json().catch(() => ({}));
+        setError(data.error ?? "Errore durante la creazione del profilo.");
+        await supabase.auth.signOut();
       }
     }
     setLoading(false);

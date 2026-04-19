@@ -3,26 +3,27 @@
 import { useEffect } from "react";
 import { Clock3, Pizza, Scooter, Store } from "lucide-react";
 import { formatCurrency, formatTime } from "@/lib/utils";
-import type { OrderStatus, UserOrder } from "./types";
+import type { OrderStatus, OrderType, UserOrder } from "./types";
 
-// CONFIRMED è uno stato interno — al cliente mostriamo lo stesso step di RECEIVED
-const DELIVERY_STEPS: OrderStatus[] = ["RECEIVED", "PREPARING", "OUT", "DELIVERED"];
-const PICKUP_STEPS: OrderStatus[] = ["RECEIVED", "PREPARING", "READY", "DELIVERED"];
+// Delivery: Inviato → Accettato → Pronto → In consegna
+// Asporto:  Inviato → Accettato → Pronto → Pronto al ritiro
+const STEPS = (type: OrderType) => [
+  "Inviato",
+  "Accettato",
+  "Pronto",
+  type === "DELIVERY" ? "In consegna" : "Pronto al ritiro",
+];
 
-const STATUS_LABELS: Record<OrderStatus, string> = {
-  RECEIVED: "Ricevuto",
-  CONFIRMED: "Ricevuto",
-  PREPARING: "In preparazione",
-  READY: "Pronto al ritiro",
-  OUT: "In consegna",
-  DELIVERED: "Consegnato",
-  CANCELLED: "Annullato",
-};
-
-// Mappa stato DB → indice nello step array
-function getStepIndex(status: OrderStatus, steps: OrderStatus[]): number {
-  if (status === "CONFIRMED") return 0; // Trattato come RECEIVED
-  return Math.max(steps.indexOf(status), 0);
+function getActiveStep(status: OrderStatus, type: OrderType): number {
+  switch (status) {
+    case "RECEIVED":  return 0;
+    case "CONFIRMED": return 1;
+    case "PREPARING": return 2;
+    case "READY":     return type === "ASPORTO" ? 3 : 2;
+    case "OUT":       return 3;
+    case "DELIVERED": return 3;
+    default:          return 0;
+  }
 }
 
 type ActiveOrderTrackerProps = {
@@ -31,14 +32,13 @@ type ActiveOrderTrackerProps = {
 };
 
 export default function ActiveOrderTracker({ order, onRefresh }: ActiveOrderTrackerProps) {
-  const steps = order.type === "DELIVERY" ? DELIVERY_STEPS : PICKUP_STEPS;
-  const currentStepIndex = getStepIndex(order.status, steps);
-  const progress = ((currentStepIndex + 1) / steps.length) * 100;
+  const steps = STEPS(order.type);
+  const activeStep = getActiveStep(order.status, order.type);
 
   useEffect(() => {
     const interval = setInterval(() => {
       onRefresh();
-    }, 30000);
+    }, 15000);
     return () => clearInterval(interval);
   }, [onRefresh]);
 
@@ -79,32 +79,37 @@ export default function ActiveOrderTracker({ order, onRefresh }: ActiveOrderTrac
         </p>
       </div>
 
-      <div className="mb-6">
-        <div className="h-2 w-full rounded-full bg-zinc-100 overflow-hidden">
-          <div
-            className="h-full rounded-full bg-terracotta transition-all duration-500"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2">
-          {steps.map((step, index) => {
-            const isActive = index <= currentStepIndex;
+      {/* Progress steps */}
+      <div className="mb-5 px-1">
+        <div className="flex items-start">
+          {steps.map((label, i) => {
+            const done = i <= activeStep;
+            const isLast = i === steps.length - 1;
             return (
-              <div key={step} className="flex items-center gap-2">
-                <span
-                  className={`h-6 w-6 rounded-full text-[11px] font-bold grid place-items-center shrink-0 ${
-                    isActive ? "bg-terracotta text-white" : "bg-zinc-200 text-zinc-500"
+              <div key={label} className="flex-1 flex flex-col items-center">
+                {/* dot + connector row */}
+                <div className="flex items-center w-full">
+                  <div
+                    className={`h-2.5 w-2.5 rounded-full shrink-0 transition-colors duration-300 ${
+                      done ? "bg-terracotta" : "bg-zinc-200"
+                    }`}
+                  />
+                  {!isLast && (
+                    <div
+                      className={`flex-1 h-[2px] transition-colors duration-300 ${
+                        i < activeStep ? "bg-terracotta" : "bg-zinc-200"
+                      }`}
+                    />
+                  )}
+                </div>
+                {/* label */}
+                <p
+                  className={`mt-2 text-[10px] font-semibold leading-tight text-center w-full transition-colors duration-300 ${
+                    done ? "text-terracotta" : "text-zinc-300"
                   }`}
                 >
-                  {index + 1}
-                </span>
-                <span
-                  className={`text-xs leading-tight ${
-                    isActive ? "text-zinc-800 font-semibold" : "text-zinc-400"
-                  }`}
-                >
-                  {STATUS_LABELS[step]}
-                </span>
+                  {label}
+                </p>
               </div>
             );
           })}
