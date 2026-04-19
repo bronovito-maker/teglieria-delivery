@@ -537,12 +537,12 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
   }
 
   return (
-    <section className="bg-white/70 backdrop-blur-2xl rounded-[2rem] border border-charcoal/5 shadow-2xl overflow-hidden reveal active">
+    <section className="bg-white/70 backdrop-blur-2xl rounded-2xl md:rounded-[2rem] border border-charcoal/5 shadow-2xl overflow-hidden reveal active">
       {/* Map container — no header, route info overlaid */}
       <div className="relative">
         <div
           ref={containerRef}
-          className="h-[44svh] min-h-[220px] max-h-[360px] w-full bg-warm-light/40"
+          className="h-[36svh] min-h-[180px] max-h-[300px] w-full bg-warm-light/40"
         />
 
         {/* Route summary pill — overlaid top-right on map */}
@@ -585,22 +585,21 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
         )}
       </div>
 
-      {/* ── NextStopCard — compact, action-first ── */}
+      {/* ── NextStopCard — ultra-compact for mobile ── */}
       {nextStop ? (
-        <div className="px-4 pt-3 pb-4 md:px-6 md:pt-4 md:pb-5">
-          {/* Main row: step badge + info + call button */}
-          <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 w-9 h-9 rounded-full bg-terracotta text-white flex items-center justify-center font-brand font-bold text-sm shadow-lg shadow-terracotta/30">
+        <div className="px-3 py-2.5 md:px-5 md:py-3">
+          {/* Info row: badge + details + call */}
+          <div className="flex items-center gap-2.5 mb-2">
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-terracotta text-white flex items-center justify-center font-brand font-bold text-xs shadow-md shadow-terracotta/25">
               1
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="font-brand font-bold text-base text-charcoal truncate">
+              <div className="flex items-baseline gap-1.5">
+                <p className="font-brand font-bold text-[15px] text-charcoal truncate leading-tight">
                   {nextStop.order.customerName}
                 </p>
                 {nextStop.order.estimatedTime && (
-                  <span className="flex-shrink-0 text-[9px] font-brand font-bold text-terracotta">
-                    ⏱{" "}
+                  <span className="flex-shrink-0 text-[9px] font-brand font-bold text-terracotta leading-tight">
                     {new Date(nextStop.order.estimatedTime).toLocaleTimeString(
                       "it-IT",
                       { hour: "2-digit", minute: "2-digit" }
@@ -608,28 +607,22 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
                   </span>
                 )}
               </div>
-              <p className="text-[11px] text-charcoal/50 font-body italic truncate">
-                {nextStop.order.address}
-              </p>
-              <div className="flex items-center gap-2 mt-0.5">
+              <div className="flex items-center gap-1.5">
+                <p className="text-[10px] text-charcoal/45 font-body truncate leading-tight">
+                  {nextStop.order.address}
+                </p>
                 {nextLeg && (
-                  <span className="text-[9px] font-brand font-bold text-charcoal/50">
-                    {formatDistance(nextLeg.distanceMeters)} &middot;{" "}
-                    {formatDuration(nextLeg.durationSec)}
-                  </span>
-                )}
-                {nextStop.order.notes && (
-                  <span className="text-[9px] text-marigold font-brand font-bold truncate">
-                    📝 {nextStop.order.notes}
+                  <span className="flex-shrink-0 text-[9px] font-brand font-bold text-charcoal/40">
+                    {formatDistance(nextLeg.distanceMeters)} &middot; {formatDuration(nextLeg.durationSec)}
                   </span>
                 )}
               </div>
             </div>
-            {/* Quick call button */}
+            {/* Quick call */}
             {nextStop.order.customerPhone && (
               <a
                 href={`tel:${nextStop.order.customerPhone}`}
-                className="flex-shrink-0 w-9 h-9 rounded-full bg-charcoal/5 flex items-center justify-center active:scale-90 transition-transform"
+                className="flex-shrink-0 w-8 h-8 rounded-full bg-charcoal/5 flex items-center justify-center active:scale-90 transition-transform"
                 aria-label="Chiama cliente"
               >
                 <span className="text-sm">📞</span>
@@ -637,44 +630,21 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
             )}
           </div>
 
-          {/* Avvia navigazione — prominent, full width */}
+          {/* Avvia navigazione — full width, tight */}
           {navLink && (
             <a
               href={navLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-3 flex items-center justify-center gap-2 w-full py-4 bg-charcoal text-white rounded-full font-brand font-bold uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-charcoal/30 hover:bg-terracotta active:scale-[0.97] transition-all"
+              className="flex items-center justify-center gap-2 w-full py-3 bg-charcoal text-white rounded-full font-brand font-bold uppercase tracking-[0.15em] text-[10px] shadow-lg shadow-charcoal/25 hover:bg-terracotta active:scale-[0.97] transition-all"
             >
               Avvia Navigazione
               <span className="text-xs">→</span>
             </a>
           )}
-
-          {/* Remaining stops — inline, minimal */}
-          {optimizedRoute && optimizedRoute.orderedStopIds.length > 1 && (
-            <div className="flex items-center gap-1.5 mt-2.5">
-              <div className="flex -space-x-1">
-                {optimizedRoute.orderedStopIds.slice(1, 4).map((_, i) => (
-                  <div
-                    key={i}
-                    className="w-5 h-5 rounded-full bg-charcoal/8 border border-white flex items-center justify-center text-[7px] font-bold text-charcoal/40"
-                  >
-                    {i + 2}
-                  </div>
-                ))}
-              </div>
-              <p className="text-[8px] font-brand font-bold uppercase tracking-widest text-charcoal/35">
-                +{optimizedRoute.orderedStopIds.length - 1}{" "}
-                {optimizedRoute.orderedStopIds.length - 1 === 1
-                  ? "consegna"
-                  : "consegne"}
-              </p>
-            </div>
-          )}
         </div>
       ) : (
-        /* Empty state — compact */
-        <div className="px-4 py-5 text-center">
+        <div className="px-4 py-3 text-center">
           <p className="text-[9px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/40">
             🗺️ Nessun ordine delivery attivo
           </p>

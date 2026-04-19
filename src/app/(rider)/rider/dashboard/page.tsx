@@ -169,7 +169,7 @@ export default function RiderDashboard() {
           aria-label="Scansiona QR code"
         >
           <span className="absolute inset-0 rounded-[999px] bg-terracotta/30 animate-ping opacity-30 pointer-events-none" />
-          <svg className="w-4.5 h-4.5 relative z-10" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <svg className="w-5 h-5 relative z-10" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3z" />
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 15h2v2h-2zM19 15h2v2h-2zM15 19h2v2h-2zM19 19h2v2h-2z" />
           </svg>
