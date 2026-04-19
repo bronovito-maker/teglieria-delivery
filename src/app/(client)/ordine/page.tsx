@@ -76,6 +76,10 @@ export default function OrdinePage() {
         if (r.closed || r.slots?.length === 0) closed.add(checks[i]);
       });
       setClosedDays(closed);
+
+      // Auto-select first available day if the current selection has no slots
+      const firstOpen = checks.find((d) => !closed.has(d));
+      if (firstOpen) setSelectedDate(firstOpen);
     }
     checkDays();
   }, []);
@@ -171,7 +175,14 @@ export default function OrdinePage() {
         }),
       });
 
-      if (!res.ok) throw new Error("Errore nell'invio dell'ordine");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (String(data?.detail).includes("STALE_CART")) {
+          clearCart();
+          throw new Error("Il carrello conteneva prodotti non più disponibili. Svuotato automaticamente — torna al menu e riordina.");
+        }
+        throw new Error("Errore nell'invio dell'ordine. Riprova.");
+      }
 
       const order = await res.json();
       clearCart();

@@ -59,9 +59,12 @@ export async function GET(request: Request) {
   }
 
   // 5. Filter past slots for today (+ 30 min buffer)
-  const isToday = dateStr === new Date().toISOString().split("T")[0];
-  const now = new Date();
-  const nowMinutes = now.getHours() * 60 + now.getMinutes() + 30;
+  // Use Italian timezone to avoid UTC offset issues on the server
+  const nowItaly = new Date().toLocaleString("en-CA", { timeZone: "Europe/Rome", hour12: false }).replace(",", "");
+  const todayItaly = nowItaly.split(" ")[0]; // "YYYY-MM-DD"
+  const isToday = dateStr === todayItaly;
+  const [italyH, italyM] = nowItaly.split(" ")[1].split(":").map(Number);
+  const nowMinutes = italyH * 60 + italyM + 30;
 
   const filteredSlots = isToday
     ? baseSlots.filter((t) => {

@@ -72,53 +72,74 @@ export async function POST(request: Request) {
     // Sessione non disponibile — procedi come guest
   }
 
-  const order = await prisma.$transaction(async (tx) => {
-    const count = await tx.order.count({ where: { type: body.type } });
-    const orderCode = generateOrderCode(body.type, count);
+  let order;
+  try {
+    order = await prisma.$transaction(async (tx) => {
+      const count = await tx.order.count({ where: { type: body.type } });
+      const orderCode = generateOrderCode(body.type, count);
 
-    return tx.order.create({
-      data: {
-        orderCode,
-        authUserId,
-        type: body.type,
-      channel: body.channel || "WEB",
-      customerName: body.customerName,
-      customerPhone: body.customerPhone,
-      customerEmail: body.customerEmail || null,
-      address: body.address,
-      addressDetail: body.addressDetail,
-      deliveryZone: body.deliveryZone,
-      deliveryKm: body.deliveryKm,
-      deliveryCost: body.deliveryCost,
-      pickupTime: body.pickupTime ? new Date(body.pickupTime) : null,
-      timeSlot: body.timeSlot,
-      estimatedTime: body.estimatedTime ? new Date(body.estimatedTime) : null,
-      subtotal: body.subtotal,
-      total: body.total,
-      notes: body.notes,
-      paymentMethod: body.paymentMethod || "CONTANTI",
-      items: {
-        createMany: {
-          data: body.items.map((item: any) => ({
-            productId: item.productId,
-            productName: item.productName,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            totalPrice: item.totalPrice,
-            variant: item.variant,
-            additions: item.additions,
-            removals: item.removals,
-            notes: item.notes,
-          })),
+      // Validate product IDs exist to avoid FK violations (cart may have stale IDs after DB reset)
+      const productIds: string[] = body.items.map((i: any) => i.productId).filter(Boolean);
+      const existingProducts = await tx.product.findMany({
+        where: { id: { in: productIds } },
+        select: { id: true },
+      });
+      const validIds = new Set(existingProducts.map((p) => p.id));
+      const stale = productIds.filter((id) => !validIds.has(id));
+      if (stale.length > 0) {
+        throw new Error("STALE_CART");
+      }
+
+      return tx.order.create({
+        data: {
+          orderCode,
+          authUserId,
+          type: body.type,
+          channel: body.channel || "WEB",
+          customerName: body.customerName,
+          customerPhone: body.customerPhone,
+          customerEmail: body.customerEmail || null,
+          address: body.address,
+          addressDetail: body.addressDetail,
+          deliveryZone: body.deliveryZone,
+          deliveryKm: body.deliveryKm,
+          deliveryCost: body.deliveryCost,
+          pickupTime: body.pickupTime ? new Date(body.pickupTime) : null,
+          timeSlot: body.timeSlot,
+          estimatedTime: body.estimatedTime ? new Date(body.estimatedTime) : null,
+          subtotal: body.subtotal,
+          total: body.total,
+          notes: body.notes,
+          paymentMethod: body.paymentMethod || "CONTANTI",
+          items: {
+            createMany: {
+              data: body.items.map((item: any) => ({
+                productId: item.productId,
+                productName: item.productName,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                totalPrice: item.totalPrice,
+                variant: item.variant,
+                additions: item.additions,
+                removals: item.removals,
+                notes: item.notes,
+              })),
+            },
+          },
+          statusHistory: {
+            create: { status: "RECEIVED" },
+          },
         },
-      },
-      statusHistory: {
-        create: { status: "RECEIVED" },
-      },
-    },
-    include: { items: true },
-  });
-  }); // end $transaction
+        include: { items: true },
+      });
+    }); // end $transaction
+  } catch (err) {
+    console.error("[ORDINI POST]", err);
+    return NextResponse.json(
+      { error: "Errore nella creazione dell'ordine", detail: String(err) },
+      { status: 500 }
+    );
+  }
 
   if (order.customerEmail) {
     // Genera magic link solo per ordini guest (loggati hanno già l'account)
