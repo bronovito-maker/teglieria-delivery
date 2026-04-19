@@ -58,31 +58,31 @@ export default function MobileTopBar() {
             ))}
           </nav>
 
-          {/* Desktop account link */}
-          {isCustomer === true && (
+          {/* Desktop right group */}
+          <div className="hidden md:flex items-center gap-5">
+            {isCustomer === true && (
+              <Link
+                href="/account/orders"
+                className="text-sm font-semibold text-charcoal/50 hover:text-charcoal transition-colors"
+              >
+                I miei ordini
+              </Link>
+            )}
+            {isCustomer === false && (
+              <Link
+                href="/accedi"
+                className="text-sm font-semibold text-charcoal/50 hover:text-charcoal transition-colors"
+              >
+                Accedi
+              </Link>
+            )}
             <Link
-              href="/account/orders"
-              className="hidden md:flex items-center px-4 py-2 rounded-full text-sm font-semibold text-charcoal/70 border border-charcoal/15 hover:border-charcoal/30 transition-colors"
+              href="/menu?type=DELIVERY"
+              className="flex items-center px-6 py-2 rounded-full text-xl leading-none font-display text-white bg-terracotta hover:bg-terracotta/90 transition-colors"
             >
-              I miei ordini
+              Ordina ora
             </Link>
-          )}
-          {isCustomer === false && (
-            <Link
-              href="/accedi"
-              className="hidden md:flex items-center px-4 py-2 rounded-full text-sm font-semibold text-charcoal/70 border border-charcoal/15 hover:border-charcoal/30 transition-colors"
-            >
-              Accedi
-            </Link>
-          )}
-
-          {/* Desktop CTA */}
-          <Link
-            href="/menu?type=DELIVERY"
-            className="hidden md:flex items-center px-6 py-2 rounded-full text-xl leading-none font-display text-white bg-terracotta hover:bg-terracotta/90 transition-colors"
-          >
-            Ordina ora
-          </Link>
+          </div>
 
           {/* Mobile hamburger */}
           <button

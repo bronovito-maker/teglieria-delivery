@@ -266,8 +266,12 @@ export default function OrdinePage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-green-700">{loggedUser.name}</p>
-                  <p className="text-xs text-green-600/70">Dati compilati automaticamente</p>
+                  <p className="text-xs font-bold text-green-700">{loggedUser.email}</p>
+                  <p className="text-xs text-green-600/70">
+                    {customerName || customerPhone
+                      ? "Dati compilati automaticamente"
+                      : "Sei loggato — completa i dati per il prossimo ordine li ricorderemo"}
+                  </p>
                 </div>
               </div>
             ) : (

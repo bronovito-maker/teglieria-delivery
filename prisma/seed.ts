@@ -108,6 +108,35 @@ async function main() {
     data: { name: "Tiramisù", price: 4.0, categoryId: dolci.id },
   });
 
+  // Orari — tutti i giorni aperti a cena (default operativo)
+  const schedule = [
+    { dayOfWeek: 0, label: "Domenica" },
+    { dayOfWeek: 1, label: "Lunedì" },
+    { dayOfWeek: 2, label: "Martedì" },
+    { dayOfWeek: 3, label: "Mercoledì" },
+    { dayOfWeek: 4, label: "Giovedì" },
+    { dayOfWeek: 5, label: "Venerdì" },
+    { dayOfWeek: 6, label: "Sabato" },
+  ];
+  await Promise.all(
+    schedule.map((day) =>
+      prisma.daySchedule.upsert({
+        where: { dayOfWeek: day.dayOfWeek },
+        create: {
+          dayOfWeek: day.dayOfWeek,
+          isOpen: true,
+          lunchActive: false,
+          lunchStart: "12:00",
+          lunchEnd: "14:30",
+          dinnerActive: true,
+          dinnerStart: "18:30",
+          dinnerEnd: "22:00",
+        },
+        update: {},  // non sovrascrive se già configurato
+      })
+    )
+  );
+
   // Delivery zones
   await prisma.deliveryZone.createMany({
     data: [
