@@ -114,6 +114,21 @@ export default function StatoOrdinePage() {
         </>
       )}
 
+      {/* Orario stimato */}
+      {order.estimatedTime && order.status !== "CANCELLED" && order.status !== "DELIVERED" && (
+        <div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] border border-charcoal/5 p-8 mb-8 shadow-sm text-center">
+          <p className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-charcoal/30 mb-2">
+            {order.type === "DELIVERY" ? "Consegna prevista" : "Pronto per il ritiro"}
+          </p>
+          <p className="text-6xl font-brand font-bold text-charcoal tabular-nums leading-none">
+            {formatTime(order.estimatedTime)}
+          </p>
+          <p className="text-[10px] font-body italic text-charcoal/30 mt-3">
+            Orario aggiornato in tempo reale
+          </p>
+        </div>
+      )}
+
       {/* Dettagli ordine */}
       <div className="bg-white/50 backdrop-blur-md rounded-[2.5rem] border border-charcoal/5 p-8 space-y-8 shadow-sm">
         <header className="flex items-center justify-between border-b border-charcoal/5 pb-6">

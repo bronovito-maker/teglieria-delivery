@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { notifyCustomerOrderStatus } from "@/lib/customer-notifications";
-import { sendRiderDepartedEmail, sendTimeUpdateEmail } from "@/lib/email";
+import { sendRiderDepartedEmail, sendTimeUpdateEmail, sendOrderConfirmedEmail } from "@/lib/email";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 import { writeAuditLog } from "@/lib/audit";
@@ -72,6 +72,17 @@ export async function PATCH(
       actualTime: order.actualTime,
       rider: order.rider,
     });
+
+    if (body.status === "CONFIRMED" && order.customerEmail) {
+      sendOrderConfirmedEmail({
+        customerEmail: order.customerEmail,
+        customerName: order.customerName,
+        orderNumber: order.orderNumber,
+        type: order.type,
+        estimatedTime: order.estimatedTime,
+        address: order.address,
+      }).catch((err) => console.error("[EMAIL] Ordine confermato fallita:", err));
+    }
 
     if (body.status === "OUT" && order.customerEmail) {
       sendRiderDepartedEmail({

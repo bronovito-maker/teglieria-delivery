@@ -229,7 +229,80 @@ export async function sendRiderInviteEmail({ email, name, registerUrl }: RiderIn
   }
 }
 
-// ─── EMAIL 4: Aggiornamento orario ──────────────────────────────────────────
+// ─── EMAIL 4: Ordine confermato dall'admin ───────────────────────────────────
+
+type OrderConfirmedInput = {
+  customerEmail: string;
+  customerName: string;
+  orderNumber: number;
+  type: string;
+  estimatedTime?: Date | string | null;
+  address?: string | null;
+};
+
+export async function sendOrderConfirmedEmail(order: OrderConfirmedInput): Promise<void> {
+  const client = getClient();
+  if (!client) {
+    console.info("[EMAIL][SKIPPED] BREVO_API_KEY non configurata");
+    return;
+  }
+
+  const isDelivery = order.type === "DELIVERY";
+  const timeLabel = formatTime(order.estimatedTime);
+
+  const content = `
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">Ordine Accettato</p>
+    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Stiamo preparando la tua teglia! 🍕</h1>
+    <p style="margin:0 0 24px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">
+      Il tuo ordine è stato accettato dal nostro staff ed è ora in preparazione.
+    </p>
+
+    <div style="background:#f5f0e8;border-radius:16px;padding:16px 20px;margin-bottom:24px;text-align:center;">
+      <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Numero Ordine</p>
+      <p style="margin:6px 0 0;font-size:32px;font-weight:700;color:#e66a26;">#${order.orderNumber}</p>
+    </div>
+
+    ${timeLabel ? `
+    <div style="background:#f5f0e8;border-radius:16px;padding:20px;margin-bottom:24px;text-align:center;">
+      <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">
+        ${isDelivery ? "Consegna prevista" : "Pronto per il ritiro"}
+      </p>
+      <p style="margin:0;font-size:48px;font-weight:700;color:#1d1d1f;line-height:1;">${timeLabel}</p>
+    </div>
+    ` : ""}
+
+    <div style="background:#f5f0e8;border-radius:16px;padding:20px;margin-bottom:24px;">
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="padding:5px 0;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;width:40%;">Tipo</td>
+          <td style="padding:5px 0;font-size:13px;font-weight:600;color:#1d1d1f;">${isDelivery ? "Consegna a domicilio" : "Ritiro in sede"}</td>
+        </tr>
+        ${isDelivery && order.address ? `
+        <tr>
+          <td style="padding:5px 0;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Indirizzo</td>
+          <td style="padding:5px 0;font-size:13px;font-weight:600;color:#1d1d1f;">${order.address}</td>
+        </tr>` : ""}
+      </table>
+    </div>
+
+    <p style="margin:0;font-size:13px;color:#1d1d1f;opacity:0.5;text-align:center;line-height:1.6;">
+      Ti avviseremo non appena il tuo ordine sarà in consegna. 🛵
+    </p>
+  `;
+
+  try {
+    await client.transactionalEmails.sendTransacEmail({
+      sender: { name: FROM_NAME, email: FROM_EMAIL },
+      to: [{ email: order.customerEmail, name: order.customerName }],
+      subject: `✅ Ordine #${order.orderNumber} confermato — La Teglieria`,
+      htmlContent: emailWrapper(content),
+    });
+  } catch (err) {
+    console.error("[EMAIL][ERROR] Ordine confermato:", err);
+  }
+}
+
+// ─── EMAIL 5: Aggiornamento orario ──────────────────────────────────────────
 
 type TimeUpdateInput = {
   customerEmail: string;
