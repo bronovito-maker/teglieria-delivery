@@ -66,40 +66,40 @@ export default function OrdiniPage() {
         </div>
       </div>
 
-      <div className="hidden md:block bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-charcoal/5 shadow-2xl overflow-hidden reveal active">
-        <table className="w-full border-collapse">
+      <div className="hidden md:block bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-charcoal/5 shadow-2xl overflow-x-auto reveal active">
+        <table className="w-full border-collapse min-w-[640px]">
           <thead>
             <tr className="border-b border-charcoal/5">
-              <th className="px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40">Id</th>
-              <th className="px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40">Timestamp</th>
-              <th className="px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40">Cliente</th>
-              <th className="px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40">Canale</th>
-              <th className="px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40">Valore</th>
-              <th className="px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40 text-center">Status</th>
-              <th className="px-8 py-6"></th>
+              <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40">Id</th>
+              <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40">Ora</th>
+              <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40">Cliente</th>
+              <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40">Canale</th>
+              <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40">Valore</th>
+              <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40 text-center">Status</th>
+              <th className="px-4 lg:px-8 py-6"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-charcoal/5">
             {orders.map((o) => (
               <tr key={o.id} className="group hover:bg-warm-light/50 transition-colors">
-                <td className="px-8 py-6 font-brand font-bold text-lg text-charcoal">#{formatOrderCode(o)}</td>
-                <td className="px-8 py-6 font-body italic text-xs text-charcoal/40 group-hover:text-charcoal transition-colors">{formatTime(o.createdAt)}</td>
-                <td className="px-8 py-6 font-brand font-bold uppercase tracking-widest text-[11px] text-charcoal">{o.customerName}</td>
-                <td className="px-8 py-6">
+                <td className="px-4 lg:px-8 py-5 font-brand font-bold text-lg text-charcoal">#{formatOrderCode(o)}</td>
+                <td className="px-4 lg:px-8 py-5 font-body italic text-xs text-charcoal/40 group-hover:text-charcoal transition-colors whitespace-nowrap">{formatTime(o.createdAt)}</td>
+                <td className="px-4 lg:px-8 py-5 font-brand font-bold uppercase tracking-widest text-[11px] text-charcoal">{o.customerName}</td>
+                <td className="px-4 lg:px-8 py-5">
                    <span className="font-body italic text-xs text-charcoal/60">{ORDER_TYPE_LABELS[o.type]}</span>
                    <p className="text-[9px] uppercase font-brand font-bold tracking-widest text-charcoal/20 mt-0.5">{ORDER_CHANNEL_LABELS[o.channel]}</p>
                 </td>
-                <td className="px-8 py-6 font-brand font-bold text-charcoal">{formatCurrency(Number(o.total))}</td>
-                <td className="px-8 py-6 text-center">
-                  <span className={`inline-block px-4 py-1.5 rounded-full text-[9px] font-brand font-bold uppercase tracking-widest border shadow-sm transition-all duration-500 ${
+                <td className="px-4 lg:px-8 py-5 font-brand font-bold text-charcoal whitespace-nowrap">{formatCurrency(Number(o.total))}</td>
+                <td className="px-4 lg:px-8 py-5 text-center">
+                  <span className={`inline-block px-3 py-1.5 rounded-full text-[9px] font-brand font-bold uppercase tracking-widest border shadow-sm transition-all duration-500 ${
                     ORDER_STATUS_COLORS[o.status] || "bg-charcoal/5 text-charcoal/40 border-charcoal/10"
                   }`}>
                     {ORDER_STATUS_LABELS[o.status] || o.status}
                   </span>
                 </td>
-                <td className="px-8 py-6 text-right">
-                  <Link href={`/admin/ordini/${o.id}`} 
-                    className="inline-flex items-center gap-2 font-brand font-bold uppercase tracking-widest text-[9px] text-terracotta hover:text-charcoal transition-colors px-4 py-2 bg-terracotta/5 rounded-full group-hover:bg-white group-hover:shadow-sm">
+                <td className="px-4 lg:px-8 py-5 text-right">
+                  <Link href={`/admin/ordini/${o.id}`}
+                    className="inline-flex items-center gap-2 font-brand font-bold uppercase tracking-widest text-[9px] text-terracotta hover:text-charcoal transition-colors px-4 py-2 bg-terracotta/5 rounded-full group-hover:bg-white group-hover:shadow-sm whitespace-nowrap">
                     Dettagli
                     <span>→</span>
                   </Link>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ORDER_STATUS_LABELS, ORDER_STATUS_TRANSITIONS } from "@/lib/constants";
+import { ORDER_STATUS_LABELS, getStatusTransitions } from "@/lib/constants";
 import { cn, formatCurrency, formatTime, formatOrderCode } from "@/lib/utils";
 import type { OrderWithItems } from "@/types";
 
@@ -369,8 +369,8 @@ export default function DashboardPage() {
                               ✓
                             </button>
                           ) : (
-                            ORDER_STATUS_TRANSITIONS[status]
-                              ?.filter((nextStatus) => nextStatus !== "CANCELLED")
+                            getStatusTransitions(order.type, status)
+                              .filter((nextStatus) => nextStatus !== "CANCELLED")
                               .map((nextStatus) => (
                               <button
                                 key={nextStatus}

@@ -185,9 +185,16 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(rider, { status: 201 });
-  } catch {
+  } catch (err: unknown) {
+    console.error("[RIDERS][POST] Errore creazione rider:", err);
+    const isUniqueViolation =
+      err instanceof Error && err.message.includes("Unique constraint");
     return NextResponse.json(
-      { error: "Impossibile creare il rider (email già in uso o dati non validi)" },
+      {
+        error: isUniqueViolation
+          ? "Esiste già un rider con questa email."
+          : "Impossibile creare il rider (dati non validi).",
+      },
       { status: 400 }
     );
   }

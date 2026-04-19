@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, ORDER_STATUS_TRANSITIONS } from "@/lib/constants";
+import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, getStatusTransitions } from "@/lib/constants";
 import { formatCurrency, formatDateTime, formatTime, formatOrderCode } from "@/lib/utils";
 import type { OrderWithItems } from "@/types";
 
@@ -33,7 +33,12 @@ export default function OrderDetailPage() {
   
   async function adjustTime(minutes: number) {
     if (!order) return;
-    const baseDate = order.estimatedTime ? new Date(order.estimatedTime) : new Date(order.createdAt);
+    // Priority: estimatedTime → pickupTime (requested slot) → now
+    const baseDate = order.estimatedTime
+      ? new Date(order.estimatedTime)
+      : order.pickupTime
+      ? new Date(order.pickupTime)
+      : new Date();
     const newDate = new Date(baseDate.getTime() + minutes * 60000);
     
     await fetch(`/api/ordini/${id}`, {
@@ -82,7 +87,7 @@ export default function OrderDetailPage() {
 
   if (!order) return <p className="text-gray-400">Caricamento...</p>;
 
-  const nextStatuses = ORDER_STATUS_TRANSITIONS[order.status] || [];
+  const nextStatuses = getStatusTransitions(order.type, order.status);
 
   return (
     <div className="max-w-2xl">

@@ -380,6 +380,9 @@ export default function LogisticaPage() {
       setNewRiderVehicle("SCOOTER");
       setNewRiderZone("");
       fetchData();
+    } else {
+      const data = await res.json().catch(() => ({}));
+      window.alert(data.error ?? "Errore durante la creazione del rider.");
     }
 
     setSavingRider(false);

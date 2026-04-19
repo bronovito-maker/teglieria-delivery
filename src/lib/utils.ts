@@ -27,6 +27,7 @@ export function formatTime(date: Date | string): string {
   return new Intl.DateTimeFormat("it-IT", {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Europe/Rome",
   }).format(d);
 }
 

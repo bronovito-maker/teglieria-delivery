@@ -135,7 +135,7 @@ export default function LandingPage() {
       <section
         id="ordina"
         ref={heroRef}
-        className="scroll-mt-24 relative flex flex-col items-center h-[calc(100dvh-6rem)] md:h-[calc(100dvh-4rem)] overflow-hidden px-6 md:px-12 lg:px-20"
+        className="scroll-mt-24 relative flex flex-col items-center min-h-[calc(100vh-6rem)] md:min-h-[calc(100vh-4rem)] px-6 md:px-12 lg:px-20"
         style={{
           backgroundImage: "radial-gradient(rgba(0,0,0,0.018) 1px, transparent 1px)",
           backgroundSize: "20px 20px",
@@ -144,7 +144,7 @@ export default function LandingPage() {
         <FloatingIngredients />
 
         {/* Ambient gradients */}
-        <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 -z-10 overflow-hidden">
           <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-terracotta/20 rounded-full blur-[120px] opacity-20 animate-pulse" />
           <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-marigold/20 rounded-full blur-[120px] opacity-20 animate-pulse" />
         </div>

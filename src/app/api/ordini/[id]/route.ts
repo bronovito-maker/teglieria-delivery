@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { notifyCustomerOrderStatus } from "@/lib/customer-notifications";
-import { sendRiderDepartedEmail, sendTimeUpdateEmail, sendOrderConfirmedEmail } from "@/lib/email";
+import { sendRiderDepartedEmail, sendTimeUpdateEmail, sendOrderConfirmedEmail, sendOrderReadyEmail, sendOrderDeliveredEmail } from "@/lib/email";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 import { writeAuditLog } from "@/lib/audit";
@@ -84,6 +84,17 @@ export async function PATCH(
       }).catch((err) => console.error("[EMAIL] Ordine confermato fallita:", err));
     }
 
+    // READY: per ASPORTO manda "vieni a ritirare", per DELIVERY non serve (l'utente aspetta il rider)
+    if (body.status === "READY" && order.type === "ASPORTO" && order.customerEmail) {
+      sendOrderReadyEmail({
+        customerEmail: order.customerEmail,
+        customerName: order.customerName,
+        orderNumber: order.orderNumber,
+        estimatedTime: order.estimatedTime,
+      }).catch((err) => console.error("[EMAIL] Ordine pronto fallita:", err));
+    }
+
+    // OUT: solo DELIVERY
     if (body.status === "OUT" && order.customerEmail) {
       sendRiderDepartedEmail({
         customerEmail: order.customerEmail,
@@ -93,6 +104,16 @@ export async function PATCH(
         estimatedTime: order.estimatedTime,
         address: order.address,
       }).catch((err) => console.error("[EMAIL] Rider partito fallita:", err));
+    }
+
+    // DELIVERED: email di completamento per tutti
+    if (body.status === "DELIVERED" && order.customerEmail) {
+      sendOrderDeliveredEmail({
+        customerEmail: order.customerEmail,
+        customerName: order.customerName,
+        orderNumber: order.orderNumber,
+        type: order.type,
+      }).catch((err) => console.error("[EMAIL] Ordine completato fallita:", err));
     }
   }
 

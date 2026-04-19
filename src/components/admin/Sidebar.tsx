@@ -31,7 +31,7 @@ export default function Sidebar() {
 
   return (
     <>
-      <header className="md:hidden fixed top-0 inset-x-0 z-[80] bg-charcoal border-b border-white/5 text-white">
+      <header className="sm:hidden fixed top-0 inset-x-0 z-[80] bg-charcoal border-b border-white/5 text-white">
         <div className="px-6 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-logo text-white">La Teglieria</h1>
@@ -83,7 +83,7 @@ export default function Sidebar() {
         </nav>
       </header>
 
-      <aside className="md:w-16 lg:w-64 xl:w-72 bg-charcoal border-r border-white/5 h-screen flex-col hidden md:flex shadow-2xl relative z-50 transition-all duration-300 shrink-0">
+      <aside className="sm:w-14 md:w-16 lg:w-64 xl:w-72 bg-charcoal border-r border-white/5 h-[100dvh] flex-col hidden sm:flex shadow-2xl relative z-50 transition-all duration-300 shrink-0">
         <div className="p-3 lg:p-6 xl:p-8 mb-2 lg:mb-6 flex items-center justify-center lg:block">
           <span className="text-2xl lg:hidden">🍕</span>
           <div className="hidden lg:block">
@@ -92,20 +92,20 @@ export default function Sidebar() {
           </div>
         </div>
 
-        <nav className="flex-1 px-2 lg:px-3 space-y-1">
+        <nav className="flex-1 px-1 sm:px-2 lg:px-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               title={item.label}
               className={cn(
-                "flex items-center justify-center lg:justify-start gap-3 px-2 lg:px-4 py-3.5 rounded-2xl text-[11px] font-brand font-bold uppercase tracking-[0.15em] transition-all group min-h-[44px]",
+                "flex items-center justify-center lg:justify-start gap-3 px-2 lg:px-4 py-3 lg:py-3.5 rounded-2xl text-[11px] font-brand font-bold uppercase tracking-[0.15em] transition-all group min-h-[44px]",
                 pathname === item.href
                   ? "bg-terracotta text-white shadow-xl shadow-terracotta/20"
                   : "text-white/40 hover:text-white hover:bg-white/5"
               )}
             >
-              <span className={cn("text-xl lg:text-base shrink-0 transition-transform group-hover:scale-110", pathname === item.href ? "opacity-100" : "opacity-60")}>
+              <span className={cn("text-lg lg:text-base shrink-0 transition-transform group-hover:scale-110", pathname === item.href ? "opacity-100" : "opacity-60")}>
                 {item.icon}
               </span>
               <span className="hidden lg:block truncate">{item.label}</span>
@@ -113,13 +113,13 @@ export default function Sidebar() {
           ))}
         </nav>
 
-        <div className="p-2 lg:p-4 mt-auto border-t border-white/5">
+        <div className="p-1 sm:p-2 lg:p-4 mt-auto border-t border-white/5">
           <button
             onClick={handleLogout}
             title="Esci"
-            className="w-full flex items-center justify-center lg:justify-start gap-3 px-2 lg:px-4 py-3.5 rounded-2xl text-[11px] font-brand font-bold uppercase tracking-[0.2em] text-white/30 hover:text-white hover:bg-white/5 transition-all min-h-[44px]"
+            className="w-full flex items-center justify-center lg:justify-start gap-3 px-2 lg:px-4 py-3 rounded-2xl text-[11px] font-brand font-bold uppercase tracking-[0.2em] text-white/30 hover:text-white hover:bg-white/5 transition-all min-h-[44px]"
           >
-            <span className="text-xl lg:text-base opacity-30 shrink-0">🚪</span>
+            <span className="text-lg lg:text-base opacity-30 shrink-0">🚪</span>
             <span className="hidden lg:block">Esci</span>
           </button>
         </div>

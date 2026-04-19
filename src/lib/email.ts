@@ -17,7 +17,7 @@ function formatTime(date: Date | string | null | undefined): string | null {
   if (!date) return null;
   const d = new Date(date);
   if (isNaN(d.getTime())) return null;
-  return d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Rome" });
 }
 
 function emailWrapper(content: string): string {
@@ -289,7 +289,7 @@ export async function sendOrderConfirmedEmail(order: OrderConfirmedInput): Promi
     </div>
 
     <p style="margin:0;font-size:13px;color:#1d1d1f;opacity:0.5;text-align:center;line-height:1.6;">
-      Ti avviseremo non appena il tuo ordine sarà in consegna. 🛵
+      ${isDelivery ? "Ti avviseremo non appena il tuo ordine sarà in consegna. 🛵" : "Ti avviseremo non appena il tuo ordine sarà pronto per il ritiro. 🍕"}
     </p>
   `;
 
@@ -349,6 +349,105 @@ export async function sendTimeUpdateEmail(order: TimeUpdateInput): Promise<void>
     });
   } catch (err) {
     console.error("[EMAIL][ERROR] Time update:", err);
+  }
+}
+
+// ─── EMAIL 6: Ordine pronto per il ritiro (ASPORTO) ─────────────────────────
+
+type OrderReadyInput = {
+  customerEmail: string;
+  customerName: string;
+  orderNumber: number;
+  estimatedTime?: Date | string | null;
+};
+
+export async function sendOrderReadyEmail(order: OrderReadyInput): Promise<void> {
+  const client = getClient();
+  if (!client) return;
+
+  const timeLabel = formatTime(order.estimatedTime);
+
+  const content = `
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">Pronto per il ritiro</p>
+    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">La tua teglia è pronta! 🍕</h1>
+    <p style="margin:0 0 24px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">
+      Il tuo ordine è pronto e ti aspetta in sede. Vieni a ritirarlo quando vuoi!
+    </p>
+
+    <div style="background:#f5f0e8;border-radius:16px;padding:16px 20px;margin-bottom:24px;text-align:center;">
+      <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Ordine</p>
+      <p style="margin:6px 0 0;font-size:32px;font-weight:700;color:#e66a26;">#${order.orderNumber}</p>
+    </div>
+
+    ${timeLabel ? `
+    <div style="background:#f5f0e8;border-radius:16px;padding:20px;margin-bottom:24px;text-align:center;">
+      <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Disponibile dalle</p>
+      <p style="margin:0;font-size:48px;font-weight:700;color:#1d1d1f;line-height:1;">${timeLabel}</p>
+    </div>
+    ` : ""}
+
+    <p style="margin:0;font-size:13px;color:#1d1d1f;opacity:0.5;text-align:center;line-height:1.6;">
+      Ti aspettiamo! 🍕
+    </p>
+  `;
+
+  try {
+    await client.transactionalEmails.sendTransacEmail({
+      sender: { name: FROM_NAME, email: FROM_EMAIL },
+      to: [{ email: order.customerEmail, name: order.customerName }],
+      subject: `🍕 Il tuo ordine #${order.orderNumber} è pronto — vieni a ritirarlo!`,
+      htmlContent: emailWrapper(content),
+    });
+  } catch (err) {
+    console.error("[EMAIL][ERROR] Ordine pronto:", err);
+  }
+}
+
+// ─── EMAIL 7: Ordine completato/consegnato ───────────────────────────────────
+
+type OrderDeliveredInput = {
+  customerEmail: string;
+  customerName: string;
+  orderNumber: number;
+  type: string;
+};
+
+export async function sendOrderDeliveredEmail(order: OrderDeliveredInput): Promise<void> {
+  const client = getClient();
+  if (!client) return;
+
+  const isDelivery = order.type === "DELIVERY";
+
+  const content = `
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">Ordine Completato</p>
+    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">
+      ${isDelivery ? "Buon appetito! 🍕" : "Grazie per il ritiro! 🍕"}
+    </h1>
+    <p style="margin:0 0 24px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">
+      ${isDelivery
+        ? "Il tuo ordine è stato consegnato. Speriamo ti sia piaciuto!"
+        : "Il tuo ordine è stato ritirato. Speriamo ti sia piaciuto!"}
+    </p>
+
+    <div style="background:#f5f0e8;border-radius:16px;padding:16px 20px;margin-bottom:24px;text-align:center;">
+      <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Ordine</p>
+      <p style="margin:6px 0 0;font-size:32px;font-weight:700;color:#e66a26;">#${order.orderNumber}</p>
+    </div>
+
+    <p style="margin:0;font-size:13px;color:#1d1d1f;opacity:0.5;text-align:center;line-height:1.6;">
+      A presto da La Teglieria! 🍕
+    </p>
+  `;
+
+  try {
+    await client.transactionalEmails.sendTransacEmail({
+      sender: { name: FROM_NAME, email: FROM_EMAIL },
+      to: [{ email: order.customerEmail, name: order.customerName }],
+      subject: `✅ Ordine #${order.orderNumber} completato — grazie!`,
+      htmlContent: emailWrapper(content),
+    });
+  } catch (err) {
+    console.error("[EMAIL][ERROR] Ordine completato:", err);
   }
 }
 

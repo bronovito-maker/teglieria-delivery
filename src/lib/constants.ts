@@ -34,12 +34,25 @@ export const DELIVERY_STATUS_LABELS: Record<string, string> = {
   DELIVERED: "Consegnato",
 };
 
-// Valid next states for each order status
-export const ORDER_STATUS_TRANSITIONS: Record<string, string[]> = {
-  RECEIVED: ["CONFIRMED", "CANCELLED"],
-  CONFIRMED: ["READY", "CANCELLED"],
-  READY: ["OUT", "CANCELLED"],
-  OUT: ["DELIVERED"],
-  DELIVERED: [],
-  CANCELLED: [],
+// Valid next states per type. ASPORTO skips OUT (no rider dispatch).
+export const ORDER_STATUS_TRANSITIONS: Record<string, Record<string, string[]>> = {
+  DELIVERY: {
+    RECEIVED: ["CONFIRMED", "CANCELLED"],
+    CONFIRMED: ["READY", "CANCELLED"],
+    READY: ["OUT", "CANCELLED"],
+    OUT: ["DELIVERED"],
+    DELIVERED: [],
+    CANCELLED: [],
+  },
+  ASPORTO: {
+    RECEIVED: ["CONFIRMED", "CANCELLED"],
+    CONFIRMED: ["READY", "CANCELLED"],
+    READY: ["DELIVERED", "CANCELLED"],
+    DELIVERED: [],
+    CANCELLED: [],
+  },
 };
+
+export function getStatusTransitions(type: string, status: string): string[] {
+  return ORDER_STATUS_TRANSITIONS[type]?.[status] ?? ORDER_STATUS_TRANSITIONS.DELIVERY[status] ?? [];
+}
