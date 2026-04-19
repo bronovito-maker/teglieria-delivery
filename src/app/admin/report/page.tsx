@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils";
 
 type Report = {
@@ -26,12 +28,18 @@ type Report = {
 };
 
 export default function ReportPage() {
+  const router = useRouter();
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [report, setReport] = useState<Report | null>(null);
 
   useEffect(() => {
-    fetch(`/api/report?date=${date}`).then((r) => r.json()).then(setReport);
-  }, [date]);
+    fetch(`/api/report?date=${date}`)
+      .then((r) => {
+        if (r.status === 401) { toast.error("Sessione scaduta — effettua il login"); router.replace("/admin/login"); return null; }
+        return r.json();
+      })
+      .then((data) => { if (data && typeof data === "object" && "totalOrders" in data) setReport(data); });
+  }, [date, router]);
 
   if (!report) return <p className="text-gray-400">Caricamento...</p>;
 

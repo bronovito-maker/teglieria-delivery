@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, ORDER_TYPE_LABELS, ORDER_CHANNEL_LABELS } from "@/lib/constants";
 import { formatCurrency, formatTime, formatOrderCode } from "@/lib/utils";
 import type { OrderWithItems } from "@/types";
 
 export default function OrdiniPage() {
+  const router = useRouter();
   const [orders, setOrders] = useState<OrderWithItems[]>([]);
   const [dateFilter, setDateFilter] = useState(new Date().toISOString().split("T")[0]);
   const [statusFilter, setStatusFilter] = useState("");
@@ -17,8 +20,13 @@ export default function OrdiniPage() {
     if (dateFilter) params.set("date", dateFilter);
     if (statusFilter) params.set("status", statusFilter);
     if (typeFilter) params.set("type", typeFilter);
-    fetch(`/api/ordini?${params}`).then((r) => r.json()).then(setOrders);
-  }, [dateFilter, statusFilter, typeFilter]);
+    fetch(`/api/ordini?${params}`)
+      .then((r) => {
+        if (r.status === 401) { toast.error("Sessione scaduta — effettua il login"); router.replace("/admin/login"); return null; }
+        return r.json();
+      })
+      .then((data) => { if (Array.isArray(data)) setOrders(data); });
+  }, [dateFilter, statusFilter, typeFilter, router]);
 
   return (
     <div className="max-w-7xl animate-in fade-in duration-700">

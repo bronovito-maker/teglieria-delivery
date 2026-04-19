@@ -8,6 +8,7 @@ import { formatOrderCode } from "@/lib/utils";
 import dynamic from "next/dynamic";
 
 const QRScanner = dynamic(() => import("@/components/rider/QRScanner"), { ssr: false });
+const RiderMapPanel = dynamic(() => import("@/components/rider/RiderMapPanel"), { ssr: false });
 
 export default function RiderDashboard() {
   const router = useRouter();
@@ -15,6 +16,8 @@ export default function RiderDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
+  const [vehicle, setVehicle] = useState<"BIKE" | "SCOOTER" | "CAR" | null>(null);
+  const [showMap, setShowMap] = useState(true);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -25,6 +28,11 @@ export default function RiderDashboard() {
         router.push("/rider/login");
       } else {
         await fetchRiderOrders();
+        // Fetch rider profile for vehicle type (used by map)
+        fetch("/api/rider/profile")
+          .then((r) => r.ok ? r.json() : null)
+          .then((data) => { if (data?.vehicle) setVehicle(data.vehicle); })
+          .catch(() => {});
         interval = setInterval(fetchRiderOrders, 10000);
       }
     }
@@ -62,14 +70,37 @@ export default function RiderDashboard() {
           <h1 className="text-3xl font-display tracking-tight text-charcoal">Le mie <span className="text-terracotta">Consegne.</span></h1>
           <p className="font-body italic text-charcoal/40 text-[10px] mt-1 uppercase tracking-widest">Pronto per il prossimo turno</p>
         </div>
-        <button
-          onClick={handleLogout}
-          className="group flex items-center gap-2 px-6 py-3 bg-charcoal text-white rounded-full font-brand font-bold uppercase tracking-widest text-[9px] shadow-lg shadow-charcoal/20 hover:bg-charcoal/80 transition-all duration-500"
-        >
-          Logout
-          <span className="group-hover:translate-x-1 transition-transform">→</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowMap((v) => !v)}
+            className={`flex items-center gap-1.5 px-4 py-3 rounded-full font-brand font-bold uppercase tracking-widest text-[9px] border transition-all duration-500 ${
+              showMap
+                ? "bg-terracotta text-white border-terracotta shadow-lg shadow-terracotta/20"
+                : "bg-white/60 text-charcoal/50 border-charcoal/10 hover:border-terracotta/30"
+            }`}
+            aria-label={showMap ? "Nascondi mappa" : "Mostra mappa"}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+            Mappa
+          </button>
+          <button
+            onClick={handleLogout}
+            className="group flex items-center gap-2 px-6 py-3 bg-charcoal text-white rounded-full font-brand font-bold uppercase tracking-widest text-[9px] shadow-lg shadow-charcoal/20 hover:bg-charcoal/80 transition-all duration-500"
+          >
+            Logout
+            <span className="group-hover:translate-x-1 transition-transform">→</span>
+          </button>
+        </div>
       </header>
+
+      {/* Map Panel */}
+      {showMap && orders.length > 0 && (
+        <div className="mb-6 reveal active">
+          <RiderMapPanel orders={orders} vehicle={vehicle} />
+        </div>
+      )}
 
       <div className="grid gap-6">
         {orders.length === 0 ? (
