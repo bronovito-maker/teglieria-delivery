@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRiderGeolocation, type GeoPosition } from "@/hooks/useRiderGeolocation";
 import {
   useRouteOptimization,
@@ -196,7 +196,6 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
   const [geocodedStops, setGeocodedStops] = useState<GeocodedStop[]>([]);
-  const [selectedStop, setSelectedStop] = useState<GeocodedStop | null>(null);
 
   // Hooks
   const { position: riderPosition, error: geoError } = useRiderGeolocation();
@@ -400,7 +399,6 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
                 buildInfoContent(code, order, statusLabel, eta)
               );
               infoWindowRef.current?.open({ map, anchor: marker });
-              setSelectedStop({ order, position: pos });
             });
 
             markersMapRef.current.set(order.id, {
@@ -530,8 +528,8 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
 
   if (mapError) {
     return (
-      <section className="bg-white/70 backdrop-blur-2xl rounded-[2.5rem] border border-charcoal/5 shadow-xl p-8">
-        <div className="rounded-2xl border border-terracotta/20 bg-terracotta/5 text-terracotta text-[11px] font-brand font-bold uppercase tracking-widest p-4 text-center">
+      <section className="bg-white/70 backdrop-blur-2xl rounded-[2rem] border border-charcoal/5 shadow-xl p-5">
+        <div className="rounded-xl border border-terracotta/20 bg-terracotta/5 text-terracotta text-[11px] font-brand font-bold uppercase tracking-widest p-3 text-center">
           {mapError}
         </div>
       </section>
@@ -539,38 +537,41 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
   }
 
   return (
-    <section className="bg-white/70 backdrop-blur-2xl rounded-[2.5rem] border border-charcoal/5 shadow-2xl overflow-hidden reveal active">
-      {/* Header */}
-      <div className="px-8 py-5 border-b border-charcoal/5 bg-warm-light/20 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h2 className="text-[9px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal">
-            Percorso Consegne
-          </h2>
-          {routeLoading && (
-            <span className="text-[8px] font-brand font-bold uppercase tracking-widest text-charcoal/30 animate-pulse">
-              Calcolo...
-            </span>
-          )}
-        </div>
-        {optimizedRoute && (
-          <span className="text-[9px] font-brand font-bold uppercase tracking-widest text-terracotta">
-            {formatDistance(optimizedRoute.totalDistanceMeters)} &middot;{" "}
-            {formatDuration(optimizedRoute.totalDurationSec)}
-          </span>
-        )}
-      </div>
-
-      {/* Map container */}
+    <section className="bg-white/70 backdrop-blur-2xl rounded-[2rem] border border-charcoal/5 shadow-2xl overflow-hidden reveal active">
+      {/* Map container — no header, route info overlaid */}
       <div className="relative">
         <div
           ref={containerRef}
-          className="h-[320px] md:h-[400px] w-full bg-warm-light/40"
+          className="h-[44svh] min-h-[220px] max-h-[360px] w-full bg-warm-light/40"
         />
 
-        {/* Geolocation error banner */}
+        {/* Route summary pill — overlaid top-right on map */}
+        {optimizedRoute && (
+          <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-sm shadow-md border border-charcoal/5">
+            {routeLoading ? (
+              <span className="text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/40 animate-pulse">
+                Calcolo...
+              </span>
+            ) : (
+              <span className="text-[9px] font-brand font-bold uppercase tracking-widest text-terracotta">
+                {formatDistance(optimizedRoute.totalDistanceMeters)} &middot;{" "}
+                {formatDuration(optimizedRoute.totalDurationSec)}
+              </span>
+            )}
+          </div>
+        )}
+        {!optimizedRoute && routeLoading && (
+          <div className="absolute top-2.5 right-2.5 z-10 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-sm shadow-md border border-charcoal/5">
+            <span className="text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/40 animate-pulse">
+              Calcolo percorso...
+            </span>
+          </div>
+        )}
+
+        {/* Geolocation error — compact inline pill */}
         {geoError && (
-          <div className="absolute top-3 left-3 right-3 z-10 rounded-xl bg-marigold/90 text-white text-[10px] font-brand font-bold uppercase tracking-widest px-4 py-2 text-center backdrop-blur-sm">
-            {geoError}
+          <div className="absolute top-2.5 left-2.5 z-10 rounded-full bg-marigold/90 text-white text-[8px] font-brand font-bold uppercase tracking-widest px-3 py-1.5 backdrop-blur-sm shadow-sm">
+            GPS non attivo
           </div>
         )}
 
@@ -584,34 +585,21 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
         )}
       </div>
 
-      {/* ── NextStopCard ── */}
+      {/* ── NextStopCard — compact, action-first ── */}
       {nextStop ? (
-        <div className="p-6 md:p-8 space-y-4">
-          <div className="flex items-start gap-4">
-            {/* Step indicator */}
-            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-terracotta text-white flex items-center justify-center font-brand font-bold text-sm shadow-lg shadow-terracotta/30">
+        <div className="px-4 pt-3 pb-4 md:px-6 md:pt-4 md:pb-5">
+          {/* Main row: step badge + info + call button */}
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 w-9 h-9 rounded-full bg-terracotta text-white flex items-center justify-center font-brand font-bold text-sm shadow-lg shadow-terracotta/30">
               1
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[9px] font-brand font-bold uppercase tracking-[0.3em] text-terracotta mb-1">
-                Prossima Consegna
-              </p>
-              <p className="font-brand font-bold text-lg text-charcoal truncate">
-                {nextStop.order.customerName}
-              </p>
-              <p className="text-xs text-charcoal/50 font-body italic truncate mt-0.5">
-                {nextStop.order.address}
-              </p>
-              {/* ETA + distance pill */}
-              <div className="flex items-center gap-3 mt-2">
-                {nextLeg && (
-                  <span className="text-[10px] font-brand font-bold text-charcoal/60">
-                    {formatDistance(nextLeg.distanceMeters)} &middot;{" "}
-                    {formatDuration(nextLeg.durationSec)}
-                  </span>
-                )}
+              <div className="flex items-center gap-2">
+                <p className="font-brand font-bold text-base text-charcoal truncate">
+                  {nextStop.order.customerName}
+                </p>
                 {nextStop.order.estimatedTime && (
-                  <span className="text-[10px] font-brand font-bold text-terracotta">
+                  <span className="flex-shrink-0 text-[9px] font-brand font-bold text-terracotta">
                     ⏱{" "}
                     {new Date(nextStop.order.estimatedTime).toLocaleTimeString(
                       "it-IT",
@@ -620,125 +608,76 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
                   </span>
                 )}
               </div>
-              {nextStop.order.notes && (
-                <p className="text-[10px] text-marigold font-brand font-bold mt-2 truncate">
-                  📝 {nextStop.order.notes}
-                </p>
-              )}
+              <p className="text-[11px] text-charcoal/50 font-body italic truncate">
+                {nextStop.order.address}
+              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                {nextLeg && (
+                  <span className="text-[9px] font-brand font-bold text-charcoal/50">
+                    {formatDistance(nextLeg.distanceMeters)} &middot;{" "}
+                    {formatDuration(nextLeg.durationSec)}
+                  </span>
+                )}
+                {nextStop.order.notes && (
+                  <span className="text-[9px] text-marigold font-brand font-bold truncate">
+                    📝 {nextStop.order.notes}
+                  </span>
+                )}
+              </div>
             </div>
+            {/* Quick call button */}
+            {nextStop.order.customerPhone && (
+              <a
+                href={`tel:${nextStop.order.customerPhone}`}
+                className="flex-shrink-0 w-9 h-9 rounded-full bg-charcoal/5 flex items-center justify-center active:scale-90 transition-transform"
+                aria-label="Chiama cliente"
+              >
+                <span className="text-sm">📞</span>
+              </a>
+            )}
           </div>
 
-          {/* Avvia navigazione */}
+          {/* Avvia navigazione — prominent, full width */}
           {navLink && (
             <a
               href={navLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="block w-full text-center py-5 bg-charcoal text-white rounded-full font-brand font-bold uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-charcoal/30 hover:bg-terracotta active:scale-95 transition-all"
+              className="mt-3 flex items-center justify-center gap-2 w-full py-4 bg-charcoal text-white rounded-full font-brand font-bold uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-charcoal/30 hover:bg-terracotta active:scale-[0.97] transition-all"
             >
-              Avvia Navigazione →
+              Avvia Navigazione
+              <span className="text-xs">→</span>
             </a>
           )}
 
-          {/* Remaining stops summary */}
+          {/* Remaining stops — inline, minimal */}
           {optimizedRoute && optimizedRoute.orderedStopIds.length > 1 && (
-            <div className="flex items-center gap-2 pt-2">
-              <div className="flex -space-x-1.5">
+            <div className="flex items-center gap-1.5 mt-2.5">
+              <div className="flex -space-x-1">
                 {optimizedRoute.orderedStopIds.slice(1, 4).map((_, i) => (
                   <div
                     key={i}
-                    className="w-6 h-6 rounded-full bg-charcoal/10 border-2 border-white flex items-center justify-center text-[8px] font-bold text-charcoal/50"
+                    className="w-5 h-5 rounded-full bg-charcoal/8 border border-white flex items-center justify-center text-[7px] font-bold text-charcoal/40"
                   >
                     {i + 2}
                   </div>
                 ))}
               </div>
-              <p className="text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/40">
-                +{optimizedRoute.orderedStopIds.length - 1} consegn
-                {optimizedRoute.orderedStopIds.length - 1 === 1 ? "a" : "e"}{" "}
-                dopo
+              <p className="text-[8px] font-brand font-bold uppercase tracking-widest text-charcoal/35">
+                +{optimizedRoute.orderedStopIds.length - 1}{" "}
+                {optimizedRoute.orderedStopIds.length - 1 === 1
+                  ? "consegna"
+                  : "consegne"}
               </p>
             </div>
           )}
         </div>
       ) : (
-        /* Empty state */
-        <div className="p-8 text-center">
-          <div className="w-12 h-12 bg-warm-light rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-xl">🗺️</span>
-          </div>
-          <p className="text-[10px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/40">
-            Nessun ordine delivery attivo
+        /* Empty state — compact */
+        <div className="px-4 py-5 text-center">
+          <p className="text-[9px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/40">
+            🗺️ Nessun ordine delivery attivo
           </p>
-          <p className="text-[10px] font-body italic text-charcoal/30 mt-1">
-            La mappa mostrerà il percorso quando avrai consegne assegnate.
-          </p>
-        </div>
-      )}
-
-      {/* ── InfoWindow for selected order details ── */}
-      {selectedStop && (
-        <div className="px-6 pb-6 md:px-8 md:pb-8">
-          <div className="rounded-2xl border border-charcoal/5 bg-warm-light/30 p-5">
-            <div className="flex items-center justify-between mb-2">
-              <p className="font-brand font-bold text-sm text-charcoal">
-                #{formatOrderCode(selectedStop.order)}
-              </p>
-              <span
-                className="text-[8px] font-brand font-bold uppercase tracking-widest px-3 py-1 rounded-full border"
-                style={{
-                  color: markerColor(selectedStop.order.status),
-                  borderColor: markerColor(selectedStop.order.status) + "40",
-                  backgroundColor:
-                    markerColor(selectedStop.order.status) + "15",
-                }}
-              >
-                {ORDER_STATUS_LABELS[selectedStop.order.status] ??
-                  selectedStop.order.status}
-              </span>
-            </div>
-            <p className="text-xs text-charcoal/70 font-body">
-              {selectedStop.order.address}
-            </p>
-            {selectedStop.order.addressDetail && (
-              <p className="text-[11px] text-charcoal/50 font-body italic">
-                {selectedStop.order.addressDetail}
-              </p>
-            )}
-            {selectedStop.order.notes && (
-              <p className="text-[11px] text-marigold font-brand font-bold mt-2">
-                📝 {selectedStop.order.notes}
-              </p>
-            )}
-            <div className="flex items-center gap-4 mt-3">
-              {selectedStop.order.customerPhone && (
-                <a
-                  href={`tel:${selectedStop.order.customerPhone}`}
-                  className="text-[10px] font-brand font-bold uppercase tracking-widest text-terracotta"
-                >
-                  📞 Chiama
-                </a>
-              )}
-              <a
-                href={buildNavLink(
-                  selectedStop.position,
-                  riderPosition,
-                  vehicle ?? null
-                )}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[10px] font-brand font-bold uppercase tracking-widest text-charcoal/60 hover:text-terracotta transition-colors"
-              >
-                🧭 Naviga qui
-              </a>
-            </div>
-            <button
-              onClick={() => setSelectedStop(null)}
-              className="mt-3 text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/30 hover:text-charcoal/60 transition-colors"
-            >
-              Chiudi dettaglio
-            </button>
-          </div>
         </div>
       )}
     </section>
