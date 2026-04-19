@@ -10,13 +10,6 @@ import dynamic from "next/dynamic";
 const QRScanner = dynamic(() => import("@/components/rider/QRScanner"), { ssr: false });
 const RiderMapPanel = dynamic(() => import("@/components/rider/RiderMapPanel"), { ssr: false });
 
-const ETA_PRESETS = [
-  { label: "+15", minutes: 15 },
-  { label: "+20", minutes: 20 },
-  { label: "+30", minutes: 30 },
-  { label: "+45", minutes: 45 },
-];
-
 export default function RiderDashboard() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
@@ -25,7 +18,6 @@ export default function RiderDashboard() {
   const [scanning, setScanning] = useState(false);
   const [vehicle, setVehicle] = useState<"BIKE" | "SCOOTER" | "CAR" | null>(null);
   const [showMap, setShowMap] = useState(true);
-  const [activeEtaOrderId, setActiveEtaOrderId] = useState<string | null>(null);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
 
@@ -64,18 +56,15 @@ export default function RiderDashboard() {
     setTimeout(() => setToast(null), 2500);
   }
 
-  async function handleStartDelivery(orderId: string, etaMinutes: number) {
-    const estimatedTime = new Date(Date.now() + etaMinutes * 60_000).toISOString();
-
+  async function handleStartDelivery(orderId: string) {
     // Optimistic update
     setOrders((prev) =>
       prev.map((o) =>
         o.id === orderId
-          ? { ...o, status: "OUT", deliveryStatus: "EN_ROUTE", estimatedTime }
+          ? { ...o, status: "OUT", deliveryStatus: "EN_ROUTE" }
           : o
       )
     );
-    setActiveEtaOrderId(null);
     setUpdatingOrderId(orderId);
 
     try {
@@ -85,7 +74,6 @@ export default function RiderDashboard() {
         body: JSON.stringify({
           status: "OUT",
           deliveryStatus: "EN_ROUTE",
-          estimatedTime,
           statusNote: "[RIDER] Partito per la consegna",
         }),
       });
@@ -232,15 +220,9 @@ export default function RiderDashboard() {
                 order={order}
                 idx={idx}
                 isUpdating={updatingOrderId === order.id}
-                etaActive={activeEtaOrderId === order.id}
                 onTap={() => router.push(`/rider/ordine/${order.id}`)}
-                onStartDelivery={(mins) => handleStartDelivery(order.id, mins)}
+                onStartDelivery={() => handleStartDelivery(order.id)}
                 onDelivered={() => handleDelivered(order.id)}
-                onToggleEta={() =>
-                  setActiveEtaOrderId((prev) =>
-                    prev === order.id ? null : order.id
-                  )
-                }
               />
             ))}
 
@@ -300,38 +282,35 @@ type OrderCardProps = {
   order: any;
   idx: number;
   isUpdating: boolean;
-  etaActive: boolean;
   onTap: () => void;
-  onStartDelivery: (minutes: number) => void;
+  onStartDelivery: () => void;
   onDelivered: () => void;
-  onToggleEta: () => void;
 };
 
 function OrderCard({
   order,
   idx,
   isUpdating,
-  etaActive,
   onTap,
   onStartDelivery,
   onDelivered,
-  onToggleEta,
 }: OrderCardProps) {
   const isOut = order.status === "OUT";
   const isReady = order.status === "READY";
+  const isWaiting = !isOut && !isReady;
 
   const badgeClass = isOut
     ? "bg-terracotta text-white border-terracotta"
     : order.status === "DELIVERED"
     ? "bg-green-50 text-green-600 border-green-100"
-    : "bg-marigold text-white border-marigold";
+    : "bg-marigold/90 text-white border-marigold";
 
   return (
     <div
       style={{ transitionDelay: `${idx * 40}ms` }}
       className="reveal active bg-white rounded-2xl border border-charcoal/5 shadow-sm overflow-hidden"
     >
-      {/* Tappable info row → navigate to detail */}
+      {/* Info row — tappable → detail */}
       <div
         onClick={onTap}
         className="flex items-center gap-3 px-4 py-3.5 cursor-pointer active:bg-warm-light/40 transition-colors"
@@ -356,7 +335,6 @@ function OrderCard({
             </p>
           )}
         </div>
-
         <div className="flex-shrink-0 text-right">
           <p className="font-brand font-bold text-base text-charcoal leading-none">
             {order.estimatedTime
@@ -366,95 +344,74 @@ function OrderCard({
                 })
               : "--:--"}
           </p>
-          <svg
-            className="w-3 h-3 text-charcoal/20 ml-auto mt-1"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            viewBox="0 0 24 24"
-          >
+          <svg className="w-3 h-3 text-charcoal/20 ml-auto mt-1" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
         </div>
       </div>
 
-      {/* ── Action zone: OUT → Consegnato ── */}
+      {/* ── Divider ── */}
+      <div className="h-px bg-charcoal/5 mx-4" />
+
+      {/* ── Action strip: IN CONSEGNA → Consegnato ── */}
       {isOut && (
-        <div className="px-3 pb-3">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelivered();
-            }}
-            disabled={isUpdating}
-            className="w-full py-3 bg-charcoal text-white rounded-xl font-brand font-bold uppercase tracking-[0.15em] text-[10px] shadow-md shadow-charcoal/20 active:scale-[0.97] disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelivered(); }}
+          disabled={isUpdating}
+          className="w-full py-4 bg-charcoal text-white font-brand font-bold uppercase tracking-[0.2em] text-[11px] active:bg-charcoal/80 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+        >
+          {isUpdating ? (
+            <>
+              <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Aggiornamento...
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              Segna come Consegnato
+            </>
+          )}
+        </button>
+      )}
+
+      {/* ── Action strip: PRONTO → Avvia Consegna ── */}
+      {isReady && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onStartDelivery(); }}
+          disabled={isUpdating}
+          className="w-full py-4 bg-terracotta text-white font-brand font-bold uppercase tracking-[0.2em] text-[11px] active:bg-terracotta/80 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
           >
             {isUpdating ? (
               <>
-                <svg
-                  className="w-3 h-3 animate-spin"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  />
+                <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
                 Aggiornamento...
               </>
             ) : (
-              "✓ Consegnato"
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Avvia Consegna
+              </>
             )}
           </button>
-        </div>
       )}
 
-      {/* ── Action zone: READY → Avvia Consegna + ETA preset ── */}
-      {isReady && (
-        <div className="px-3 pb-3">
-          {!etaActive ? (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleEta();
-              }}
-              disabled={isUpdating}
-              className="w-full py-3 bg-terracotta text-white rounded-xl font-brand font-bold uppercase tracking-[0.15em] text-[10px] shadow-md shadow-terracotta/20 active:scale-[0.97] disabled:opacity-50 transition-all"
-            >
-              Avvia Consegna →
-            </button>
-          ) : (
-            <div className="bg-warm-light rounded-xl p-3">
-              <p className="text-[9px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/50 mb-2 text-center">
-                ETA consegna
-              </p>
-              <div className="grid grid-cols-4 gap-1.5">
-                {ETA_PRESETS.map(({ label, minutes }) => (
-                  <button
-                    key={minutes}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onStartDelivery(minutes);
-                    }}
-                    disabled={isUpdating}
-                    className="py-3 bg-white rounded-lg text-[11px] font-brand font-bold text-charcoal border border-charcoal/10 hover:bg-terracotta hover:text-white hover:border-terracotta active:scale-95 disabled:opacity-50 transition-all"
-                  >
-                    {label}′
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+      {/* ── Waiting state: kitchen still preparing ── */}
+      {isWaiting && (
+        <div className="flex items-center justify-center gap-2 py-3 bg-warm-light/60">
+          <span className="w-1.5 h-1.5 rounded-full bg-marigold animate-pulse" />
+          <p className="text-[9px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/40">
+            In preparazione — attendi il segnale
+          </p>
         </div>
       )}
     </div>
