@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendRiderWelcomeEmail } from "@/lib/email";
+import { createClient } from "@supabase/supabase-js";
 
 export async function POST(request: Request) {
   try {
@@ -22,6 +23,16 @@ export async function POST(request: Request) {
     if (checkOnly) {
       return NextResponse.json({ ok: true });
     }
+
+    // Auto-conferma email Supabase — il rider è già stato verificato dal pre-approval
+    // Senza questo il login fallisce finché non cliccano il link di conferma
+    const adminClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    await adminClient.auth.admin.updateUserById(authUserId, {
+      email_confirm: true,
+    }).catch((err) => console.error("[RIDER SETUP] Auto-confirm fallita:", err));
 
     const rider = await prisma.rider.update({
       where: { id: existing.id },

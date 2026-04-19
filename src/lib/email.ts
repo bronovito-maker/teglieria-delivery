@@ -169,7 +169,7 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmationInput):
     await client.transactionalEmails.sendTransacEmail({
       sender: { name: FROM_NAME, email: FROM_EMAIL },
       to: [{ email: order.customerEmail, name: order.customerName }],
-      subject: `✅ Ordine #${order.orderNumber} ricevuto — La Teglieria`,
+      subject: `Ordine #${order.orderNumber} ricevuto — La Teglieria`,
       htmlContent: emailWrapper(content),
     });
   } catch (err) {
@@ -297,7 +297,7 @@ export async function sendOrderConfirmedEmail(order: OrderConfirmedInput): Promi
     await client.transactionalEmails.sendTransacEmail({
       sender: { name: FROM_NAME, email: FROM_EMAIL },
       to: [{ email: order.customerEmail, name: order.customerName }],
-      subject: `✅ Ordine #${order.orderNumber} confermato — La Teglieria`,
+      subject: `Ordine #${order.orderNumber} confermato — La Teglieria`,
       htmlContent: emailWrapper(content),
     });
   } catch (err) {
@@ -344,7 +344,7 @@ export async function sendTimeUpdateEmail(order: TimeUpdateInput): Promise<void>
     await client.transactionalEmails.sendTransacEmail({
       sender: { name: FROM_NAME, email: FROM_EMAIL },
       to: [{ email: order.customerEmail, name: order.customerName }],
-      subject: `⏱ Orario aggiornato per il tuo ordine #${order.orderNumber}`,
+      subject: `Orario aggiornato — ordine #${order.orderNumber}`,
       htmlContent: emailWrapper(content),
     });
   } catch (err) {
@@ -395,7 +395,7 @@ export async function sendOrderReadyEmail(order: OrderReadyInput): Promise<void>
     await client.transactionalEmails.sendTransacEmail({
       sender: { name: FROM_NAME, email: FROM_EMAIL },
       to: [{ email: order.customerEmail, name: order.customerName }],
-      subject: `🍕 Il tuo ordine #${order.orderNumber} è pronto — vieni a ritirarlo!`,
+      subject: `Ordine #${order.orderNumber} pronto — vieni a ritirarlo`,
       htmlContent: emailWrapper(content),
     });
   } catch (err) {
@@ -443,7 +443,7 @@ export async function sendOrderDeliveredEmail(order: OrderDeliveredInput): Promi
     await client.transactionalEmails.sendTransacEmail({
       sender: { name: FROM_NAME, email: FROM_EMAIL },
       to: [{ email: order.customerEmail, name: order.customerName }],
-      subject: `✅ Ordine #${order.orderNumber} completato — grazie!`,
+      subject: `Ordine #${order.orderNumber} completato — grazie!`,
       htmlContent: emailWrapper(content),
     });
   } catch (err) {
@@ -597,7 +597,7 @@ export async function sendRiderDepartedEmail(order: RiderDepartedInput): Promise
     await client.transactionalEmails.sendTransacEmail({
       sender: { name: FROM_NAME, email: FROM_EMAIL },
       to: [{ email: order.customerEmail, name: order.customerName }],
-      subject: `🛵 Il tuo ordine #${order.orderNumber} è in consegna!`,
+      subject: `Ordine #${order.orderNumber} in consegna — La Teglieria`,
       htmlContent: emailWrapper(content),
     });
   } catch (err) {
