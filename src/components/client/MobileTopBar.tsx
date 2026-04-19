@@ -14,15 +14,14 @@ const navItems = [
 
 export default function MobileTopBar() {
   const [open, setOpen] = useState(false);
-  const [isCustomer, setIsCustomer] = useState(false);
+  // null = loading, true = logged-in customer, false = guest
+  const [isCustomer, setIsCustomer] = useState<boolean | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
       const role = user?.user_metadata?.role;
-      if (user && role !== "admin" && role !== "rider") {
-        setIsCustomer(true);
-      }
+      setIsCustomer(user != null && role !== "admin" && role !== "rider");
     });
   }, []);
 
@@ -60,12 +59,20 @@ export default function MobileTopBar() {
           </nav>
 
           {/* Desktop account link */}
-          {isCustomer && (
+          {isCustomer === true && (
             <Link
               href="/account/orders"
               className="hidden md:flex items-center px-4 py-2 rounded-full text-sm font-semibold text-charcoal/70 border border-charcoal/15 hover:border-charcoal/30 transition-colors"
             >
               I miei ordini
+            </Link>
+          )}
+          {isCustomer === false && (
+            <Link
+              href="/accedi"
+              className="hidden md:flex items-center px-4 py-2 rounded-full text-sm font-semibold text-charcoal/70 border border-charcoal/15 hover:border-charcoal/30 transition-colors"
+            >
+              Accedi
             </Link>
           )}
 
@@ -162,13 +169,22 @@ export default function MobileTopBar() {
             >
               Ritira in sede
             </Link>
-            {isCustomer && (
+            {isCustomer === true && (
               <Link
                 href="/account/orders"
                 onClick={() => setOpen(false)}
                 className="flex items-center justify-center w-full px-7 py-[0.9rem] rounded-[999px] text-lg leading-none font-semibold text-charcoal/60 border border-charcoal/15 active:scale-95 transition-all"
               >
                 I miei ordini
+              </Link>
+            )}
+            {isCustomer === false && (
+              <Link
+                href="/accedi"
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-center w-full px-7 py-[0.9rem] rounded-[999px] text-lg leading-none font-semibold text-charcoal/60 border border-charcoal/15 active:scale-95 transition-all"
+              >
+                Accedi
               </Link>
             )}
           </div>
