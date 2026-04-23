@@ -162,7 +162,7 @@ export default function LandingPage() {
           <div className="relative mt-1.5 w-full h-[63vw] min-h-[292px] max-h-[450px] rounded-[1.9rem] overflow-hidden shadow-[0_18px_45px_rgba(26,26,26,0.12)] border border-charcoal/5">
             <Image src="/images/pizza-teglia-hero.png" alt="Pizza in teglia La Teglieria" fill className="object-cover object-[center_46%]" priority />
             <div className="absolute inset-0 bg-gradient-to-t from-charcoal/40 via-transparent to-transparent" />
-            <span className="absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap px-4 py-2 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-brand font-bold uppercase tracking-[0.16em] text-charcoal shadow-[0_10px_20px_rgba(26,26,26,0.14)]">🔥 Tempo medio consegna 34 min</span>
+            <span className="absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-white/60 bg-[linear-gradient(180deg,rgba(255,255,255,0.82)_0%,rgba(250,246,240,0.72)_100%)] px-4 py-2 text-[10px] font-brand font-bold uppercase tracking-[0.16em] text-charcoal backdrop-blur-xl shadow-[0_10px_20px_rgba(26,26,26,0.12)]">🔥 Tempo medio consegna 34 min</span>
           </div>
           <Link href="/menu" className="pt-0.5 text-[1.05rem] leading-none font-body font-semibold text-charcoal underline underline-offset-4 decoration-charcoal/25 hover:decoration-terracotta hover:text-terracotta transition-colors">
             Vediamo il menù →
@@ -181,53 +181,57 @@ export default function LandingPage() {
         </div>
 
         {/* ── DESKTOP layout: 2 colonne ── */}
-        <div className="hidden md:grid md:grid-cols-2 md:gap-12 lg:gap-20 w-full max-w-7xl flex-1 items-center animate-fade-in relative z-10">
+        <div className="hidden md:grid md:grid-cols-[minmax(0,0.98fr)_minmax(0,1.02fr)] md:gap-10 lg:gap-14 w-full max-w-7xl flex-1 items-center animate-fade-in relative z-10 pt-3 md:pt-5">
 
           {/* Colonna sinistra — testo */}
-          <div className="flex flex-col justify-center gap-8">
+          <div className="flex flex-col justify-center gap-5 lg:gap-6 pr-2">
             <span className="text-[0.8rem] font-brand font-bold uppercase tracking-[0.25em] text-terracotta/70 px-4 py-1.5 border border-terracotta/20 rounded-full bg-warm-light/90 shadow-sm backdrop-blur-sm w-fit">
               Livorno • Scopaia
             </span>
 
-            <h1 className="text-[5.5rem] lg:text-[7rem] xl:text-[8.5rem] leading-none font-display text-charcoal">
-              La tua<br />
-              pizzeria<br />
-              <span className="text-terracotta">di quartiere.</span>
+            <h1 className="font-display text-charcoal leading-[0.96] tracking-[-0.03em] text-[clamp(4.2rem,6.85vw,5.45rem)] max-w-[12.5ch]">
+              La tua pizzeria<br />
+              <span className="inline-block text-terracotta">di quartiere.</span>
             </h1>
 
-            <p className="text-xl lg:text-2xl text-charcoal/50 font-subtitle font-medium italic leading-relaxed max-w-md">
-              Croccante fuori, leggera dentro.
+            <p className="text-[1.02rem] lg:text-[1.14rem] text-charcoal/52 font-subtitle font-medium italic leading-relaxed max-w-[31rem]">
+              Pizza in teglia ad alta idratazione, croccante fuori e leggera dentro. Il forno del quartiere, con un gusto che si fa ricordare.
             </p>
 
-            <div className="flex gap-3 items-center flex-wrap">
+            <div className="flex gap-3 items-center flex-wrap pt-2">
               <div className="relative">
                 <div className="absolute inset-0 rounded-[999px] bg-terracotta/30 blur-lg animate-pulse" />
-                <Link href="/menu?type=DELIVERY" className="relative flex items-center justify-center px-12 py-5 rounded-[999px] text-3xl leading-none font-display text-white bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] shadow-[0_12px_30px_rgba(230,100,40,0.35)] hover:scale-[1.02] active:scale-95 transition-all">
+                <Link href="/menu?type=DELIVERY" className="relative flex items-center justify-center px-9 lg:px-11 py-4 lg:py-4.5 rounded-[999px] text-[1.45rem] lg:text-[1.65rem] leading-none font-display text-white bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] shadow-[0_12px_30px_rgba(230,100,40,0.35)] hover:scale-[1.02] active:scale-95 transition-all">
                   Ordina ora
                 </Link>
               </div>
-              <Link href="/menu?type=ASPORTO" className="flex items-center justify-center px-9 py-4 bg-white/60 backdrop-blur-md text-charcoal border border-charcoal/20 rounded-[999px] text-2xl leading-none font-display hover:bg-white/75 active:scale-95 transition-all">
+              <Link href="/menu?type=ASPORTO" className="flex items-center justify-center px-7 lg:px-8 py-3.5 lg:py-4 bg-white/70 backdrop-blur-md text-charcoal border border-charcoal/16 rounded-[999px] text-[1.05rem] lg:text-[1.15rem] leading-none font-body font-semibold hover:bg-white/82 active:scale-95 transition-all">
                 Ritira in sede
               </Link>
             </div>
 
+            <Link href="/menu" className="group flex items-center gap-3 text-charcoal/70 font-body font-semibold text-[0.98rem] leading-none transition-all w-fit hover:text-terracotta">
+              Vediamo il menù
+              <span className="text-charcoal/35 group-hover:translate-x-1.5 group-hover:text-terracotta transition-all">→</span>
+            </Link>
+
           </div>
 
           {/* Colonna destra — immagine pizza */}
-          <div className="relative h-[70vh] max-h-[640px] rounded-[2.5rem] overflow-hidden shadow-2xl border border-charcoal/5">
+          <div className="relative h-[60vh] max-h-[580px] min-h-[450px] rounded-[2.7rem] overflow-hidden shadow-[0_28px_70px_rgba(26,26,26,0.14)] border border-charcoal/5">
             <Image
               src="/images/pizza-teglia-hero.png"
               alt="Pizza in teglia La Teglieria"
               fill
-              className="object-cover object-center hover:scale-105 transition-transform duration-[3s]"
+              className="object-cover object-[center_47%] hover:scale-105 transition-transform duration-[3s]"
               priority
             />
             <div className="absolute inset-0 bg-gradient-to-t from-charcoal/30 via-transparent to-transparent" />
-            <div className="absolute bottom-6 left-6 flex gap-2">
-              <span className="px-4 py-2 bg-white/90 backdrop-blur-md rounded-full text-xs font-brand font-bold uppercase tracking-widest text-charcoal shadow-sm">
-                🔥 Tempo medio consegna 34 min
+            <div className="absolute bottom-5 left-5 flex gap-2.5">
+              <span className="rounded-full border border-white/60 bg-[linear-gradient(180deg,rgba(255,255,255,0.84)_0%,rgba(250,246,240,0.74)_100%)] px-4 py-2 text-xs font-brand font-bold uppercase tracking-[0.18em] text-charcoal backdrop-blur-xl shadow-[0_10px_22px_rgba(26,26,26,0.12)]">
+                🔥 Tempo medio consegna 28 min
               </span>
-              <span className="px-4 py-2 bg-marigold text-charcoal rounded-full text-xs font-brand font-bold uppercase tracking-widest shadow-sm">
+              <span className="px-4 py-2 bg-marigold text-white rounded-full text-xs font-brand font-bold uppercase tracking-[0.18em] shadow-sm">
                 High Hydration
               </span>
             </div>
