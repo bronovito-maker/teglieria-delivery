@@ -35,7 +35,7 @@ function emailWrapper(content: string): string {
         <tr><td style="background:#1d1d1f;border-radius:24px 24px 0 0;padding:28px 32px;text-align:center;">
           <p style="margin:0;font-size:28px;">🍕</p>
           <p style="margin:6px 0 0;font-size:20px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#ffffff;">La Teglieria</p>
-          <p style="margin:4px 0 0;font-size:10px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">Artisan Pizza</p>
+          <p style="margin:4px 0 0;font-size:10px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">Artisan Pizza</p>
         </td></tr>
 
         <tr><td style="background:#ffffff;padding:36px 32px;">
@@ -87,7 +87,7 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmationInput):
   const itemsHtml = order.items.map((item) => `
     <tr>
       <td style="padding:10px 0;border-bottom:1px solid #f5f0e8;color:#1d1d1f;font-size:14px;">
-        <span style="color:#e66a26;font-weight:700;">${item.quantity}×</span> ${item.productName}
+        <span style="color:#D96A2B;font-weight:700;">${item.quantity}×</span> ${item.productName}
         ${item.variant ? `<br/><span style="font-size:12px;color:#1d1d1f;opacity:0.4;">${item.variant}</span>` : ""}
       </td>
       <td style="padding:10px 0;border-bottom:1px solid #f5f0e8;text-align:right;font-weight:600;color:#1d1d1f;font-size:14px;white-space:nowrap;">
@@ -97,13 +97,13 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmationInput):
   `).join("");
 
   const content = `
-    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">Ordine Ricevuto</p>
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">Ordine Ricevuto</p>
     <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Grazie, ${order.customerName}!</h1>
     <p style="margin:0 0 24px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">Abbiamo ricevuto il tuo ordine — ti confermiamo a breve. Ecco il riepilogo:</p>
 
     <div style="background:#f5f0e8;border-radius:16px;padding:16px 20px;margin-bottom:24px;text-align:center;">
       <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Numero Ordine</p>
-      <p style="margin:6px 0 0;font-size:32px;font-weight:700;color:#e66a26;">#${order.orderNumber}</p>
+      <p style="margin:6px 0 0;font-size:32px;font-weight:700;color:#D96A2B;">#${order.orderNumber}</p>
     </div>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
@@ -122,7 +122,7 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmationInput):
       </tr>` : ""}
       <tr>
         <td style="padding:12px 0 0;font-size:18px;font-weight:700;color:#1d1d1f;">Totale</td>
-        <td style="padding:12px 0 0;text-align:right;font-size:18px;font-weight:700;color:#e66a26;">${formatCurrency(order.total)}</td>
+        <td style="padding:12px 0 0;text-align:right;font-size:18px;font-weight:700;color:#D96A2B;">${formatCurrency(order.total)}</td>
       </tr>
     </table>
 
@@ -157,7 +157,7 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmationInput):
     <div style="margin-top:28px;padding-top:24px;border-top:1px solid #f5f0e8;text-align:center;">
       <p style="margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;color:#1d1d1f;opacity:0.35;">Riordina in 10 secondi la prossima volta</p>
       <p style="margin:0 0 16px;font-size:13px;color:#1d1d1f;opacity:0.5;">I tuoi dati sono già salvati — clicca e sei dentro.</p>
-      <a href="${order.accountLink}" style="display:inline-block;padding:14px 32px;background:#e66a26;color:#ffffff;text-decoration:none;border-radius:99px;font-size:12px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;">
+      <a href="${order.accountLink}" style="display:inline-block;padding:14px 32px;background:#D96A2B;color:#ffffff;text-decoration:none;border-radius:99px;font-size:12px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;">
         Attiva il tuo account →
       </a>
       <p style="margin:12px 0 0;font-size:11px;color:#1d1d1f;opacity:0.25;">Nessuna password richiesta. Un solo click.</p>
@@ -193,14 +193,14 @@ export async function sendRiderInviteEmail({ email, name, registerUrl }: RiderIn
   }
 
   const content = `
-    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">Benvenuto nel Team</p>
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">Benvenuto nel Team</p>
     <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Ciao, ${name}! 🛵</h1>
     <p style="margin:0 0 24px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">
       Sei stato aggiunto come rider de <strong>La Teglieria</strong>. Completa la registrazione per accedere alla tua dashboard e iniziare le consegne.
     </p>
 
     <div style="text-align:center;margin-bottom:28px;">
-      <a href="${registerUrl}" style="display:inline-block;padding:16px 36px;background:#e66a26;color:#ffffff;text-decoration:none;border-radius:99px;font-size:13px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;">
+      <a href="${registerUrl}" style="display:inline-block;padding:16px 36px;background:#D96A2B;color:#ffffff;text-decoration:none;border-radius:99px;font-size:13px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;">
         Completa la registrazione →
       </a>
     </div>
@@ -254,7 +254,7 @@ export async function sendOrderConfirmedEmail(order: OrderConfirmedInput): Promi
   const timeLabel = formatTime(order.estimatedTime);
 
   const content = `
-    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">Ordine Accettato</p>
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">Ordine Accettato</p>
     <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Stiamo preparando la tua teglia! 🍕</h1>
     <p style="margin:0 0 24px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">
       Il tuo ordine è stato accettato dal nostro staff ed è ora in preparazione.
@@ -262,7 +262,7 @@ export async function sendOrderConfirmedEmail(order: OrderConfirmedInput): Promi
 
     <div style="background:#f5f0e8;border-radius:16px;padding:16px 20px;margin-bottom:24px;text-align:center;">
       <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Numero Ordine</p>
-      <p style="margin:6px 0 0;font-size:32px;font-weight:700;color:#e66a26;">#${order.orderNumber}</p>
+      <p style="margin:6px 0 0;font-size:32px;font-weight:700;color:#D96A2B;">#${order.orderNumber}</p>
     </div>
 
     ${timeLabel ? `
@@ -322,12 +322,12 @@ export async function sendTimeUpdateEmail(order: TimeUpdateInput): Promise<void>
   if (!timeLabel) return;
 
   const content = `
-    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">Orario Aggiornato</p>
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">Orario Aggiornato</p>
     <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Nuova stima per il tuo ordine</h1>
 
     <div style="background:#f5f0e8;border-radius:16px;padding:16px 20px;margin-bottom:24px;text-align:center;">
       <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Ordine</p>
-      <p style="margin:6px 0 0;font-size:32px;font-weight:700;color:#e66a26;">#${order.orderNumber}</p>
+      <p style="margin:6px 0 0;font-size:32px;font-weight:700;color:#D96A2B;">#${order.orderNumber}</p>
     </div>
 
     <div style="background:#f5f0e8;border-radius:16px;padding:20px;margin-bottom:24px;text-align:center;">
@@ -368,7 +368,7 @@ export async function sendOrderReadyEmail(order: OrderReadyInput): Promise<void>
   const timeLabel = formatTime(order.estimatedTime);
 
   const content = `
-    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">Pronto per il ritiro</p>
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">Pronto per il ritiro</p>
     <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">La tua teglia è pronta! 🍕</h1>
     <p style="margin:0 0 24px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">
       Il tuo ordine è pronto e ti aspetta in sede. Vieni a ritirarlo quando vuoi!
@@ -376,7 +376,7 @@ export async function sendOrderReadyEmail(order: OrderReadyInput): Promise<void>
 
     <div style="background:#f5f0e8;border-radius:16px;padding:16px 20px;margin-bottom:24px;text-align:center;">
       <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Ordine</p>
-      <p style="margin:6px 0 0;font-size:32px;font-weight:700;color:#e66a26;">#${order.orderNumber}</p>
+      <p style="margin:6px 0 0;font-size:32px;font-weight:700;color:#D96A2B;">#${order.orderNumber}</p>
     </div>
 
     ${timeLabel ? `
@@ -419,7 +419,7 @@ export async function sendOrderDeliveredEmail(order: OrderDeliveredInput): Promi
   const isDelivery = order.type === "DELIVERY";
 
   const content = `
-    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">Ordine Completato</p>
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">Ordine Completato</p>
     <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">
       ${isDelivery ? "Buon appetito! 🍕" : "Grazie per il ritiro! 🍕"}
     </h1>
@@ -431,7 +431,7 @@ export async function sendOrderDeliveredEmail(order: OrderDeliveredInput): Promi
 
     <div style="background:#f5f0e8;border-radius:16px;padding:16px 20px;margin-bottom:24px;text-align:center;">
       <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Ordine</p>
-      <p style="margin:6px 0 0;font-size:32px;font-weight:700;color:#e66a26;">#${order.orderNumber}</p>
+      <p style="margin:6px 0 0;font-size:32px;font-weight:700;color:#D96A2B;">#${order.orderNumber}</p>
     </div>
 
     <p style="margin:0;font-size:13px;color:#1d1d1f;opacity:0.5;text-align:center;line-height:1.6;">
@@ -463,7 +463,7 @@ export async function sendRiderWelcomeEmail({ email, name }: RiderWelcomeInput):
   if (!client) return;
 
   const content = `
-    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">Benvenuto nel Team</p>
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">Benvenuto nel Team</p>
     <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Ciao, ${name}! 🛵</h1>
     <p style="margin:0 0 20px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">
       La tua registrazione come rider de La Teglieria è andata a buon fine. Sei ora parte del nostro team di consegne.
@@ -507,7 +507,7 @@ export async function sendCustomerWelcomeEmail({ email, name }: CustomerWelcomeI
   if (!client) return;
 
   const content = `
-    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">Registrazione Completata</p>
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">Registrazione Completata</p>
     <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Benvenuto, ${name}! 🍕</h1>
     <p style="margin:0 0 20px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">
       Il tuo account La Teglieria è pronto. Ora puoi ordinare più velocemente con i tuoi dati salvati.
@@ -560,12 +560,12 @@ export async function sendRiderDepartedEmail(order: RiderDepartedInput): Promise
   const timeLabel = formatTime(order.estimatedTime);
 
   const content = `
-    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#e66a26;">In Consegna</p>
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">In Consegna</p>
     <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">La tua teglia è in arrivo!</h1>
 
     <div style="background:#f5f0e8;border-radius:16px;padding:16px 20px;margin-bottom:24px;text-align:center;">
       <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Ordine</p>
-      <p style="margin:6px 0 0;font-size:32px;font-weight:700;color:#e66a26;">#${order.orderNumber}</p>
+      <p style="margin:6px 0 0;font-size:32px;font-weight:700;color:#D96A2B;">#${order.orderNumber}</p>
     </div>
 
     <div style="background:#f5f0e8;border-radius:16px;padding:20px;margin-bottom:24px;">

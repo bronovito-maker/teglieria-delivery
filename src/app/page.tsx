@@ -124,7 +124,7 @@ export default function LandingPage() {
   };
 
   return (
-    <main className="min-h-screen bg-warm-light text-charcoal pt-24 selection:bg-marigold/30">
+    <main className="min-h-screen bg-warm-light text-charcoal pt-20 md:pt-24 selection:bg-marigold/30">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -135,7 +135,7 @@ export default function LandingPage() {
       <section
         id="ordina"
         ref={heroRef}
-        className="scroll-mt-24 relative flex flex-col items-center min-h-[calc(100vh-6rem)] md:min-h-[calc(100vh-4rem)] px-6 md:px-12 lg:px-20"
+        className="scroll-mt-24 relative flex flex-col items-center min-h-[calc(100svh-5rem)] md:min-h-[calc(100vh-4rem)] px-5 md:px-12 lg:px-20"
         style={{
           backgroundImage: "radial-gradient(rgba(0,0,0,0.018) 1px, transparent 1px)",
           backgroundSize: "20px 20px",
@@ -150,30 +150,31 @@ export default function LandingPage() {
         </div>
 
         {/* ── MOBILE layout ── */}
-        <div className="md:hidden w-full flex-1 flex flex-col items-center gap-3 animate-fade-in relative z-10 text-center pt-4 pb-6">
-          <span className="text-[0.75rem] font-brand font-bold uppercase tracking-[0.25em] text-terracotta/70 px-4 py-1.5 border border-terracotta/20 rounded-full bg-warm-light/90 shadow-sm backdrop-blur-sm">
+        <div className="md:hidden w-full flex-1 flex flex-col items-center gap-3 animate-fade-in relative z-10 text-center pt-2 pb-5">
+          <span className="text-[0.72rem] font-brand font-bold uppercase tracking-[0.22em] text-terracotta/75 px-4 py-1.5 border border-terracotta/18 rounded-full bg-warm-light/92 shadow-sm backdrop-blur-sm">
             Livorno • Scopaia
           </span>
-          <h1 className="text-[3.5rem] leading-none font-display text-charcoal px-2">
-            La tua pizzeria<br />
-            <span className="text-terracotta">di quartiere.</span>
+          <h1 className="ds-heading-hero text-[clamp(2.85rem,13.1vw,3.7rem)] leading-[0.9] max-w-[9.25ch] px-1">
+            La tua<br />
+            pizzeria<br />
+            <span className="relative -left-[8px] block w-full text-center whitespace-nowrap text-terracotta">di quartiere.</span>
           </h1>
-          <div className="relative w-full h-[62vw] min-h-[300px] max-h-[480px] rounded-[1.5rem] overflow-hidden shadow-xl border border-charcoal/5">
-            <Image src="/images/pizza-teglia-hero.png" alt="Pizza in teglia La Teglieria" fill className="object-cover object-center" priority />
+          <div className="relative mt-1.5 w-full h-[63vw] min-h-[292px] max-h-[450px] rounded-[1.9rem] overflow-hidden shadow-[0_18px_45px_rgba(26,26,26,0.12)] border border-charcoal/5">
+            <Image src="/images/pizza-teglia-hero.png" alt="Pizza in teglia La Teglieria" fill className="object-cover object-[center_46%]" priority />
             <div className="absolute inset-0 bg-gradient-to-t from-charcoal/40 via-transparent to-transparent" />
-            <span className="absolute bottom-4 left-4 px-4 py-2 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-brand font-bold uppercase tracking-widest text-charcoal shadow-sm">🔥 Tempo medio consegna 34 min</span>
+            <span className="absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap px-4 py-2 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-brand font-bold uppercase tracking-[0.16em] text-charcoal shadow-[0_10px_20px_rgba(26,26,26,0.14)]">🔥 Tempo medio consegna 34 min</span>
           </div>
-          <Link href="/menu" className="text-base font-brand font-semibold text-charcoal underline underline-offset-4 decoration-charcoal/30 hover:decoration-terracotta hover:text-terracotta transition-colors">
+          <Link href="/menu" className="pt-0.5 text-[1.05rem] leading-none font-body font-semibold text-charcoal underline underline-offset-4 decoration-charcoal/25 hover:decoration-terracotta hover:text-terracotta transition-colors">
             Vediamo il menù →
           </Link>
-          <div className="relative z-20 flex flex-col items-center gap-2.5 w-full pt-1">
+          <div className="relative z-20 flex flex-col items-center gap-2.5 w-full pt-0.5">
             <div className="relative w-full">
-              <div className="absolute inset-0 rounded-[999px] bg-terracotta/30 blur-lg animate-pulse" />
-              <Link href="/menu?type=DELIVERY" className="relative flex items-center justify-center w-full py-4 rounded-[999px] text-[1.85rem] leading-none font-display text-white bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] shadow-[0_10px_24px_rgba(230,100,40,0.35)] active:scale-95 transition-all">
+              <div className="absolute inset-0 rounded-[999px] bg-terracotta/24 blur-lg animate-pulse" />
+              <Link href="/menu?type=DELIVERY" className="relative flex min-h-[4.9rem] items-center justify-center w-full py-3.5 rounded-[999px] text-[1.68rem] leading-none font-display text-white bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] shadow-[0_10px_24px_rgba(230,100,40,0.28)] active:scale-95 transition-all">
                 Ordina ora
               </Link>
             </div>
-            <Link href="/menu?type=ASPORTO" className="flex items-center justify-center w-full py-3.5 bg-white/60 backdrop-blur-md text-charcoal border border-charcoal/20 rounded-[999px] text-[1.6rem] leading-none font-display active:scale-95 transition-all hover:bg-white/75">
+            <Link href="/menu?type=ASPORTO" className="flex min-h-[3.6rem] items-center justify-center w-full py-3 bg-white/80 backdrop-blur-md text-charcoal border border-charcoal/10 shadow-[0_10px_26px_rgba(26,26,26,0.06)] rounded-[999px] text-[1rem] leading-none font-body font-semibold active:scale-95 transition-all hover:bg-white/88">
               Ritira in sede
             </Link>
           </div>
@@ -201,7 +202,7 @@ export default function LandingPage() {
             <div className="flex gap-3 items-center flex-wrap">
               <div className="relative">
                 <div className="absolute inset-0 rounded-[999px] bg-terracotta/30 blur-lg animate-pulse" />
-                <Link href="/menu?type=DELIVERY" className="relative flex items-center justify-center px-12 py-5 rounded-[999px] text-3xl leading-none font-display text-white bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] shadow-[0_12px_30px_rgba(230,100,40,0.35)] hover:scale-[1.02] active:scale-95 transition-all">
+                <Link href="/menu?type=DELIVERY" className="relative flex items-center justify-center px-12 py-5 rounded-[999px] text-3xl leading-none font-display text-white bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] shadow-[0_12px_30px_rgba(230,100,40,0.35)] hover:scale-[1.02] active:scale-95 transition-all">
                   Ordina ora
                 </Link>
               </div>
@@ -447,7 +448,7 @@ export default function LandingPage() {
           </div>
           <div className="relative w-full">
             <div className="absolute inset-0 rounded-[999px] bg-terracotta/30 blur-lg animate-pulse" />
-            <Link href="/menu?type=DELIVERY" className="relative flex items-center justify-center w-full py-5 rounded-[999px] text-[1.85rem] leading-none font-display text-white bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] shadow-[0_10px_24px_rgba(230,100,40,0.35)] active:scale-95 transition-all">
+            <Link href="/menu?type=DELIVERY" className="relative flex items-center justify-center w-full py-5 rounded-[999px] text-[1.85rem] leading-none font-display text-white bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] shadow-[0_10px_24px_rgba(230,100,40,0.35)] active:scale-95 transition-all">
               Ordina ora
             </Link>
           </div>
@@ -466,8 +467,8 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="mb-24 flex flex-col md:flex-row justify-between items-start gap-12">
             <div className="space-y-6 max-w-md">
-              <h3 className="text-4xl leading-none font-logo text-charcoal">
-                La <span className="text-terracotta">Teglieria</span>
+              <h3 className="text-[2.25rem] md:text-[2.6rem] leading-[0.92] tracking-[-0.035em] font-logo text-charcoal">
+                LA <span className="text-terracotta">TEGLIERIA</span>
               </h3>
               <p className="text-lg text-charcoal/50 leading-relaxed font-body italic">
                 Laboratorio artigianale di pizza in teglia ad alta idratazione. Dedizione, tempo e croccantezza nel cuore pulsante della città.

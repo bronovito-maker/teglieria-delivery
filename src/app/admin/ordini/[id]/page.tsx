@@ -93,23 +93,24 @@ export default function OrderDetailPage() {
     <div className="max-w-2xl">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <button onClick={() => router.back()} className="text-sm text-gray-500 hover:underline mb-1">&larr; Indietro</button>
-          <h1 className="text-2xl font-bold">Ordine #{formatOrderCode(order)}</h1>
+          <button onClick={() => router.back()} className="text-sm text-charcoal/45 hover:underline mb-2 font-body">&larr; Indietro</button>
+          <span className="ds-micro-label text-terracotta/60 mb-2 block">Dettaglio ordine</span>
+          <h1 className="text-3xl md:text-4xl font-display font-semibold tracking-tight text-charcoal">Ordine #{formatOrderCode(order)}</h1>
         </div>
         <div className="flex gap-2">
           <button onClick={handlePrint}
-            className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm transition-colors">
+            className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm font-brand font-semibold transition-colors">
             Stampa
           </button>
           <button
             onClick={openDeleteModal}
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-colors"
+            className="px-4 py-2 rounded-lg text-sm font-brand font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors"
           >
             Elimina ordine
           </button>
           {nextStatuses.map((status) => (
             <button key={status} onClick={() => updateStatus(status)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-lg text-sm font-brand font-semibold transition-colors ${
                 status === "CANCELLED"
                   ? "bg-red-600 text-white hover:bg-red-700"
                   : "bg-orange-600 text-white hover:bg-orange-700"
@@ -122,55 +123,55 @@ export default function OrderDetailPage() {
 
       <div className="grid gap-4">
         {/* Info */}
-        <div className="bg-white rounded-xl shadow p-5">
+        <div className="bg-white rounded-[2rem] shadow-sm border border-charcoal/5 p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${ORDER_STATUS_COLORS[order.status]}`}>
+              <span className={`px-3 py-1 rounded-full text-sm font-brand font-semibold ${ORDER_STATUS_COLORS[order.status]}`}>
                 {ORDER_STATUS_LABELS[order.status]}
               </span>
-              <span className="text-sm text-gray-500">{formatDateTime(order.createdAt)}</span>
-              <span className="text-xs px-2 py-0.5 bg-gray-100 rounded">{order.type === "ASPORTO" ? "Asporto" : "Delivery"}</span>
-              <span className="text-xs px-2 py-0.5 bg-gray-100 rounded">{order.channel}</span>
+              <span className="text-sm text-gray-500 font-body">{formatDateTime(order.createdAt)}</span>
+              <span className="text-xs px-2 py-0.5 bg-gray-100 rounded font-brand font-semibold">{order.type === "ASPORTO" ? "Asporto" : "Delivery"}</span>
+              <span className="text-xs px-2 py-0.5 bg-gray-100 rounded font-brand font-semibold">{order.channel}</span>
             </div>
             {/* Timing Just Eat Style */}
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold">Stima: {order.estimatedTime ? formatTime(order.estimatedTime) : "--:--"}</span>
+              <span className="text-sm font-brand font-semibold">Stima: {order.estimatedTime ? formatTime(order.estimatedTime) : "--:--"}</span>
               <div className="flex border rounded overflow-hidden">
-                <button 
+                <button
                   onClick={() => adjustTime(-15)}
-                  className="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-xs font-bold border-r">-15&apos;</button>
+                  className="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-xs font-brand font-semibold border-r">-15&apos;</button>
                 <button 
                   onClick={() => adjustTime(15)}
-                  className="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-xs font-bold border-r">+15&apos;</button>
+                  className="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-xs font-brand font-semibold border-r">+15&apos;</button>
                 <button 
                   onClick={() => adjustTime(30)}
-                  className="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-xs font-bold">+30&apos;</button>
+                  className="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-xs font-brand font-semibold">+30&apos;</button>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <p className="text-gray-500">Cliente</p>
-              <p className="font-medium">{order.customerName}</p>
-              <p>{order.customerPhone}</p>
-              <p className="mt-1 font-semibold text-blue-600">Richiesto: {order.timeSlot || (order.pickupTime ? new Date(order.pickupTime).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : 'N/D')}</p>
+              <p className="text-gray-500 font-body">Cliente</p>
+              <p className="font-brand font-semibold">{order.customerName}</p>
+              <p className="font-body">{order.customerPhone}</p>
+              <p className="mt-1 font-brand font-semibold text-blue-600">Richiesto: {order.timeSlot || (order.pickupTime ? new Date(order.pickupTime).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : 'N/D')}</p>
             </div>
             {order.type === "DELIVERY" && (
               <div>
-                <p className="text-gray-500">Consegna</p>
-                <p className="font-medium">{order.address}</p>
-                {order.addressDetail && <p>{order.addressDetail}</p>}
-                {order.deliveryZone && <p className="text-gray-500">Zona: {order.deliveryZone}</p>}
+                <p className="text-gray-500 font-body">Consegna</p>
+                <p className="font-brand font-semibold">{order.address}</p>
+                {order.addressDetail && <p className="font-body">{order.addressDetail}</p>}
+                {order.deliveryZone && <p className="text-gray-500 font-body">Zona: {order.deliveryZone}</p>}
                 {order.rider ? (
-                  <p className="mt-1 text-sm font-medium text-orange-600">🛵 {order.rider.name}</p>
+                  <p className="mt-1 text-sm font-brand font-semibold text-orange-600">🛵 {order.rider.name}</p>
                 ) : (
-                  <p className="mt-1 text-xs text-gray-400 italic">Nessun fattorino assegnato</p>
+                  <p className="mt-1 text-xs text-gray-400 italic font-body">Nessun fattorino assegnato</p>
                 )}
               </div>
             )}
             <div className="mt-2 pt-2 border-t col-span-2 flex items-center gap-2">
-              <p className="text-gray-500 italic">Pagamento:</p>
+              <p className="text-gray-500 italic font-body">Pagamento:</p>
               <span className={`font-bold px-2 py-0.5 rounded text-xs ${
                 order.paymentMethod === "POS" 
                   ? "bg-blue-600 text-white" 
@@ -189,27 +190,27 @@ export default function OrderDetailPage() {
         </div>
 
         {/* Items */}
-        <div className="bg-white rounded-xl shadow p-5">
-          <h2 className="font-semibold mb-3">Prodotti</h2>
+        <div className="bg-white rounded-[2rem] shadow-sm border border-charcoal/5 p-5">
+          <h2 className="font-brand font-semibold mb-3">Prodotti</h2>
           <div className="space-y-2 text-sm">
             {order.items.map((item) => (
               <div key={item.id} className="flex justify-between">
                 <div>
-                  <span className="font-medium">{item.quantity}x {item.productName}</span>
-                  {item.variant && <span className="text-gray-500"> ({item.variant})</span>}
+                  <span className="font-brand font-semibold">{item.quantity}x {item.productName}</span>
+                  {item.variant && <span className="text-gray-500 font-body"> ({item.variant})</span>}
                   {item.additions && (
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 font-body">
                       + {(item.additions as any[]).map((a: any) => a.name).join(", ")}
                     </p>
                   )}
                   {item.removals && (
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 font-body">
                       - {(item.removals as any[]).map((r: any) => r.name).join(", ")}
                     </p>
                   )}
-                  {item.notes && <p className="text-xs text-gray-400 italic">{item.notes}</p>}
+                  {item.notes && <p className="text-xs text-gray-400 italic font-body">{item.notes}</p>}
                 </div>
-                <span>{formatCurrency(Number(item.totalPrice))}</span>
+                <span className="font-brand font-semibold">{formatCurrency(Number(item.totalPrice))}</span>
               </div>
             ))}
             <div className="border-t pt-2 space-y-1">
@@ -223,7 +224,7 @@ export default function OrderDetailPage() {
                   <span>{formatCurrency(Number(order.deliveryCost))}</span>
                 </div>
               )}
-              <div className="flex justify-between font-bold text-lg">
+              <div className="flex justify-between font-brand font-semibold text-lg">
                 <span>Totale</span>
                 <span>{formatCurrency(Number(order.total))}</span>
               </div>
@@ -232,16 +233,16 @@ export default function OrderDetailPage() {
         </div>
 
         {/* Status history */}
-        <div className="bg-white rounded-xl shadow p-5">
-          <h2 className="font-semibold mb-3">Cronologia</h2>
+        <div className="bg-white rounded-[2rem] shadow-sm border border-charcoal/5 p-5">
+          <h2 className="font-brand font-semibold mb-3">Cronologia</h2>
           <div className="space-y-2">
             {order.statusHistory.map((log) => (
               <div key={log.id} className="flex items-center gap-3 text-sm">
-                <span className="text-gray-400 w-12">{formatTime(log.createdAt)}</span>
-                <span className={`px-2 py-0.5 rounded text-xs font-medium ${ORDER_STATUS_COLORS[log.status]}`}>
+                <span className="text-gray-400 w-12 font-body">{formatTime(log.createdAt)}</span>
+                <span className={`px-2 py-0.5 rounded text-xs font-brand font-semibold ${ORDER_STATUS_COLORS[log.status]}`}>
                   {ORDER_STATUS_LABELS[log.status]}
                 </span>
-                {log.note && <span className="text-gray-500">{log.note}</span>}
+                {log.note && <span className="text-gray-500 font-body">{log.note}</span>}
               </div>
             ))}
           </div>
@@ -253,8 +254,8 @@ export default function OrderDetailPage() {
           <div className="w-full max-w-lg rounded-3xl border border-red-100/80 bg-white shadow-[0_20px_45px_rgba(31,38,135,0.12)]">
             <div className="px-5 py-4 border-b border-red-100/80 flex items-center justify-between">
               <div>
-                <p className="text-[11px] uppercase tracking-[0.14em] text-[#cf2a1d]/80 font-bold">Eliminazione ordine</p>
-                <h3 className="text-xl font-bold text-[#1d1d1f]">Ordine #{formatOrderCode(order)}</h3>
+                <p className="text-[11px] uppercase tracking-[0.14em] text-[#D96A2B]/80 font-brand font-semibold">Eliminazione ordine</p>
+                <h3 className="text-xl font-display font-semibold text-charcoal">Ordine #{formatOrderCode(order)}</h3>
               </div>
               <button
                 onClick={() => setShowDeleteModal(false)}
@@ -265,34 +266,34 @@ export default function OrderDetailPage() {
             </div>
 
             <div className="p-5 space-y-4">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 font-body">
                 Stai per eliminare definitivamente questo ordine.
               </p>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-sm font-brand font-semibold text-gray-700 mb-1.5">
                   Password amministratore
                 </label>
                 <input
                   type="password"
                   value={deletePassword}
                   onChange={(e) => setDeletePassword(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-red-100 rounded-xl focus:ring-2 focus:ring-[#cf2a1d] focus:border-[#cf2a1d] outline-none"
+                  className="w-full px-4 py-2.5 border border-red-100 rounded-xl focus:ring-2 focus:ring-[#D96A2B] focus:border-[#D96A2B] outline-none"
                   placeholder="Inserisci password eliminazione"
                 />
-                <p className="mt-2 text-xs text-gray-500">
+                <p className="mt-2 text-xs text-gray-500 font-body">
                   La password è sempre obbligatoria per eliminare un ordine.
                 </p>
               </div>
 
-              {deleteError && <p className="text-sm text-red-600">{deleteError}</p>}
+              {deleteError && <p className="text-sm text-red-600 font-body">{deleteError}</p>}
             </div>
 
             <div className="p-5 border-t border-red-100/80 flex flex-col sm:flex-row gap-2 sm:justify-end">
               <button
                 type="button"
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2.5 rounded-xl border border-red-100 bg-white text-[#cf2a1d] font-semibold hover:bg-red-50/60 transition-colors"
+                className="px-4 py-2.5 rounded-xl border border-red-100 bg-white text-[#D96A2B] font-brand font-semibold hover:bg-red-50/60 transition-colors"
               >
                 Annulla
               </button>
@@ -300,7 +301,7 @@ export default function OrderDetailPage() {
                 type="button"
                 onClick={handleDeleteOrder}
                 disabled={deleting || !deletePassword.trim()}
-                className="px-4 py-2.5 rounded-xl bg-red-600 border border-red-600 text-white font-semibold hover:bg-red-700 disabled:opacity-50 transition-colors"
+                className="px-4 py-2.5 rounded-xl bg-red-600 border border-red-600 text-white font-brand font-semibold hover:bg-red-700 disabled:opacity-50 transition-colors"
               >
                 {deleting ? "Eliminazione..." : "Conferma eliminazione"}
               </button>

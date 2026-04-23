@@ -11,6 +11,7 @@ import type { CategoryWithProducts, ProductWithRelations } from "@/types";
 export default function MenuPage() {
   const { setOrderType } = useCartStore();
   const [categories, setCategories] = useState<CategoryWithProducts[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<ProductWithRelations | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -23,7 +24,18 @@ export default function MenuPage() {
     const openCartParam = params.get("openCart");
     if (type === "DELIVERY" || type === "ASPORTO") setOrderType(type);
     if (openCartParam === "1") setCartOpen(true);
-    fetch("/api/menu").then((r) => r.json()).then(setCategories);
+
+    const loadMenu = async () => {
+      try {
+        const response = await fetch("/api/menu");
+        const data = await response.json();
+        setCategories(data);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadMenu();
   }, [setOrderType]);
 
   // Scroll Reveal Logic
@@ -78,27 +90,27 @@ export default function MenuPage() {
   return (
     <div className="max-w-3xl mx-auto pb-32 bg-warm-light min-h-screen">
       {/* HEADER SECTION */}
-      <div className="flex flex-col items-center text-center px-6 pt-12 pb-16">
+      <div className="flex flex-col items-center text-center px-6 pt-12 pb-14 md:pb-16">
         <div className="reveal active flex flex-col items-center gap-4">
-          <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60">
+          <span className="ds-micro-label text-terracotta/60">
             Artigianato Romano
           </span>
-          <h1 className="text-5xl md:text-7xl font-display tracking-tight text-charcoal leading-none">
+          <h1 className="ds-heading-hero text-5xl md:text-7xl">
             I Nostri <span className="text-terracotta">Impasti.</span>
           </h1>
           <div className="w-12 h-1 bg-terracotta/20 rounded-full mt-2" />
         </div>
-        <p className="reveal active text-charcoal/50 text-base md:text-lg mt-8 font-body italic max-w-md">
+        <p className="reveal active text-charcoal/55 text-base md:text-lg mt-8 font-body italic max-w-md leading-relaxed">
           Scegli la tua teglia preferita, preparata con 48 ore di lenta maturazione.
         </p>
       </div>
 
       {/* CATEGORY NAV */}
       {categories.length > 0 && (
-        <div className="sticky top-0 z-30 bg-warm-light/95 backdrop-blur-md border-b border-charcoal/5">
+        <div className="sticky top-0 z-30 bg-warm-light/95 backdrop-blur-md border-b border-charcoal/5 shadow-[0_6px_18px_rgba(26,26,26,0.03)]">
           <div
             ref={navRef}
-            className="flex gap-2 px-4 py-3 overflow-x-auto"
+            className="flex gap-2 px-4 py-3 overflow-x-auto no-scrollbar"
             style={{ scrollbarWidth: "none" }}
           >
             {categories.map((cat) => {
@@ -110,8 +122,8 @@ export default function MenuPage() {
                   onClick={() => scrollToCategory(String(cat.id))}
                   className={`shrink-0 px-4 py-2 rounded-full text-[10px] font-brand font-bold uppercase tracking-widest transition-all ${
                     isActive
-                      ? "bg-terracotta text-white shadow-sm"
-                      : "bg-white/60 text-charcoal border border-charcoal/10 hover:bg-white"
+                      ? "bg-terracotta text-white shadow-sm shadow-terracotta/15"
+                      : "bg-white/70 text-charcoal border border-charcoal/10 hover:bg-white"
                   }`}
                 >
                   {cat.name}
@@ -125,11 +137,11 @@ export default function MenuPage() {
       {categories.map((cat, idx) => (
         <div key={cat.id} id={`cat-${cat.id}`} className="mb-16">
           {/* CATEGORY HEADER - Sticky Glass */}
-          <div className="sticky top-[49px] z-20 px-6 py-5 mb-6 backdrop-blur-md bg-warm-light/90 border-b border-charcoal/5 flex items-center justify-between">
-            <h2 className="text-sm font-brand font-bold uppercase tracking-[0.3em] text-charcoal">
+          <div className="sticky top-[49px] z-20 mb-6 flex min-h-[4.5rem] items-center justify-between border-b border-charcoal/5 bg-warm-light/90 px-6 py-4 backdrop-blur-md">
+            <h2 className="relative top-[4px] flex items-center text-sm leading-none font-brand font-semibold uppercase tracking-[0.3em] text-charcoal/85">
               {cat.name}
             </h2>
-            <span className="text-[10px] font-brand font-bold uppercase tracking-widest text-charcoal/30">
+            <span className="relative top-[4px] flex items-center text-[10px] leading-none font-brand font-bold uppercase tracking-widest text-charcoal/30">
               {cat.products.length} Opzioni
             </span>
           </div>
@@ -139,7 +151,7 @@ export default function MenuPage() {
               <button
                 key={product.id}
                 onClick={() => setSelectedProduct(product)}
-                className="reveal group flex items-start justify-between bg-white/50 backdrop-blur-sm border border-charcoal/5 rounded-[2rem] p-6 hover:shadow-xl hover:border-terracotta/20 hover:bg-white transition-all text-left w-full relative overflow-hidden"
+                className="reveal group flex items-start justify-between bg-white/60 backdrop-blur-sm border border-charcoal/5 rounded-[2rem] p-6 hover:shadow-xl hover:shadow-terracotta/5 hover:border-terracotta/20 hover:bg-white transition-all text-left w-full relative overflow-hidden"
                 style={{ transitionDelay: `${pIdx * 50}ms` }}
               >
                 {/* Subtle Hover Gradient */}
@@ -147,7 +159,7 @@ export default function MenuPage() {
                 
                 <div className="flex-1 relative z-10 pr-4">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-2xl font-display tracking-tight text-charcoal group-hover:text-terracotta transition-colors">
+                    <h3 className="text-[1.85rem] font-display tracking-tight text-charcoal group-hover:text-terracotta transition-colors">
                       {product.name}
                     </h3>
                     {pIdx === 0 && (
@@ -161,7 +173,7 @@ export default function MenuPage() {
                       {product.description}
                     </p>
                   )}
-                  <span className="mt-3 inline-block font-brand font-bold text-lg text-charcoal">
+                  <span className="mt-3 inline-block font-brand font-semibold text-lg text-charcoal">
                     {formatCurrency(Number(product.price))}
                   </span>
                 </div>
@@ -193,7 +205,25 @@ export default function MenuPage() {
         </div>
       ))}
 
-      {categories.length === 0 && (
+      {isLoading && (
+        <div className="px-6 pb-20">
+          <div className="grid gap-6">
+            {Array.from({ length: 4 }).map((_, idx) => (
+              <div
+                key={idx}
+                className="rounded-[2rem] border border-charcoal/5 bg-white/55 p-6 animate-pulse"
+              >
+                <div className="h-10 w-2/3 rounded-full bg-charcoal/8" />
+                <div className="mt-5 h-5 w-5/6 rounded-full bg-charcoal/6" />
+                <div className="mt-3 h-5 w-2/3 rounded-full bg-charcoal/6" />
+                <div className="mt-8 h-8 w-24 rounded-full bg-charcoal/10" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!isLoading && categories.length === 0 && (
         <div className="text-center py-32 px-6">
           <div className="text-7xl mb-6 opacity-10 grayscale scale-150 transform transition-transform duration-1000 animate-pulse">🍕</div>
           <h3 className="text-2xl font-display tracking-tight text-charcoal mb-2">Menu non disponibile</h3>
@@ -211,7 +241,7 @@ export default function MenuPage() {
       {/* FLOATING CART BUTTON */}
       <button
         onClick={() => setCartOpen(true)}
-        className="fixed bottom-8 right-6 md:right-10 z-40 group flex items-center gap-3 bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] text-white rounded-full px-7 py-4 font-brand font-bold uppercase tracking-widest text-xs shadow-[0_15px_30px_rgba(197,86,26,0.3)] hover:scale-105 active:scale-95 transition-all border border-white/20"
+        className="fixed bottom-8 right-6 md:right-10 z-40 group flex items-center gap-3 bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] text-white rounded-full px-7 py-4 font-brand font-semibold uppercase tracking-[0.22em] text-[11px] shadow-[0_15px_30px_rgba(185,85,33,0.22)] hover:scale-105 active:scale-95 transition-all border border-white/25"
       >
         <span className="text-lg">🛒</span>
         Carrello

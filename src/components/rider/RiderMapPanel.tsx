@@ -60,11 +60,11 @@ function markerColor(status: string): string {
     case "READY":
       return "#22c55e";
     case "OUT":
-      return "#e66a26";
+      return "#D96A2B";
     case "DELIVERED":
       return "#6b7280";
     default:
-      return "#ffa941";
+      return "#E6A52E";
   }
 }
 
@@ -461,7 +461,7 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
 
     polylineRef.current = new maps.Polyline({
       path: optimizedRoute.polylinePath,
-      strokeColor: "#e66a26",
+      strokeColor: "#D96A2B",
       strokeWeight: 5,
       strokeOpacity: 0.8,
       map: mapRef.current,
@@ -504,7 +504,7 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
         badge.setAttribute("data-step-badge", "true");
         badge.textContent = String(stepIdx + 1);
         badge.style.cssText =
-          "position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#e66a26;color:white;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.2)";
+          "position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#D96A2B;color:white;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.2)";
         entry.pinEl.style.position = "relative";
         entry.pinEl.appendChild(badge);
       }
@@ -665,13 +665,13 @@ function buildInfoContent(
   const color = markerColor(order.status);
   return `<div style="font-family:system-ui,sans-serif;width:220px;padding:2px 0">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px">
-      <span style="font-size:15px;font-weight:700;color:#151b1f">${code}</span>
+      <span style="font-size:15px;font-weight:700;color:#1A1A1A">${code}</span>
       <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:2px 7px;border-radius:99px;background:${color}22;color:${color}">${statusLabel}</span>
     </div>
-    <p style="font-size:12px;font-weight:600;color:#151b1f;margin:0">${order.customerName}</p>
+    <p style="font-size:12px;font-weight:600;color:#1A1A1A;margin:0">${order.customerName}</p>
     <p style="font-size:11px;color:#777;margin:3px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:210px">📍 ${order.address ?? ""}</p>
-    ${eta ? `<p style="font-size:11px;color:#e66a26;font-weight:600;margin:4px 0 0">⏱ ${eta}</p>` : ""}
-    ${order.notes ? `<p style="font-size:10px;color:#ffa941;font-weight:600;margin:4px 0 0">📝 ${order.notes}</p>` : ""}
+    ${eta ? `<p style="font-size:11px;color:#D96A2B;font-weight:600;margin:4px 0 0">⏱ ${eta}</p>` : ""}
+    ${order.notes ? `<p style="font-size:10px;color:#E6A52E;font-weight:600;margin:4px 0 0">📝 ${order.notes}</p>` : ""}
     ${order.customerPhone ? `<a href="tel:${order.customerPhone}" style="font-size:10px;color:#555;text-decoration:none;display:block;margin-top:4px">📞 ${order.customerPhone}</a>` : ""}
   </div>`;
 }

@@ -32,28 +32,28 @@ export default function OrdiniPage() {
     <div className="max-w-7xl animate-in fade-in duration-700">
       <div className="mb-12 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="reveal active">
-          <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-2 block">Operatività</span>
-          <h1 className="text-5xl md:text-6xl font-display tracking-tight text-charcoal">
+          <span className="ds-micro-label text-terracotta/60 mb-2 block">Operatività</span>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-display tracking-tight text-charcoal leading-none">
             Registro <span className="text-terracotta">Ordini.</span>
           </h1>
-          <p className="font-body italic text-charcoal/40 mt-2 tracking-widest uppercase text-[10px]">Gestione storica e flussi</p>
+          <p className="font-body italic text-charcoal/45 mt-3 text-sm">Gestione storica, filtro rapido e accesso ai dettagli ordine</p>
         </div>
         <Link href="/admin/ordini/nuovo"
-          className="w-fit px-8 py-4 bg-charcoal text-white rounded-full font-brand font-bold uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-charcoal/20 hover:bg-terracotta transition-all active:scale-95">
+          className="w-fit px-8 py-4 bg-charcoal text-white rounded-full font-brand font-semibold uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-charcoal/20 hover:bg-terracotta transition-all active:scale-95">
           + Nuovo Ordine Manuale
         </Link>
       </div>
 
       {/* Filters Overlay */}
-      <div className="bg-white/50 backdrop-blur-xl rounded-[2.5rem] p-6 mb-10 border border-charcoal/5 shadow-sm reveal active">
+      <div className="bg-white/55 backdrop-blur-xl rounded-[2.5rem] p-6 mb-10 border border-charcoal/5 shadow-sm reveal active">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="space-y-1.5">
-            <label className="text-[9px] uppercase font-brand font-bold tracking-widest text-charcoal/30 ml-4">Data</label>
+            <label className="text-[9px] uppercase font-brand font-semibold tracking-widest text-charcoal/30 ml-4">Data</label>
             <input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)}
               className="w-full px-6 py-3 bg-white border border-charcoal/5 rounded-full font-body italic text-xs focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta outline-none transition-all shadow-sm" />
           </div>
           <div className="space-y-1.5">
-            <label className="text-[9px] uppercase font-brand font-bold tracking-widest text-charcoal/30 ml-4">Stato Ordine</label>
+            <label className="text-[9px] uppercase font-brand font-semibold tracking-widest text-charcoal/30 ml-4">Stato Ordine</label>
             <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full px-6 py-3 bg-white border border-charcoal/5 rounded-full font-body italic text-xs focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta outline-none transition-all shadow-sm appearance-none cursor-pointer">
               <option value="">Tutti gli stati</option>
@@ -63,7 +63,7 @@ export default function OrdiniPage() {
             </select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[9px] uppercase font-brand font-bold tracking-widest text-charcoal/30 ml-4">Canale Distribuzione</label>
+            <label className="text-[9px] uppercase font-brand font-semibold tracking-widest text-charcoal/30 ml-4">Canale Distribuzione</label>
             <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}
               className="w-full px-6 py-3 bg-white border border-charcoal/5 rounded-full font-body italic text-xs focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta outline-none transition-all shadow-sm appearance-none cursor-pointer">
               <option value="">Tutti i flussi</option>
@@ -78,28 +78,28 @@ export default function OrdiniPage() {
         <table className="w-full border-collapse min-w-[640px]">
           <thead>
             <tr className="border-b border-charcoal/5">
-              <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40">Id</th>
-              <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40">Ora</th>
-              <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40">Cliente</th>
-              <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40">Canale</th>
-              <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40">Valore</th>
-              <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/40 text-center">Status</th>
+              <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-semibold uppercase tracking-[0.3em] text-charcoal/40">Id</th>
+              <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-semibold uppercase tracking-[0.3em] text-charcoal/40">Ora</th>
+              <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-semibold uppercase tracking-[0.3em] text-charcoal/40">Cliente</th>
+              <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-semibold uppercase tracking-[0.3em] text-charcoal/40">Canale</th>
+              <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-semibold uppercase tracking-[0.3em] text-charcoal/40">Valore</th>
+              <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-semibold uppercase tracking-[0.3em] text-charcoal/40 text-center">Status</th>
               <th className="px-4 lg:px-8 py-6"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-charcoal/5">
             {orders.map((o) => (
               <tr key={o.id} className="group hover:bg-warm-light/50 transition-colors">
-                <td className="px-4 lg:px-8 py-5 font-brand font-bold text-lg text-charcoal">#{formatOrderCode(o)}</td>
+                <td className="px-4 lg:px-8 py-5 font-brand font-semibold text-lg text-charcoal">#{formatOrderCode(o)}</td>
                 <td className="px-4 lg:px-8 py-5 font-body italic text-xs text-charcoal/40 group-hover:text-charcoal transition-colors whitespace-nowrap">{formatTime(o.createdAt)}</td>
-                <td className="px-4 lg:px-8 py-5 font-brand font-bold uppercase tracking-widest text-[11px] text-charcoal">{o.customerName}</td>
+                <td className="px-4 lg:px-8 py-5 font-brand font-semibold text-[13px] text-charcoal">{o.customerName}</td>
                 <td className="px-4 lg:px-8 py-5">
                    <span className="font-body italic text-xs text-charcoal/60">{ORDER_TYPE_LABELS[o.type]}</span>
-                   <p className="text-[9px] uppercase font-brand font-bold tracking-widest text-charcoal/20 mt-0.5">{ORDER_CHANNEL_LABELS[o.channel]}</p>
+                   <p className="text-[9px] uppercase font-brand font-semibold tracking-widest text-charcoal/20 mt-0.5">{ORDER_CHANNEL_LABELS[o.channel]}</p>
                 </td>
-                <td className="px-4 lg:px-8 py-5 font-brand font-bold text-charcoal whitespace-nowrap">{formatCurrency(Number(o.total))}</td>
+                <td className="px-4 lg:px-8 py-5 font-brand font-semibold text-charcoal whitespace-nowrap">{formatCurrency(Number(o.total))}</td>
                 <td className="px-4 lg:px-8 py-5 text-center">
-                  <span className={`inline-block px-3 py-1.5 rounded-full text-[9px] font-brand font-bold uppercase tracking-widest border shadow-sm transition-all duration-500 ${
+                  <span className={`inline-block px-3 py-1.5 rounded-full text-[9px] font-brand font-semibold uppercase tracking-[0.16em] border shadow-sm transition-all duration-500 ${
                     ORDER_STATUS_COLORS[o.status] || "bg-charcoal/5 text-charcoal/40 border-charcoal/10"
                   }`}>
                     {ORDER_STATUS_LABELS[o.status] || o.status}
@@ -107,7 +107,7 @@ export default function OrdiniPage() {
                 </td>
                 <td className="px-4 lg:px-8 py-5 text-right">
                   <Link href={`/admin/ordini/${o.id}`}
-                    className="inline-flex items-center gap-2 font-brand font-bold uppercase tracking-widest text-[9px] text-terracotta hover:text-charcoal transition-colors px-4 py-2 bg-terracotta/5 rounded-full group-hover:bg-white group-hover:shadow-sm whitespace-nowrap">
+                    className="inline-flex items-center gap-2 font-brand font-semibold uppercase tracking-[0.16em] text-[9px] text-terracotta hover:text-charcoal transition-colors px-4 py-2 bg-terracotta/5 rounded-full group-hover:bg-white group-hover:shadow-sm whitespace-nowrap">
                     Dettagli
                     <span>→</span>
                   </Link>
@@ -133,10 +133,10 @@ export default function OrdiniPage() {
           >
             <div className="flex items-start justify-between mb-6">
               <div>
-                <p className="text-3xl font-brand font-bold tracking-tighter text-charcoal">#{formatOrderCode(o)}</p>
+                <p className="text-3xl font-brand font-semibold tracking-tighter text-charcoal">#{formatOrderCode(o)}</p>
                 <p className="font-body italic text-xs text-charcoal/40 mt-1">{formatTime(o.createdAt)} • {ORDER_CHANNEL_LABELS[o.channel]}</p>
               </div>
-              <span className={`px-4 py-1.5 rounded-full text-[9px] font-brand font-bold uppercase tracking-widest border shadow-sm transition-all duration-500 ${
+              <span className={`px-4 py-1.5 rounded-full text-[9px] font-brand font-semibold uppercase tracking-[0.16em] border shadow-sm transition-all duration-500 ${
                     ORDER_STATUS_COLORS[o.status] || "bg-charcoal/5 text-charcoal/40 border-charcoal/10"
                   }`}>
                 {ORDER_STATUS_LABELS[o.status]}
@@ -145,18 +145,18 @@ export default function OrdiniPage() {
 
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div>
-                <p className="text-[9px] uppercase font-brand font-bold tracking-widest text-charcoal/30 mb-1">Cliente</p>
-                <p className="font-brand font-bold uppercase tracking-widest text-[11px] text-charcoal truncate">{o.customerName}</p>
+                <p className="text-[9px] uppercase font-brand font-semibold tracking-widest text-charcoal/30 mb-1">Cliente</p>
+                <p className="font-brand font-semibold text-[13px] text-charcoal truncate">{o.customerName}</p>
               </div>
               <div>
-                <p className="text-[9px] uppercase font-brand font-bold tracking-widest text-charcoal/30 mb-1">Tipo</p>
-                <p className="font-brand font-bold uppercase tracking-widest text-[11px] text-charcoal">{ORDER_TYPE_LABELS[o.type]}</p>
+                <p className="text-[9px] uppercase font-brand font-semibold tracking-widest text-charcoal/30 mb-1">Tipo</p>
+                <p className="font-brand font-semibold text-[13px] text-charcoal">{ORDER_TYPE_LABELS[o.type]}</p>
               </div>
             </div>
 
             <div className="pt-6 border-t border-charcoal/5 flex items-center justify-between">
-              <span className="font-brand font-bold uppercase tracking-widest text-[10px] text-terracotta">Apri Dettaglio</span>
-              <span className="text-xl font-brand font-bold text-charcoal">{formatCurrency(Number(o.total))}</span>
+              <span className="font-brand font-semibold uppercase tracking-widest text-[10px] text-terracotta">Apri Dettaglio</span>
+              <span className="text-xl font-brand font-semibold text-charcoal">{formatCurrency(Number(o.total))}</span>
             </div>
           </Link>
         ))}

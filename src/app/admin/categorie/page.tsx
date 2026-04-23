@@ -63,11 +63,11 @@ export default function CategoriePage() {
   return (
     <div className="max-w-4xl animate-in fade-in duration-700">
       <div className="reveal active mb-12">
-        <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-2 block">Organizzazione</span>
-        <h1 className="text-5xl md:text-6xl font-display tracking-tight text-charcoal">
+        <span className="ds-micro-label text-terracotta/60 mb-2 block">Organizzazione</span>
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-display tracking-tight text-charcoal leading-none">
           Categorie <span className="text-terracotta">Menu.</span>
         </h1>
-        <p className="font-body italic text-charcoal/40 mt-2 tracking-widest uppercase text-[10px]">Struttura delle portate</p>
+        <p className="font-body italic text-charcoal/45 mt-3 text-sm">Struttura delle portate, ordine del catalogo e attivazione categorie</p>
       </div>
 
       <form onSubmit={handleAdd} className="flex gap-4 mb-12 bg-white/50 backdrop-blur-xl p-6 rounded-[2.5rem] border border-charcoal/5 shadow-sm reveal active">
@@ -79,7 +79,7 @@ export default function CategoriePage() {
         />
         <button
           type="submit"
-          className="px-8 py-4 bg-charcoal text-white rounded-full font-brand font-bold uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-charcoal/20 hover:bg-terracotta transition-all active:scale-95"
+          className="px-8 py-4 bg-charcoal text-white rounded-full font-brand font-semibold uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-charcoal/20 hover:bg-terracotta transition-all active:scale-95"
         >
           Aggiungi
         </button>
@@ -99,13 +99,13 @@ export default function CategoriePage() {
                 />
                 <button
                   onClick={() => handleSave(cat.id)}
-                  className="font-brand font-bold uppercase tracking-widest text-[9px] text-green-600 hover:text-green-700 transition-colors"
+                  className="font-brand font-semibold uppercase tracking-widest text-[9px] text-green-600 hover:text-green-700 transition-colors"
                 >
                   Salva
                 </button>
                 <button
                   onClick={() => setEditingId(null)}
-                  className="font-brand font-bold uppercase tracking-widest text-[9px] text-charcoal/40 hover:text-charcoal transition-colors"
+                  className="font-brand font-semibold uppercase tracking-widest text-[9px] text-charcoal/40 hover:text-charcoal transition-colors"
                 >
                   Annulla
                 </button>
@@ -113,29 +113,29 @@ export default function CategoriePage() {
             ) : (
               <>
                 <div className="flex-1">
-                  <span className={`font-brand font-bold text-xl tracking-tighter transition-colors ${!cat.active ? "text-charcoal/20 line-through" : "text-charcoal"}`}>
+                  <span className={`font-brand font-semibold text-xl tracking-tight transition-colors ${!cat.active ? "text-charcoal/20 line-through" : "text-charcoal"}`}>
                     {cat.name}
                   </span>
-                  <p className="text-[9px] uppercase font-brand font-bold tracking-[0.3em] text-charcoal/20 mt-1">
+                  <p className="text-[9px] uppercase font-brand font-semibold tracking-[0.3em] text-charcoal/20 mt-1">
                     {cat._count.products} Referenze Associate
                   </p>
                 </div>
                 <div className="flex items-center gap-6">
                   <button
                     onClick={() => { setEditingId(cat.id); setEditName(cat.name); }}
-                    className="font-brand font-bold uppercase tracking-widest text-[9px] text-charcoal/40 hover:text-charcoal transition-colors"
+                    className="font-brand font-semibold uppercase tracking-widest text-[9px] text-charcoal/40 hover:text-charcoal transition-colors"
                   >
                     Modifica
                   </button>
                   <button
                     onClick={() => handleToggle(cat)}
-                    className={`font-brand font-bold uppercase tracking-widest text-[9px] transition-colors ${cat.active ? "text-marigold hover:text-terracotta" : "text-green-600 hover:text-green-700"}`}
+                    className={`font-brand font-semibold uppercase tracking-widest text-[9px] transition-colors ${cat.active ? "text-marigold hover:text-terracotta" : "text-green-600 hover:text-green-700"}`}
                   >
                     {cat.active ? "Disattiva" : "Attiva"}
                   </button>
                   <button
                     onClick={() => handleDelete(cat.id)}
-                    className="font-brand font-bold uppercase tracking-widest text-[9px] text-red-300 hover:text-red-500 transition-colors"
+                    className="font-brand font-semibold uppercase tracking-widest text-[9px] text-red-300 hover:text-red-500 transition-colors"
                   >
                     Elimina
                   </button>

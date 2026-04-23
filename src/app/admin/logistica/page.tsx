@@ -424,11 +424,11 @@ export default function LogisticaPage() {
   }
 
   function getSlaToneClass(minutes: number | null): string {
-    if (minutes === null) return "text-[#cf2a1d]";
+    if (minutes === null) return "text-[#D96A2B]";
     if (minutes >= SLA_URGENT_MINUTES) return "text-red-700";
     if (minutes >= SLA_CRITICAL_MINUTES) return "text-orange-700";
     if (minutes >= SLA_WARNING_MINUTES) return "text-amber-700";
-    return "text-[#cf2a1d]";
+    return "text-[#D96A2B]";
   }
 
   function getSlaLabel(minutes: number | null): string | null {
@@ -455,51 +455,51 @@ export default function LogisticaPage() {
 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between mb-10">
         <div className="reveal active">
-          <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-2 block">Dipartimento</span>
-          <h1 className="text-5xl md:text-6xl font-display tracking-tight text-charcoal">
+          <span className="ds-micro-label text-terracotta/60 mb-2 block">Dipartimento</span>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-display tracking-tight text-charcoal leading-none">
             Logistica <span className="text-terracotta">Rider.</span>
           </h1>
-          <p className="font-body italic text-charcoal/40 mt-2 tracking-widest uppercase text-[10px]">Monitoraggio e assegnazione in tempo reale</p>
+          <p className="font-body italic text-charcoal/45 mt-3 text-sm">Monitoraggio, assegnazione e supporto operativo in tempo reale</p>
         </div>
         <button
           onClick={fetchData}
-          className="w-fit px-8 py-4 bg-white border border-charcoal/5 text-charcoal rounded-full font-brand font-bold uppercase tracking-[0.2em] text-[10px] shadow-sm hover:bg-warm-light transition-all active:scale-95">
+          className="w-fit px-8 py-4 bg-white border border-charcoal/5 text-charcoal rounded-full font-brand font-semibold uppercase tracking-[0.2em] text-[10px] shadow-sm hover:bg-warm-light transition-all active:scale-95">
           Sincronizza Dati
         </button>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4 mb-10">
         <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-charcoal/5 p-5 shadow-sm reveal active flex flex-col">
-          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 min-h-[2.5rem] flex items-start">Da assegnare</p>
-          <p className="text-3xl font-brand font-bold text-terracotta">{kpis.pending}</p>
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-semibold text-charcoal/30 min-h-[2.5rem] flex items-start">Da assegnare</p>
+          <p className="text-3xl font-brand font-semibold text-terracotta">{kpis.pending}</p>
         </div>
         <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-charcoal/5 p-5 shadow-sm reveal active flex flex-col">
-          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 min-h-[2.5rem] flex items-start">Assegnati</p>
-          <p className="text-3xl font-brand font-bold text-charcoal">{kpis.assigned}</p>
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-semibold text-charcoal/30 min-h-[2.5rem] flex items-start">Assegnati</p>
+          <p className="text-3xl font-brand font-semibold text-charcoal">{kpis.assigned}</p>
         </div>
         <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-charcoal/5 p-5 shadow-sm reveal active flex flex-col">
-          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 min-h-[2.5rem] flex items-start">In consegna</p>
-          <p className="text-3xl font-brand font-bold text-charcoal">{kpis.out}</p>
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-semibold text-charcoal/30 min-h-[2.5rem] flex items-start">In consegna</p>
+          <p className="text-3xl font-brand font-semibold text-charcoal">{kpis.out}</p>
         </div>
         <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-charcoal/5 p-5 shadow-sm reveal active flex flex-col items-center text-center">
-          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 min-h-[2.5rem] flex items-start">Tempo medio</p>
-          <p className="text-3xl font-brand font-bold text-terracotta leading-none">{formatDuration(kpis.avgDeliveryMs)}</p>
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-semibold text-charcoal/30 min-h-[2.5rem] flex items-start">Tempo medio</p>
+          <p className="text-3xl font-brand font-semibold text-terracotta leading-none">{formatDuration(kpis.avgDeliveryMs)}</p>
         </div>
         <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-charcoal/5 p-5 shadow-sm reveal active flex flex-col">
-          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 min-h-[2.5rem] flex items-start">Resa Rider</p>
-          <p className="text-3xl font-brand font-bold text-charcoal">{kpis.totalDeliveredByRiders}</p>
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-semibold text-charcoal/30 min-h-[2.5rem] flex items-start">Resa Rider</p>
+          <p className="text-3xl font-brand font-semibold text-charcoal">{kpis.totalDeliveredByRiders}</p>
         </div>
         <div className="bg-warm-light/50 backdrop-blur-xl rounded-2xl border border-marigold/20 p-5 shadow-sm reveal active flex flex-col">
-          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-marigold min-h-[2.5rem] flex items-start">SLA 30+</p>
-          <p className="text-3xl font-brand font-bold text-marigold">{kpis.atRisk30}</p>
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-semibold text-marigold min-h-[2.5rem] flex items-start">SLA 30+</p>
+          <p className="text-3xl font-brand font-semibold text-marigold">{kpis.atRisk30}</p>
         </div>
         <div className="bg-warm-light/50 backdrop-blur-xl rounded-2xl border border-terracotta/20 p-5 shadow-sm reveal active flex flex-col">
-          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-terracotta min-h-[2.5rem] flex items-start">SLA 40+</p>
-          <p className="text-3xl font-brand font-bold text-terracotta">{kpis.atRisk40}</p>
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-semibold text-terracotta min-h-[2.5rem] flex items-start">SLA 40+</p>
+          <p className="text-3xl font-brand font-semibold text-terracotta">{kpis.atRisk40}</p>
         </div>
         <div className="bg-terracotta/5 backdrop-blur-xl rounded-2xl border border-terracotta/30 p-5 shadow-sm reveal active flex flex-col">
-          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-terracotta min-h-[2.5rem] flex items-start">SLA 50+</p>
-          <p className="text-3xl font-brand font-bold text-terracotta animate-pulse">{kpis.atRisk50}</p>
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-semibold text-terracotta min-h-[2.5rem] flex items-start">SLA 50+</p>
+          <p className="text-3xl font-brand font-semibold text-terracotta animate-pulse">{kpis.atRisk50}</p>
         </div>
       </div>
 
@@ -507,13 +507,13 @@ export default function LogisticaPage() {
         <div className="mb-12 bg-white/40 backdrop-blur-3xl rounded-[3rem] border border-terracotta/20 p-10 reveal active">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-10">
             <div>
-              <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta mb-2 block">Alert Operativi</span>
-              <h3 className="text-4xl font-display tracking-tight text-charcoal">Eventi Rider <span className="text-terracotta">Critici.</span></h3>
+              <span className="ds-micro-label text-terracotta mb-2 block">Alert Operativi</span>
+              <h3 className="text-3xl md:text-4xl font-display tracking-tight text-charcoal">Eventi Rider <span className="text-terracotta">Critici.</span></h3>
             </div>
             <button
               type="button"
               onClick={dismissAllAlerts}
-              className="px-8 py-3 bg-white border border-terracotta/20 text-terracotta rounded-full font-brand font-bold uppercase tracking-[0.2em] text-[9px] hover:bg-terracotta hover:text-white transition-all shadow-sm"
+              className="px-8 py-3 bg-white border border-terracotta/20 text-terracotta rounded-full font-brand font-semibold uppercase tracking-[0.2em] text-[9px] hover:bg-terracotta hover:text-white transition-all shadow-sm"
             >
               Archivia Tutti
             </button>
@@ -549,8 +549,8 @@ export default function LogisticaPage() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-12">
         <section className="xl:col-span-2 bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-charcoal/5 shadow-2xl overflow-hidden reveal active">
           <div className="px-10 py-8 border-b border-charcoal/5 bg-warm-light/20 flex items-center justify-between">
-            <h2 className="font-brand font-bold uppercase tracking-[0.2em] text-xs text-charcoal">Ordini Delivery Operativi</h2>
-            <span className="bg-terracotta text-white px-3 py-1 rounded-full text-[9px] font-brand font-bold tracking-widest">{activeOrders.length} Attivi</span>
+            <h2 className="font-brand font-semibold uppercase tracking-[0.2em] text-xs text-charcoal">Ordini Delivery Operativi</h2>
+            <span className="bg-terracotta text-white px-3 py-1 rounded-full text-[9px] font-brand font-semibold tracking-[0.18em]">{activeOrders.length} Attivi</span>
           </div>
           <div className="p-8 space-y-4">
             {activeOrders.map((order) => {
@@ -564,29 +564,29 @@ export default function LogisticaPage() {
               const suggestion = dispatchSuggestions[order.id];
               const effectiveSelectedRider = selectedRider[order.id] ?? order.riderId ?? suggestion?.riderId ?? "";
               return (
-                <div key={order.id} className="rounded-[2.5rem] border border-charcoal/5 bg-white p-8 transition-all hover:shadow-lg">
+                <div key={order.id} className="rounded-[2.5rem] border border-charcoal/5 bg-white p-8 transition-all hover:shadow-lg hover:shadow-terracotta/5">
                   <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                     <div>
-                      <p className="font-brand font-bold text-xl tracking-tight text-charcoal">#{formatOrderCode(order)} • {order.customerName}</p>
+                      <p className="font-brand font-semibold text-xl tracking-tight text-charcoal">#{formatOrderCode(order)} • {order.customerName}</p>
                       <p className="font-body italic text-xs text-charcoal/40 mt-1">{order.address || "Indirizzo non presente"}</p>
                     </div>
-                    <span className={`px-5 py-2 rounded-full text-[9px] font-brand font-bold uppercase tracking-widest border ${ORDER_STATUS_COLORS[order.status]}`}>
+                    <span className={`px-5 py-2 rounded-full text-[9px] font-brand font-semibold uppercase tracking-[0.18em] border ${ORDER_STATUS_COLORS[order.status]}`}>
                       {ORDER_STATUS_LABELS[order.status]}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm mb-8">
                     <div>
-                      <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/20 mb-1">Rider</p>
-                      <p className="font-brand font-bold text-charcoal">{riderDisplay}</p>
+                      <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-semibold text-charcoal/20 mb-1">Rider</p>
+                      <p className="font-brand font-semibold text-charcoal">{riderDisplay}</p>
                     </div>
                     <div>
-                      <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/20 mb-1">Importo</p>
-                      <p className="font-brand font-bold text-charcoal">{Number(order.total).toFixed(2)} €</p>
+                      <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-semibold text-charcoal/20 mb-1">Importo</p>
+                      <p className="font-brand font-semibold text-charcoal">{Number(order.total).toFixed(2)} €</p>
                     </div>
                     <div>
-                      <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/20 mb-1">⏱️ Timer</p>
-                      <p className={`font-brand font-bold text-lg ${getSlaToneClass(timerMinutes)}`}>{timer}</p>
+                      <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-semibold text-charcoal/20 mb-1">⏱️ Timer</p>
+                      <p className={`font-brand font-semibold text-lg ${getSlaToneClass(timerMinutes)}`}>{timer}</p>
                     </div>
                   </div>
 
@@ -607,13 +607,13 @@ export default function LogisticaPage() {
                   {suggestion && (
                     <div className="mb-6 rounded-3xl border border-charcoal/5 bg-warm-light/30 p-6 flex flex-col md:flex-row items-center justify-between gap-4">
                       <div className="flex-1">
-                        <p className="text-[9px] uppercase font-brand font-bold text-terracotta tracking-[0.2em] mb-1">Suggerimento Smart:</p>
-                        <p className="font-brand font-bold text-charcoal text-sm">{suggestion.riderName} <span className="text-charcoal/40 font-normal ml-2">Score: {suggestion.score}</span></p>
+                        <p className="text-[9px] uppercase font-brand font-semibold text-terracotta tracking-[0.2em] mb-1">Suggerimento Smart</p>
+                        <p className="font-brand font-semibold text-charcoal text-sm">{suggestion.riderName} <span className="text-charcoal/40 font-normal ml-2">Score: {suggestion.score}</span></p>
                       </div>
                       <button
                         type="button"
                         onClick={() => setSelectedRider((prev) => ({ ...prev, [order.id]: suggestion.riderId }))}
-                        className="px-6 py-2 bg-white border border-charcoal/5 text-charcoal rounded-full font-brand font-bold uppercase tracking-[0.2em] text-[9px] hover:bg-terracotta hover:text-white transition-all transition-all"
+                        className="px-6 py-2 bg-white border border-charcoal/5 text-charcoal rounded-full font-brand font-semibold uppercase tracking-[0.2em] text-[9px] hover:bg-terracotta hover:text-white transition-all"
                       >
                         Applica
                       </button>
@@ -624,7 +624,7 @@ export default function LogisticaPage() {
                     <select
                       value={effectiveSelectedRider}
                       onChange={(e) => setSelectedRider((prev) => ({ ...prev, [order.id]: e.target.value }))}
-                      className="flex-1 px-6 py-4 bg-white border border-charcoal/10 rounded-full font-brand font-bold uppercase tracking-widest text-[10px] focus:ring-2 focus:ring-terracotta/20 outline-none transition-all"
+                      className="flex-1 px-6 py-4 bg-white border border-charcoal/10 rounded-full font-brand font-semibold uppercase tracking-[0.16em] text-[10px] focus:ring-2 focus:ring-terracotta/20 outline-none transition-all"
                     >
                       <option value="">Seleziona Fattore...</option>
                       {riders
@@ -640,7 +640,7 @@ export default function LogisticaPage() {
                       type="button"
                       onClick={() => assignOrder(order)}
                       disabled={savingOrderId === order.id}
-                      className="px-10 py-4 bg-charcoal text-white rounded-full font-brand font-bold uppercase tracking-[0.2em] text-[10px] shadow-xl hover:bg-terracotta transition-all disabled:opacity-50"
+                      className="px-10 py-4 bg-charcoal text-white rounded-full font-brand font-semibold uppercase tracking-[0.2em] text-[10px] shadow-xl hover:bg-terracotta transition-all disabled:opacity-50"
                     >
                       {savingOrderId === order.id ? "..." : order.riderId ? "Invia" : "Assegna"}
                     </button>
@@ -650,7 +650,7 @@ export default function LogisticaPage() {
                         type="button"
                         onClick={() => completeDelivery(order)}
                         disabled={savingOrderId === order.id}
-                        className="px-10 py-4 bg-white border-2 border-charcoal text-charcoal rounded-full font-brand font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-charcoal hover:text-white transition-all"
+                        className="px-10 py-4 bg-white border-2 border-charcoal text-charcoal rounded-full font-brand font-semibold uppercase tracking-[0.2em] text-[10px] hover:bg-charcoal hover:text-white transition-all"
                       >
                         Consegnato
                       </button>
@@ -669,12 +669,12 @@ export default function LogisticaPage() {
 
         <section className="bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-charcoal/5 shadow-2xl p-10 h-fit reveal active">
           <div className="mb-10">
-            <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-2 block">Nuovo Account</span>
-            <h2 className="text-3xl font-brand font-medium tracking-tight text-charcoal uppercase">Reclutamento <span className="text-terracotta">Rider.</span></h2>
+            <span className="ds-micro-label text-terracotta/60 mb-2 block">Nuovo Account</span>
+            <h2 className="text-3xl font-display font-semibold tracking-tight text-charcoal">Reclutamento <span className="text-terracotta">Rider.</span></h2>
           </div>
           <div className="space-y-4">
             <div className="space-y-1">
-               <label className="text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/40 ml-4">Nome e Cognome</label>
+               <label className="text-[9px] font-brand font-semibold uppercase tracking-widest text-charcoal/40 ml-4">Nome e Cognome</label>
                <input
                 value={newRiderName}
                 onChange={(e) => setNewRiderName(e.target.value)}
@@ -682,7 +682,7 @@ export default function LogisticaPage() {
               />
             </div>
              <div className="space-y-1">
-               <label className="text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/40 ml-4">Recapito Telefonico</label>
+               <label className="text-[9px] font-brand font-semibold uppercase tracking-widest text-charcoal/40 ml-4">Recapito Telefonico</label>
                <input
                 value={newRiderPhone}
                 onChange={(e) => setNewRiderPhone(e.target.value)}
@@ -690,7 +690,7 @@ export default function LogisticaPage() {
               />
             </div>
              <div className="space-y-1">
-               <label className="text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/40 ml-4">Email Personale</label>
+               <label className="text-[9px] font-brand font-semibold uppercase tracking-widest text-charcoal/40 ml-4">Email Personale</label>
                <input
                 value={newRiderEmail}
                 onChange={(e) => setNewRiderEmail(e.target.value)}
@@ -698,7 +698,7 @@ export default function LogisticaPage() {
               />
             </div>
              <div className="space-y-1">
-               <label className="text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/40 ml-4">Mezzo</label>
+               <label className="text-[9px] font-brand font-semibold uppercase tracking-widest text-charcoal/40 ml-4">Mezzo</label>
                <select
                 value={newRiderVehicle}
                 onChange={(e) => setNewRiderVehicle(e.target.value as RiderVehicleValue)}
@@ -710,7 +710,7 @@ export default function LogisticaPage() {
               </select>
             </div>
              <div className="space-y-1">
-               <label className="text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/40 ml-4">Zona di competenza</label>
+               <label className="text-[9px] font-brand font-semibold uppercase tracking-widest text-charcoal/40 ml-4">Zona di competenza</label>
                <input
                 value={newRiderZone}
                 onChange={(e) => setNewRiderZone(e.target.value)}
@@ -722,7 +722,7 @@ export default function LogisticaPage() {
               type="button"
               onClick={createRider}
               disabled={savingRider || !newRiderName.trim()}
-              className="w-full mt-6 px-10 py-5 bg-charcoal text-white rounded-full font-brand font-bold uppercase tracking-[0.2em] text-[10px] shadow-2xl hover:bg-terracotta transition-all disabled:opacity-50"
+              className="w-full mt-6 px-10 py-5 bg-charcoal text-white rounded-full font-brand font-semibold uppercase tracking-[0.2em] text-[10px] shadow-2xl hover:bg-terracotta transition-all disabled:opacity-50"
             >
               {savingRider ? "Registrazione..." : "Crea Profilo Rider"}
             </button>
@@ -733,10 +733,10 @@ export default function LogisticaPage() {
       <section className="bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-charcoal/5 shadow-2xl overflow-hidden reveal active mb-20">
         <div className="px-10 py-8 border-b border-charcoal/5 bg-warm-light/20 flex items-center justify-between">
           <div>
-            <span className="text-[9px] font-brand font-bold uppercase tracking-[0.3em] text-terracotta/60 mb-1 block">Turno di oggi</span>
-            <h2 className="font-brand font-bold uppercase tracking-tight text-charcoal text-lg">Situazione Fattorini</h2>
-          </div>
-          <span className="text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/30">{riders.length} rider registrati</span>
+              <span className="text-[9px] font-brand font-semibold uppercase tracking-[0.3em] text-terracotta/60 mb-1 block">Turno di oggi</span>
+              <h2 className="font-display font-semibold tracking-tight text-charcoal text-lg">Situazione Fattorini</h2>
+            </div>
+          <span className="text-[9px] font-brand font-semibold uppercase tracking-widest text-charcoal/30">{riders.length} rider registrati</span>
         </div>
 
         <div className="p-10 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -779,20 +779,20 @@ export default function LogisticaPage() {
                 {/* Header */}
                 <div className="flex items-start justify-between gap-4 mb-6">
                   <div>
-                    <p className="font-brand font-bold text-xl tracking-tight text-charcoal">{rider.name}</p>
+                    <p className="font-brand font-semibold text-xl tracking-tight text-charcoal">{rider.name}</p>
                     <p className="font-body italic text-xs text-charcoal/40 mt-0.5">{rider.phone || "—"}</p>
                     <div className="mt-2 flex flex-wrap gap-1.5">
-                      <span className="px-2.5 py-1 rounded-full bg-terracotta/10 text-terracotta text-[9px] font-brand font-bold uppercase tracking-widest border border-terracotta/20">
+                      <span className="px-2.5 py-1 rounded-full bg-terracotta/10 text-terracotta text-[9px] font-brand font-semibold uppercase tracking-widest border border-terracotta/20">
                         {VEHICLE_LABELS[rider.vehicle]}
                       </span>
                       {rider.zone && (
-                        <span className="px-2.5 py-1 rounded-full bg-charcoal/5 text-charcoal/60 text-[9px] font-brand font-bold uppercase tracking-widest">
+                        <span className="px-2.5 py-1 rounded-full bg-charcoal/5 text-charcoal/60 text-[9px] font-brand font-semibold uppercase tracking-widest">
                           {rider.zone}
                         </span>
                       )}
                     </div>
                   </div>
-                  <span className={`flex-shrink-0 px-4 py-1.5 rounded-full text-[9px] font-brand font-bold uppercase tracking-widest ${
+                  <span className={`flex-shrink-0 px-4 py-1.5 rounded-full text-[9px] font-brand font-semibold uppercase tracking-widest ${
                     rider.active ? "bg-green-50 text-green-600 border border-green-100" : "bg-charcoal/5 text-charcoal/30 border border-charcoal/10"
                   }`}>
                     {rider.active ? "In Servizio" : "Non Attivo"}
@@ -802,21 +802,21 @@ export default function LogisticaPage() {
                 {/* Statistiche turno */}
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   <div className="bg-warm-light/40 rounded-2xl p-4 border border-charcoal/5 text-center">
-                    <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 mb-1.5">Ordini oggi</p>
-                    <p className="text-2xl font-brand font-bold text-charcoal">{totalTodayOrders}</p>
-                    <p className="text-[8px] font-brand font-bold text-charcoal/25 mt-0.5">{rider.metrics.deliveredTodayCount} consegnati</p>
+                    <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-semibold text-charcoal/30 mb-1.5">Ordini oggi</p>
+                    <p className="text-2xl font-brand font-semibold text-charcoal">{totalTodayOrders}</p>
+                    <p className="text-[8px] font-brand font-semibold text-charcoal/25 mt-0.5">{rider.metrics.deliveredTodayCount} consegnati</p>
                   </div>
                   <div className="bg-warm-light/40 rounded-2xl p-4 border border-charcoal/5 text-center">
-                    <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 mb-1.5">In giro</p>
-                    <p className="text-2xl font-brand font-bold text-terracotta">{activeRiderOrders.length}</p>
-                    <p className="text-[8px] font-brand font-bold text-charcoal/25 mt-0.5">attivi ora</p>
+                    <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-semibold text-charcoal/30 mb-1.5">In giro</p>
+                    <p className="text-2xl font-brand font-semibold text-terracotta">{activeRiderOrders.length}</p>
+                    <p className="text-[8px] font-brand font-semibold text-charcoal/25 mt-0.5">attivi ora</p>
                   </div>
                   <div className="bg-warm-light/40 rounded-2xl p-4 border border-charcoal/5 text-center">
-                    <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-bold text-charcoal/30 mb-1.5">Tempo medio</p>
-                    <p className="text-2xl font-brand font-bold text-marigold">
+                    <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-semibold text-charcoal/30 mb-1.5">Tempo medio</p>
+                    <p className="text-2xl font-brand font-semibold text-marigold">
                       {avgTodayMinutes != null ? `${avgTodayMinutes}′` : "—"}
                     </p>
-                    <p className="text-[8px] font-brand font-bold text-charcoal/25 mt-0.5">oggi</p>
+                    <p className="text-[8px] font-brand font-semibold text-charcoal/25 mt-0.5">oggi</p>
                   </div>
                 </div>
 
@@ -824,22 +824,22 @@ export default function LogisticaPage() {
                 <div className="rounded-2xl p-5 border border-amber-200 bg-amber-50/70 mb-6">
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div>
-                      <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-bold text-amber-600 mb-1">Cash da versare a fine turno</p>
-                      <p className="text-2xl font-brand font-bold text-amber-800">{formatCurrency(cashCollected + cashToDo)}</p>
+                      <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-semibold text-amber-600 mb-1">Cash da versare a fine turno</p>
+                      <p className="text-2xl font-brand font-semibold text-amber-800">{formatCurrency(cashCollected + cashToDo)}</p>
                     </div>
                     <div className="text-right space-y-1">
-                      <p className="text-[9px] font-brand font-bold text-amber-500">
+                      <p className="text-[9px] font-brand font-semibold text-amber-500">
                         {formatCurrency(cashCollected)} <span className="font-normal text-amber-400">già in tasca</span>
                       </p>
-                      <p className="text-[9px] font-brand font-bold text-amber-400">
+                      <p className="text-[9px] font-brand font-semibold text-amber-400">
                         {formatCurrency(cashToDo)} <span className="font-normal">ancora da ritirare</span>
                       </p>
                     </div>
                   </div>
                   {posCollected > 0 && (
                     <div className="pt-3 border-t border-amber-200/60 flex items-center justify-between">
-                      <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-bold text-blue-500">POS già elettronico</p>
-                      <p className="text-sm font-brand font-bold text-blue-700">{formatCurrency(posCollected)}</p>
+                      <p className="text-[8px] uppercase tracking-[0.2em] font-brand font-semibold text-blue-500">POS già elettronico</p>
+                      <p className="text-sm font-brand font-semibold text-blue-700">{formatCurrency(posCollected)}</p>
                     </div>
                   )}
                 </div>
@@ -850,7 +850,7 @@ export default function LogisticaPage() {
                     type="button"
                     onClick={() => toggleRiderActive(rider)}
                     disabled={savingRider}
-                    className="flex-1 py-3 bg-white border border-charcoal/10 text-charcoal rounded-full font-brand font-bold uppercase tracking-[0.2em] text-[9px] hover:bg-warm-light transition-all disabled:opacity-50"
+                    className="flex-1 py-3 bg-white border border-charcoal/10 text-charcoal rounded-full font-brand font-semibold uppercase tracking-[0.2em] text-[9px] hover:bg-warm-light transition-all disabled:opacity-50"
                   >
                     {rider.active ? "Sospendi" : "Attiva"}
                   </button>
@@ -858,7 +858,7 @@ export default function LogisticaPage() {
                     type="button"
                     onClick={() => removeRider(rider)}
                     disabled={savingRider}
-                    className="px-6 py-3 bg-red-50 text-red-400 rounded-full font-brand font-bold uppercase tracking-[0.2em] text-[9px] hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
+                    className="px-6 py-3 bg-red-50 text-red-400 rounded-full font-brand font-semibold uppercase tracking-[0.2em] text-[9px] hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
                   >
                     ✕
                   </button>
@@ -880,10 +880,10 @@ export default function LogisticaPage() {
         <section className="bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-charcoal/5 shadow-2xl overflow-hidden reveal active mb-20">
           <div className="px-10 py-8 border-b border-charcoal/5 bg-warm-light/20 flex items-center justify-between">
             <div>
-              <span className="text-[9px] font-brand font-bold uppercase tracking-[0.3em] text-terracotta/60 mb-1 block">Tutti i tempi</span>
-              <h2 className="font-brand font-bold uppercase tracking-tight text-charcoal text-lg">Statistiche <span className="text-terracotta">Storiche</span></h2>
+              <span className="text-[9px] font-brand font-semibold uppercase tracking-[0.3em] text-terracotta/60 mb-1 block">Tutti i tempi</span>
+              <h2 className="font-display font-semibold tracking-tight text-charcoal text-lg">Statistiche <span className="text-terracotta">Storiche</span></h2>
             </div>
-            <span className="text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/30">
+            <span className="text-[9px] font-brand font-semibold uppercase tracking-widest text-charcoal/30">
               {riders.reduce((s, r) => s + r.metrics.deliveredCount, 0)} consegne totali
             </span>
           </div>
@@ -893,15 +893,15 @@ export default function LogisticaPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-charcoal/5 bg-warm-light/10">
-                  <th className="text-left px-8 py-4 text-[8px] font-brand font-bold uppercase tracking-[0.25em] text-charcoal/30">#</th>
-                  <th className="text-left px-4 py-4 text-[8px] font-brand font-bold uppercase tracking-[0.25em] text-charcoal/30">Fattorino</th>
-                  <th className="text-right px-4 py-4 text-[8px] font-brand font-bold uppercase tracking-[0.25em] text-charcoal/30">Consegne</th>
-                  <th className="text-right px-4 py-4 text-[8px] font-brand font-bold uppercase tracking-[0.25em] text-charcoal/30">Fatturato</th>
-                  <th className="text-right px-4 py-4 text-[8px] font-brand font-bold uppercase tracking-[0.25em] text-charcoal/30">Pizze</th>
-                  <th className="text-right px-4 py-4 text-[8px] font-brand font-bold uppercase tracking-[0.25em] text-charcoal/30">Scontrino medio</th>
-                  <th className="text-right px-4 py-4 text-[8px] font-brand font-bold uppercase tracking-[0.25em] text-charcoal/30">Tempo medio</th>
-                  <th className="text-right px-4 py-4 text-[8px] font-brand font-bold uppercase tracking-[0.25em] text-charcoal/30">Compenso</th>
-                  <th className="text-right px-8 py-4 text-[8px] font-brand font-bold uppercase tracking-[0.25em] text-charcoal/30">Netto store</th>
+                  <th className="text-left px-8 py-4 text-[8px] font-brand font-semibold uppercase tracking-[0.25em] text-charcoal/30">#</th>
+                  <th className="text-left px-4 py-4 text-[8px] font-brand font-semibold uppercase tracking-[0.25em] text-charcoal/30">Fattorino</th>
+                  <th className="text-right px-4 py-4 text-[8px] font-brand font-semibold uppercase tracking-[0.25em] text-charcoal/30">Consegne</th>
+                  <th className="text-right px-4 py-4 text-[8px] font-brand font-semibold uppercase tracking-[0.25em] text-charcoal/30">Fatturato</th>
+                  <th className="text-right px-4 py-4 text-[8px] font-brand font-semibold uppercase tracking-[0.25em] text-charcoal/30">Pizze</th>
+                  <th className="text-right px-4 py-4 text-[8px] font-brand font-semibold uppercase tracking-[0.25em] text-charcoal/30">Scontrino medio</th>
+                  <th className="text-right px-4 py-4 text-[8px] font-brand font-semibold uppercase tracking-[0.25em] text-charcoal/30">Tempo medio</th>
+                  <th className="text-right px-4 py-4 text-[8px] font-brand font-semibold uppercase tracking-[0.25em] text-charcoal/30">Compenso</th>
+                  <th className="text-right px-8 py-4 text-[8px] font-brand font-semibold uppercase tracking-[0.25em] text-charcoal/30">Netto store</th>
                 </tr>
               </thead>
               <tbody>
@@ -912,17 +912,17 @@ export default function LogisticaPage() {
                     const rankColor = rank === 1 ? "text-marigold" : rank === 2 ? "text-charcoal/40" : rank === 3 ? "text-amber-700/60" : "text-charcoal/20";
                     return (
                       <tr key={rider.id} className="border-b border-charcoal/5 last:border-0 hover:bg-warm-light/20 transition-colors">
-                        <td className={`px-8 py-5 font-brand font-bold text-lg ${rankColor}`}>{rank}</td>
+                        <td className={`px-8 py-5 font-brand font-semibold text-lg ${rankColor}`}>{rank}</td>
                         <td className="px-4 py-5">
                           <div className="flex items-center gap-3">
                             <div>
-                              <p className="font-brand font-bold text-sm text-charcoal">{rider.name}</p>
+                              <p className="font-brand font-semibold text-sm text-charcoal">{rider.name}</p>
                               <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="text-[8px] font-brand font-bold uppercase tracking-widest text-charcoal/30">{VEHICLE_LABELS[rider.vehicle]}</span>
+                                <span className="text-[8px] font-brand font-semibold uppercase tracking-widest text-charcoal/30">{VEHICLE_LABELS[rider.vehicle]}</span>
                                 {rider.zone && <span className="text-[8px] font-brand text-charcoal/20">· {rider.zone}</span>}
                               </div>
                             </div>
-                            <span className={`px-2 py-0.5 rounded-full text-[8px] font-brand font-bold uppercase tracking-widest ${
+                            <span className={`px-2 py-0.5 rounded-full text-[8px] font-brand font-semibold uppercase tracking-widest ${
                               rider.active ? "bg-green-50 text-green-500 border border-green-100" : "bg-charcoal/5 text-charcoal/25 border border-charcoal/10"
                             }`}>
                               {rider.active ? "Attivo" : "Stop"}
@@ -930,27 +930,27 @@ export default function LogisticaPage() {
                           </div>
                         </td>
                         <td className="px-4 py-5 text-right">
-                          <p className="font-brand font-bold text-xl text-charcoal">{rider.metrics.deliveredCount}</p>
+                          <p className="font-brand font-semibold text-xl text-charcoal">{rider.metrics.deliveredCount}</p>
                         </td>
                         <td className="px-4 py-5 text-right">
-                          <p className="font-brand font-bold text-sm text-charcoal">{formatCurrency(rider.metrics.deliveredRevenue)}</p>
+                          <p className="font-brand font-semibold text-sm text-charcoal">{formatCurrency(rider.metrics.deliveredRevenue)}</p>
                         </td>
                         <td className="px-4 py-5 text-right">
-                          <p className="font-brand font-bold text-sm text-charcoal">{rider.metrics.totalPizzasDelivered}</p>
+                          <p className="font-brand font-semibold text-sm text-charcoal">{rider.metrics.totalPizzasDelivered}</p>
                         </td>
                         <td className="px-4 py-5 text-right">
-                          <p className="font-brand font-bold text-sm text-charcoal">{formatCurrency(rider.metrics.averageTicket)}</p>
+                          <p className="font-brand font-semibold text-sm text-charcoal">{formatCurrency(rider.metrics.averageTicket)}</p>
                         </td>
                         <td className="px-4 py-5 text-right">
-                          <p className={`font-brand font-bold text-sm ${rider.metrics.avgDeliveryMinutes != null && rider.metrics.avgDeliveryMinutes <= 25 ? "text-green-600" : rider.metrics.avgDeliveryMinutes != null && rider.metrics.avgDeliveryMinutes >= 35 ? "text-terracotta" : "text-marigold"}`}>
+                          <p className={`font-brand font-semibold text-sm ${rider.metrics.avgDeliveryMinutes != null && rider.metrics.avgDeliveryMinutes <= 25 ? "text-green-600" : rider.metrics.avgDeliveryMinutes != null && rider.metrics.avgDeliveryMinutes >= 35 ? "text-terracotta" : "text-marigold"}`}>
                             {rider.metrics.avgDeliveryMinutes != null ? `${rider.metrics.avgDeliveryMinutes}′` : "—"}
                           </p>
                         </td>
                         <td className="px-4 py-5 text-right">
-                          <p className="font-brand font-bold text-sm text-terracotta">{formatCurrency(rider.metrics.estimatedCompensation)}</p>
+                          <p className="font-brand font-semibold text-sm text-terracotta">{formatCurrency(rider.metrics.estimatedCompensation)}</p>
                         </td>
                         <td className="px-8 py-5 text-right">
-                          <p className="font-brand font-bold text-sm text-charcoal">{formatCurrency(rider.metrics.netAfterRiderCompensation)}</p>
+                          <p className="font-brand font-semibold text-sm text-charcoal">{formatCurrency(rider.metrics.netAfterRiderCompensation)}</p>
                         </td>
                       </tr>
                     );
@@ -960,24 +960,24 @@ export default function LogisticaPage() {
                 <tr className="border-t-2 border-charcoal/10 bg-warm-light/20">
                   <td className="px-8 py-4" />
                   <td className="px-4 py-4">
-                    <p className="text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/40">Totale</p>
+                    <p className="text-[9px] font-brand font-semibold uppercase tracking-widest text-charcoal/40">Totale</p>
                   </td>
                   <td className="px-4 py-4 text-right">
-                    <p className="font-brand font-bold text-sm text-charcoal">{riders.reduce((s, r) => s + r.metrics.deliveredCount, 0)}</p>
+                    <p className="font-brand font-semibold text-sm text-charcoal">{riders.reduce((s, r) => s + r.metrics.deliveredCount, 0)}</p>
                   </td>
                   <td className="px-4 py-4 text-right">
-                    <p className="font-brand font-bold text-sm text-charcoal">{formatCurrency(riders.reduce((s, r) => s + r.metrics.deliveredRevenue, 0))}</p>
+                    <p className="font-brand font-semibold text-sm text-charcoal">{formatCurrency(riders.reduce((s, r) => s + r.metrics.deliveredRevenue, 0))}</p>
                   </td>
                   <td className="px-4 py-4 text-right">
-                    <p className="font-brand font-bold text-sm text-charcoal">{riders.reduce((s, r) => s + r.metrics.totalPizzasDelivered, 0)}</p>
+                    <p className="font-brand font-semibold text-sm text-charcoal">{riders.reduce((s, r) => s + r.metrics.totalPizzasDelivered, 0)}</p>
                   </td>
                   <td className="px-4 py-4" />
                   <td className="px-4 py-4" />
                   <td className="px-4 py-4 text-right">
-                    <p className="font-brand font-bold text-sm text-terracotta">{formatCurrency(riders.reduce((s, r) => s + r.metrics.estimatedCompensation, 0))}</p>
+                    <p className="font-brand font-semibold text-sm text-terracotta">{formatCurrency(riders.reduce((s, r) => s + r.metrics.estimatedCompensation, 0))}</p>
                   </td>
                   <td className="px-8 py-4 text-right">
-                    <p className="font-brand font-bold text-sm text-charcoal">{formatCurrency(riders.reduce((s, r) => s + r.metrics.netAfterRiderCompensation, 0))}</p>
+                    <p className="font-brand font-semibold text-sm text-charcoal">{formatCurrency(riders.reduce((s, r) => s + r.metrics.netAfterRiderCompensation, 0))}</p>
                   </td>
                 </tr>
               </tfoot>
@@ -995,13 +995,13 @@ export default function LogisticaPage() {
                   <div key={rider.id} className="bg-white rounded-[2rem] border border-charcoal/5 p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <span className={`font-brand font-bold text-2xl ${rankColor}`}>#{rank}</span>
+                        <span className={`font-brand font-semibold text-2xl ${rankColor}`}>#{rank}</span>
                         <div>
-                          <p className="font-brand font-bold text-base text-charcoal">{rider.name}</p>
-                          <p className="text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal/30">{VEHICLE_LABELS[rider.vehicle]}{rider.zone ? ` · ${rider.zone}` : ""}</p>
+                          <p className="font-brand font-semibold text-base text-charcoal">{rider.name}</p>
+                          <p className="text-[9px] font-brand font-semibold uppercase tracking-widest text-charcoal/30">{VEHICLE_LABELS[rider.vehicle]}{rider.zone ? ` · ${rider.zone}` : ""}</p>
                         </div>
                       </div>
-                      <span className={`px-2.5 py-1 rounded-full text-[8px] font-brand font-bold uppercase tracking-widest ${
+                      <span className={`px-2.5 py-1 rounded-full text-[8px] font-brand font-semibold uppercase tracking-widest ${
                         rider.active ? "bg-green-50 text-green-500 border border-green-100" : "bg-charcoal/5 text-charcoal/25 border border-charcoal/10"
                       }`}>
                         {rider.active ? "Attivo" : "Stop"}
@@ -1017,8 +1017,8 @@ export default function LogisticaPage() {
                         { label: "Compenso", value: formatCurrency(rider.metrics.estimatedCompensation), color: "text-terracotta" },
                       ].map((stat) => (
                         <div key={stat.label} className="bg-warm-light/40 rounded-xl p-3 border border-charcoal/5 text-center">
-                          <p className="text-[7px] font-brand font-bold uppercase tracking-widest text-charcoal/30 mb-1">{stat.label}</p>
-                          <p className={`font-brand font-bold text-sm ${stat.color}`}>{stat.value}</p>
+                          <p className="text-[7px] font-brand font-semibold uppercase tracking-widest text-charcoal/30 mb-1">{stat.label}</p>
+                          <p className={`font-brand font-semibold text-sm ${stat.color}`}>{stat.value}</p>
                         </div>
                       ))}
                     </div>

@@ -138,31 +138,31 @@ export default function ProductForm({ productId }: ProductFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
-      <div className="bg-white rounded-xl shadow p-6 space-y-4">
-        <h2 className="font-semibold text-lg">Informazioni prodotto</h2>
+      <div className="bg-white rounded-[2rem] shadow-sm border border-charcoal/5 p-6 space-y-4">
+        <h2 className="font-brand font-semibold text-lg text-charcoal">Informazioni prodotto</h2>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
+          <label className="block text-sm font-brand font-semibold text-gray-700 mb-1">Nome *</label>
           <input value={name} onChange={(e) => setName(e.target.value)} required
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none" />
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none font-body" />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Descrizione</label>
+          <label className="block text-sm font-brand font-semibold text-gray-700 mb-1">Descrizione</label>
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2}
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none" />
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none font-body" />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Prezzo (EUR) *</label>
+            <label className="block text-sm font-brand font-semibold text-gray-700 mb-1">Prezzo (EUR) *</label>
             <input type="number" step="0.01" min="0" value={price} onChange={(e) => setPrice(e.target.value)} required
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none" />
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none font-body" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Categoria *</label>
+            <label className="block text-sm font-brand font-semibold text-gray-700 mb-1">Categoria *</label>
             <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} required
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none">
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none font-body">
               <option value="">Seleziona...</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
@@ -172,12 +172,12 @@ export default function ProductForm({ productId }: ProductFormProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Note cucina</label>
+          <label className="block text-sm font-brand font-semibold text-gray-700 mb-1">Note cucina</label>
           <input value={kitchenNotes} onChange={(e) => setKitchenNotes(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none" />
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none font-body" />
         </div>
 
-        <label className="flex items-center gap-2">
+        <label className="flex items-center gap-2 font-body">
           <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)}
             className="rounded text-orange-600" />
           <span className="text-sm">Attivo nel menu</span>
@@ -185,9 +185,9 @@ export default function ProductForm({ productId }: ProductFormProps) {
       </div>
 
       {/* Foto prodotto */}
-      <div className="bg-white rounded-xl shadow p-6 space-y-4">
-        <h2 className="font-semibold text-lg">Foto prodotto</h2>
-        <p className="text-xs text-gray-400">PNG, JPG o WebP · max 3MB · consigliato 800×800px</p>
+      <div className="bg-white rounded-[2rem] shadow-sm border border-charcoal/5 p-6 space-y-4">
+        <h2 className="font-brand font-semibold text-lg text-charcoal">Foto prodotto</h2>
+        <p className="text-xs text-gray-400 font-body">PNG, JPG o WebP · max 3MB · consigliato 800×800px</p>
 
         {imageUrl ? (
           <div className="flex items-start gap-4">
@@ -199,14 +199,14 @@ export default function ProductForm({ productId }: ProductFormProps) {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadingImage}
-                className="px-4 py-2 text-xs font-semibold border border-orange-200 text-orange-600 rounded-lg hover:bg-orange-50 transition-colors disabled:opacity-50"
+                className="px-4 py-2 text-xs font-brand font-semibold border border-orange-200 text-orange-600 rounded-lg hover:bg-orange-50 transition-colors disabled:opacity-50"
               >
                 {uploadingImage ? "Caricamento..." : "Sostituisci foto"}
               </button>
               <button
                 type="button"
                 onClick={handleRemoveImage}
-                className="px-4 py-2 text-xs font-semibold border border-red-100 text-red-500 rounded-lg hover:bg-red-50 transition-colors"
+                className="px-4 py-2 text-xs font-brand font-semibold border border-red-100 text-red-500 rounded-lg hover:bg-red-50 transition-colors"
               >
                 Rimuovi foto
               </button>
@@ -220,11 +220,11 @@ export default function ProductForm({ productId }: ProductFormProps) {
             className="w-full h-32 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-orange-300 hover:text-orange-400 transition-colors disabled:opacity-50"
           >
             {uploadingImage ? (
-              <span className="text-sm font-medium">Caricamento in corso...</span>
+              <span className="text-sm font-brand font-semibold">Caricamento in corso...</span>
             ) : (
               <>
                 <span className="text-3xl">📷</span>
-                <span className="text-sm font-medium">Clicca per caricare una foto</span>
+                <span className="text-sm font-brand font-semibold">Clicca per caricare una foto</span>
               </>
             )}
           </button>
@@ -244,72 +244,72 @@ export default function ProductForm({ productId }: ProductFormProps) {
       </div>
 
       {/* Varianti */}
-      <div className="bg-white rounded-xl shadow p-6 space-y-3">
+      <div className="bg-white rounded-[2rem] shadow-sm border border-charcoal/5 p-6 space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-lg">Varianti</h2>
+          <h2 className="font-brand font-semibold text-lg text-charcoal">Varianti</h2>
           <button type="button" onClick={() => setVariants([...variants, { name: "", priceDelta: 0 }])}
-            className="px-3 py-1.5 rounded-full border border-red-100 text-xs font-semibold text-[#cf2a1d] hover:bg-red-50/60 transition-colors">+ Aggiungi variante</button>
+            className="px-3 py-1.5 rounded-full border border-red-100 text-xs font-brand font-semibold text-[#D96A2B] hover:bg-red-50/60 transition-colors">+ Aggiungi variante</button>
         </div>
         {variants.map((v, i) => (
           <div key={i} className="flex gap-2 items-center">
             <input placeholder="Es. Grande" value={v.name}
               onChange={(e) => { const arr = [...variants]; arr[i] = { ...arr[i], name: e.target.value }; setVariants(arr); }}
-              className="flex-1 px-3 py-2 border rounded-lg outline-none" />
+              className="flex-1 px-3 py-2 border rounded-lg outline-none font-body" />
             <input type="number" step="0.01" placeholder="Diff. prezzo" value={v.priceDelta || ""}
               onChange={(e) => { const arr = [...variants]; arr[i] = { ...arr[i], priceDelta: parseFloat(e.target.value) || 0 }; setVariants(arr); }}
-              className="w-28 px-3 py-2 border rounded-lg outline-none" />
+              className="w-28 px-3 py-2 border rounded-lg outline-none font-body" />
             <button type="button" onClick={() => setVariants(variants.filter((_, j) => j !== i))}
-              className="text-red-500 text-sm">Rimuovi</button>
+              className="text-red-500 text-sm font-brand font-semibold">Rimuovi</button>
           </div>
         ))}
       </div>
 
       {/* Aggiunte */}
-      <div className="bg-white rounded-xl shadow p-6 space-y-3">
+      <div className="bg-white rounded-[2rem] shadow-sm border border-charcoal/5 p-6 space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-lg">Aggiunte</h2>
+          <h2 className="font-brand font-semibold text-lg text-charcoal">Aggiunte</h2>
           <button type="button" onClick={() => setAdditions([...additions, { name: "", price: 0 }])}
-            className="px-3 py-1.5 rounded-full border border-red-100 text-xs font-semibold text-[#cf2a1d] hover:bg-red-50/60 transition-colors">+ Aggiungi</button>
+            className="px-3 py-1.5 rounded-full border border-red-100 text-xs font-brand font-semibold text-[#D96A2B] hover:bg-red-50/60 transition-colors">+ Aggiungi</button>
         </div>
         {additions.map((a, i) => (
           <div key={i} className="flex gap-2 items-center">
             <input placeholder="Es. Mozzarella extra" value={a.name}
               onChange={(e) => { const arr = [...additions]; arr[i] = { ...arr[i], name: e.target.value }; setAdditions(arr); }}
-              className="flex-1 px-3 py-2 border rounded-lg outline-none" />
+              className="flex-1 px-3 py-2 border rounded-lg outline-none font-body" />
             <input type="number" step="0.01" placeholder="Prezzo" value={a.price || ""}
               onChange={(e) => { const arr = [...additions]; arr[i] = { ...arr[i], price: parseFloat(e.target.value) || 0 }; setAdditions(arr); }}
-              className="w-28 px-3 py-2 border rounded-lg outline-none" />
+              className="w-28 px-3 py-2 border rounded-lg outline-none font-body" />
             <button type="button" onClick={() => setAdditions(additions.filter((_, j) => j !== i))}
-              className="text-red-500 text-sm">Rimuovi</button>
+              className="text-red-500 text-sm font-brand font-semibold">Rimuovi</button>
           </div>
         ))}
       </div>
 
       {/* Rimozioni */}
-      <div className="bg-white rounded-xl shadow p-6 space-y-3">
+      <div className="bg-white rounded-[2rem] shadow-sm border border-charcoal/5 p-6 space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-lg">Rimozioni</h2>
+          <h2 className="font-brand font-semibold text-lg text-charcoal">Rimozioni</h2>
           <button type="button" onClick={() => setRemovals([...removals, { name: "" }])}
-            className="px-3 py-1.5 rounded-full border border-red-100 text-xs font-semibold text-[#cf2a1d] hover:bg-red-50/60 transition-colors">+ Aggiungi</button>
+            className="px-3 py-1.5 rounded-full border border-red-100 text-xs font-brand font-semibold text-[#D96A2B] hover:bg-red-50/60 transition-colors">+ Aggiungi</button>
         </div>
         {removals.map((r, i) => (
           <div key={i} className="flex gap-2 items-center">
             <input placeholder="Es. Senza cipolla" value={r.name}
               onChange={(e) => { const arr = [...removals]; arr[i] = { ...arr[i], name: e.target.value }; setRemovals(arr); }}
-              className="flex-1 px-3 py-2 border rounded-lg outline-none" />
+              className="flex-1 px-3 py-2 border rounded-lg outline-none font-body" />
             <button type="button" onClick={() => setRemovals(removals.filter((_, j) => j !== i))}
-              className="text-red-500 text-sm">Rimuovi</button>
+              className="text-red-500 text-sm font-brand font-semibold">Rimuovi</button>
           </div>
         ))}
       </div>
 
       <div className="flex gap-3">
         <button type="submit" disabled={loading || uploadingImage}
-          className="px-6 py-2 tomato-glass border text-white rounded-xl font-semibold hover:brightness-105 disabled:opacity-50 transition-all">
+          className="px-6 py-2 tomato-glass border text-white rounded-xl font-brand font-semibold uppercase tracking-[0.16em] text-[11px] hover:brightness-105 disabled:opacity-50 transition-all">
           {loading ? "Salvataggio..." : productId ? "Salva modifiche" : "Crea prodotto"}
         </button>
         <button type="button" onClick={() => router.push("/admin/prodotti")}
-          className="px-6 py-2 border rounded-lg hover:bg-gray-50 transition-colors">
+          className="px-6 py-2 border rounded-lg hover:bg-gray-50 transition-colors font-brand font-semibold">
           Annulla
         </button>
       </div>

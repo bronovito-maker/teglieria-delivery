@@ -135,21 +135,24 @@ export default function NuovoOrdinePage() {
   return (
     <div className="max-w-5xl">
       <div className="mb-6">
-        <p className="text-[11px] md:text-xs font-bold uppercase tracking-[0.22em] text-[#cf2a1d]/80 mb-2">
+        <p className="text-[11px] md:text-xs font-brand font-semibold uppercase tracking-[0.22em] text-[#D96A2B]/80 mb-2">
           Ordini
         </p>
-        <h1 className="text-5xl md:text-6xl font-display tracking-tight text-[#1d1d1f]">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-display tracking-tight text-charcoal leading-none">
           <span className="text-terracotta">Nuovo</span> ordine manuale
         </h1>
+        <p className="font-body italic text-charcoal/45 mt-3 text-sm">
+          Creazione rapida ordine da banco o telefono, con ETA regolabile e configurazione completa.
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Tipo + Canale */}
         <div className="flex flex-col md:flex-row gap-3">
-          <div className="flex rounded-xl border border-red-100/80 overflow-hidden bg-white">
+          <div className="flex rounded-xl border border-red-100/80 overflow-hidden bg-white shadow-sm">
             {(["ASPORTO", "DELIVERY"] as const).map((t) => (
               <button key={t} type="button" onClick={() => setType(t)}
-                className={`px-4 py-2.5 text-sm font-semibold transition-colors ${
+                className={`px-4 py-2.5 text-sm font-brand font-semibold transition-colors ${
                   type === t
                     ? "tomato-glass text-white"
                     : "text-gray-700 hover:bg-red-50/50"
@@ -158,10 +161,10 @@ export default function NuovoOrdinePage() {
               </button>
             ))}
           </div>
-          <div className="flex rounded-xl border border-red-100/80 overflow-hidden bg-white">
+          <div className="flex rounded-xl border border-red-100/80 overflow-hidden bg-white shadow-sm">
             {(["PHONE", "COUNTER"] as const).map((c) => (
               <button key={c} type="button" onClick={() => setChannel(c)}
-                className={`px-4 py-2.5 text-sm font-semibold transition-colors ${
+                className={`px-4 py-2.5 text-sm font-brand font-semibold transition-colors ${
                   channel === c
                     ? "tomato-glass text-white"
                     : "text-gray-700 hover:bg-red-50/50"
@@ -175,17 +178,17 @@ export default function NuovoOrdinePage() {
         {/* Cliente */}
         <div className="bg-white/90 rounded-2xl border border-red-100/80 shadow-[0_10px_24px_rgba(31,38,135,0.05)] p-4 md:p-5 grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-gray-500 mb-1 uppercase tracking-[0.08em]">Nome</label>
+            <label className="block text-xs text-gray-500 mb-1 uppercase tracking-[0.08em] font-brand font-semibold">Nome</label>
             <input value={customerName} onChange={(e) => setCustomerName(e.target.value)} required
-              className="w-full px-3 py-2 border border-red-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#cf2a1d]" />
+              className="w-full px-3 py-2 border border-red-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#D96A2B]" />
           </div>
           <div>
-            <label className="block text-xs text-gray-500 mb-1 uppercase tracking-[0.08em]">Telefono</label>
+            <label className="block text-xs text-gray-500 mb-1 uppercase tracking-[0.08em] font-brand font-semibold">Telefono</label>
             <input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} required
-              className="w-full px-3 py-2 border border-red-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#cf2a1d]" />
+              className="w-full px-3 py-2 border border-red-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#D96A2B]" />
           </div>
           <div className="md:col-span-2">
-            <label className="block text-xs text-gray-500 mb-2 uppercase tracking-[0.08em]">
+            <label className="block text-xs text-gray-500 mb-2 uppercase tracking-[0.08em] font-brand font-semibold">
               Tempo {type === "DELIVERY" ? "consegna" : "ritiro"} previsto
             </label>
             <div className="flex items-center gap-4">
@@ -194,7 +197,7 @@ export default function NuovoOrdinePage() {
                 −
               </button>
               <div className="flex-1 text-center">
-                <span className="text-2xl font-bold text-[#cf2a1d] tabular-nums">{etaMinutes}</span>
+                <span className="text-2xl font-brand font-semibold text-[#D96A2B] tabular-nums">{etaMinutes}</span>
                 <span className="text-xs text-gray-400 ml-1">min</span>
                 <p className="text-xs text-gray-400 mt-0.5 tabular-nums">{etaTime()}</p>
               </div>
@@ -207,18 +210,18 @@ export default function NuovoOrdinePage() {
           {type === "DELIVERY" && (
             <>
               <div>
-                <label className="block text-xs text-gray-500 mb-1 uppercase tracking-[0.08em]">Indirizzo</label>
+                <label className="block text-xs text-gray-500 mb-1 uppercase tracking-[0.08em] font-brand font-semibold">Indirizzo</label>
                 <AdminAddressInput
                   value={address}
                   onChange={setAddress}
                   required
-                  className="w-full px-3 py-2 border border-red-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#cf2a1d]"
+                  className="w-full px-3 py-2 border border-red-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#D96A2B]"
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1 uppercase tracking-[0.08em]">Citofono/Piano</label>
+                <label className="block text-xs text-gray-500 mb-1 uppercase tracking-[0.08em] font-brand font-semibold">Citofono/Piano</label>
                 <input value={addressDetail} onChange={(e) => setAddressDetail(e.target.value)}
-                  className="w-full px-3 py-2 border border-red-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#cf2a1d]" />
+                  className="w-full px-3 py-2 border border-red-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#D96A2B]" />
               </div>
             </>
           )}
@@ -226,17 +229,17 @@ export default function NuovoOrdinePage() {
 
         {/* Ricerca prodotti */}
         <div className="bg-white/90 rounded-2xl border border-red-100/80 shadow-[0_10px_24px_rgba(31,38,135,0.05)] p-4 md:p-5">
-          <label className="block text-xs text-gray-500 mb-1 uppercase tracking-[0.08em]">Cerca prodotto</label>
+          <label className="block text-xs text-gray-500 mb-1 uppercase tracking-[0.08em] font-brand font-semibold">Cerca prodotto</label>
           <input value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="Digita per cercare..."
-            className="w-full px-3 py-2 border border-red-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#cf2a1d]" />
+            className="w-full px-3 py-2 border border-red-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#D96A2B]" />
           {filteredProducts.length > 0 && (
             <div className="mt-2 border border-red-100 rounded-xl divide-y max-h-48 overflow-y-auto bg-white">
               {filteredProducts.map((p) => (
                 <button key={p.id} type="button" onClick={() => addProduct(p)}
                   className="w-full flex justify-between px-3 py-2 text-sm hover:bg-red-50/60 transition-colors text-left">
                   <span>{p.name}</span>
-                  <span className="text-[#cf2a1d] font-semibold">{formatCurrency(Number(p.price))}</span>
+                  <span className="text-[#D96A2B] font-brand font-semibold">{formatCurrency(Number(p.price))}</span>
                 </button>
               ))}
             </div>
@@ -245,7 +248,7 @@ export default function NuovoOrdinePage() {
 
         {/* Righe ordine */}
         <div className="bg-white/90 rounded-2xl border border-red-100/80 shadow-[0_10px_24px_rgba(31,38,135,0.05)] p-4 md:p-5">
-          <h2 className="font-semibold text-sm mb-3">Prodotti nell&apos;ordine</h2>
+          <h2 className="font-brand font-semibold text-sm mb-3">Prodotti nell&apos;ordine</h2>
           {lines.length === 0 && <p className="text-gray-400 text-sm">Nessun prodotto aggiunto.</p>}
           <div className="space-y-3">
             {lines.map((line, i) => {
@@ -263,11 +266,11 @@ export default function NuovoOrdinePage() {
                       <span className="px-2 tabular-nums">{line.quantity}</span>
                       <button type="button" onClick={() => updateLine(i, { quantity: line.quantity + 1 })} className="px-2 py-1 hover:bg-red-50/60">+</button>
                     </div>
-                    <span className="flex-1 text-sm font-medium">{line.product.name}</span>
+                    <span className="flex-1 text-sm font-brand font-semibold">{line.product.name}</span>
                     {line.variant && (
                       <span className="text-xs text-gray-400 hidden sm:inline">{line.variant}</span>
                     )}
-                    <span className="text-sm font-semibold tabular-nums">{formatCurrency(unitPrice * line.quantity)}</span>
+                    <span className="text-sm font-brand font-semibold tabular-nums">{formatCurrency(unitPrice * line.quantity)}</span>
                     <button type="button" onClick={() => removeLine(i)} className="text-red-400 text-xs font-bold px-1">✕</button>
                   </div>
 
@@ -278,15 +281,15 @@ export default function NuovoOrdinePage() {
                       {/* Varianti */}
                       {line.product.variants.filter(v => v.active).length > 0 && (
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-gray-400 mb-1.5">Variante</p>
+                          <p className="text-[10px] font-brand font-semibold uppercase tracking-[0.12em] text-gray-400 mb-1.5">Variante</p>
                           <div className="flex flex-wrap gap-1.5">
                             <button
                               type="button"
                               onClick={() => updateLine(i, { variant: undefined, variantDelta: 0 })}
-                              className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                              className={`px-3 py-1 rounded-full text-xs font-brand font-semibold border transition-colors ${
                                 !line.variant
-                                  ? "bg-[#cf2a1d] text-white border-[#cf2a1d]"
-                                  : "bg-white text-gray-600 border-gray-200 hover:border-[#cf2a1d]/40"
+                                  ? "bg-[#D96A2B] text-white border-[#D96A2B]"
+                                  : "bg-white text-gray-600 border-gray-200 hover:border-[#D96A2B]/40"
                               }`}
                             >
                               Standard
@@ -296,10 +299,10 @@ export default function NuovoOrdinePage() {
                                 key={v.id}
                                 type="button"
                                 onClick={() => updateLine(i, { variant: v.name, variantDelta: Number(v.priceDelta) })}
-                                className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                                className={`px-3 py-1 rounded-full text-xs font-brand font-semibold border transition-colors ${
                                   line.variant === v.name
-                                    ? "bg-[#cf2a1d] text-white border-[#cf2a1d]"
-                                    : "bg-white text-gray-600 border-gray-200 hover:border-[#cf2a1d]/40"
+                                    ? "bg-[#D96A2B] text-white border-[#D96A2B]"
+                                    : "bg-white text-gray-600 border-gray-200 hover:border-[#D96A2B]/40"
                                 }`}
                               >
                                 {v.name}
@@ -317,7 +320,7 @@ export default function NuovoOrdinePage() {
                       {/* Aggiunte */}
                       {line.product.additions.filter(a => a.active).length > 0 && (
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-gray-400 mb-1.5">Extra</p>
+                          <p className="text-[10px] font-brand font-semibold uppercase tracking-[0.12em] text-gray-400 mb-1.5">Extra</p>
                           <div className="flex flex-wrap gap-1.5">
                             {line.product.additions.filter(a => a.active).map((a) => {
                               const selected = line.additions.some((x) => x.name === a.name);
@@ -331,7 +334,7 @@ export default function NuovoOrdinePage() {
                                       : [...line.additions, { name: a.name, price: Number(a.price) }];
                                     updateLine(i, { additions: next });
                                   }}
-                                  className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                                  className={`px-3 py-1 rounded-full text-xs font-brand font-semibold border transition-colors ${
                                     selected
                                       ? "bg-amber-500 text-white border-amber-500"
                                       : "bg-white text-gray-600 border-gray-200 hover:border-amber-400/50"
@@ -351,7 +354,7 @@ export default function NuovoOrdinePage() {
                       {/* Rimozioni */}
                       {line.product.removals.filter(r => r.active).length > 0 && (
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-gray-400 mb-1.5">Rimuovi</p>
+                          <p className="text-[10px] font-brand font-semibold uppercase tracking-[0.12em] text-gray-400 mb-1.5">Rimuovi</p>
                           <div className="flex flex-wrap gap-1.5">
                             {line.product.removals.filter(r => r.active).map((r) => {
                               const removed = line.removals.some((x) => x.name === r.name);
@@ -365,7 +368,7 @@ export default function NuovoOrdinePage() {
                                       : [...line.removals, { name: r.name }];
                                     updateLine(i, { removals: next });
                                   }}
-                                  className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                                  className={`px-3 py-1 rounded-full text-xs font-brand font-semibold border transition-colors ${
                                     removed
                                       ? "bg-gray-700 text-white border-gray-700 line-through"
                                       : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
@@ -381,13 +384,13 @@ export default function NuovoOrdinePage() {
 
                       {/* Note riga */}
                       <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-gray-400 mb-1">Note</p>
+                        <p className="text-[10px] font-brand font-semibold uppercase tracking-[0.12em] text-gray-400 mb-1">Note</p>
                         <input
                           type="text"
                           value={line.notes ?? ""}
                           onChange={(e) => updateLine(i, { notes: e.target.value })}
                           placeholder="Es. senza aglio, ben cotta..."
-                          className="w-full px-2.5 py-1.5 border border-red-100 rounded-lg text-xs outline-none focus:ring-1 focus:ring-[#cf2a1d]"
+                          className="w-full px-2.5 py-1.5 border border-red-100 rounded-lg text-xs outline-none focus:ring-1 focus:ring-[#D96A2B]"
                         />
                       </div>
                     </div>
@@ -397,7 +400,7 @@ export default function NuovoOrdinePage() {
             })}
           </div>
           {lines.length > 0 && (
-            <div className="flex justify-between mt-3 pt-3 border-t font-bold">
+            <div className="flex justify-between mt-3 pt-3 border-t font-brand font-semibold">
               <span>Totale</span>
               <span>{formatCurrency(subtotal)}</span>
             </div>
@@ -406,13 +409,13 @@ export default function NuovoOrdinePage() {
 
         {/* Note */}
         <div className="bg-white/90 rounded-2xl border border-red-100/80 shadow-[0_10px_24px_rgba(31,38,135,0.05)] p-4 md:p-5">
-          <label className="block text-xs text-gray-500 mb-1 uppercase tracking-[0.08em]">Note</label>
+          <label className="block text-xs text-gray-500 mb-1 uppercase tracking-[0.08em] font-brand font-semibold">Note</label>
           <input value={notes} onChange={(e) => setNotes(e.target.value)}
-            className="w-full px-3 py-2 border border-red-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#cf2a1d]" />
+            className="w-full px-3 py-2 border border-red-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#D96A2B]" />
         </div>
 
         <button type="submit" disabled={loading || lines.length === 0}
-          className="w-full py-3 tomato-glass border text-white rounded-xl font-semibold hover:brightness-105 disabled:opacity-50 transition-all">
+          className="w-full py-3 tomato-glass border text-white rounded-xl font-brand font-semibold uppercase tracking-[0.18em] text-[11px] hover:brightness-105 disabled:opacity-50 transition-all">
           {loading ? "Salvataggio..." : "Crea ordine"}
         </button>
       </form>

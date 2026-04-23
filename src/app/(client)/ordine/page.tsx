@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AddressAutocomplete from "@/components/client/AddressAutocomplete";
@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 
 export default function OrdinePage() {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const { items, orderType, getSubtotal, clearCart } = useCartStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -39,7 +39,7 @@ export default function OrdinePage() {
       }
       setAuthChecked(true);
     });
-  }, []);
+  }, [supabase]);
 
   async function handleGoogleLogin() {
     await supabase.auth.signInWithOAuth({
@@ -213,11 +213,12 @@ export default function OrdinePage() {
 
   return (
     <div className="max-w-2xl mx-auto pb-24 pt-8 px-4">
-      <header className="mb-12">
-        <h1 className="text-5xl md:text-6xl font-display tracking-tight text-charcoal mb-2">
+      <header className="mb-12 rounded-[2.5rem] border border-charcoal/5 bg-white/55 backdrop-blur-sm px-6 py-8 md:px-8 shadow-sm">
+        <span className="ds-micro-label text-terracotta/60 mb-4 block">Checkout artigianale</span>
+        <h1 className="text-5xl md:text-6xl font-display tracking-tight text-charcoal mb-3 leading-none">
           Concludi l&apos;Ordine
         </h1>
-        <p className="text-gray-500 text-lg">
+        <p className="text-charcoal/55 text-lg font-body italic">
           Compila i dettagli e preparati a gustare la nostra teglia.
         </p>
       </header>
@@ -225,41 +226,41 @@ export default function OrdinePage() {
       <form onSubmit={handleSubmit} className="space-y-12">
         {/* SECTION 1: RIEPILOGO */}
         <div className="reveal space-y-6">
-          <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-gray-400">Riepilogo Ordine</h2>
-          <div className="bg-gray-50/50 rounded-[2rem] p-8 border border-gray-100">
+          <h2 className="ds-micro-label text-charcoal/35">Riepilogo Ordine</h2>
+          <div className="bg-white/60 rounded-[2rem] p-8 border border-charcoal/5 shadow-sm">
             <div className="space-y-4">
               {items.map((item) => (
                 <div key={item.id} className="flex justify-between items-start">
                   <div className="flex-1">
-                    <p className="font-bold text-charcoal">
+                    <p className="font-brand font-semibold text-charcoal">
                       {item.quantity}x {item.productName}
                     </p>
-                    {item.variant && <p className="text-sm text-gray-500">{item.variant}</p>}
+                    {item.variant && <p className="text-sm text-charcoal/45 font-body">{item.variant}</p>}
                   </div>
-                  <span className="font-semibold">{formatCurrency(item.totalPrice)}</span>
+                  <span className="font-brand font-semibold">{formatCurrency(item.totalPrice)}</span>
                 </div>
               ))}
             </div>
             
-            <div className="mt-8 pt-6 border-t border-gray-200/60 space-y-2">
-              <div className="flex justify-between text-gray-500">
+            <div className="mt-8 pt-6 border-t border-charcoal/10 space-y-2">
+              <div className="flex justify-between text-charcoal/50 font-body">
                 <span>Subtotale</span>
                 <span>{formatCurrency(subtotal)}</span>
               </div>
               {orderType === "DELIVERY" && (
-                <div className="flex justify-between text-gray-500">
+                <div className="flex justify-between text-charcoal/50 font-body">
                   <span>Consegna</span>
                   <span>{formatCurrency(deliveryCost)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-2xl font-bold text-charcoal pt-4">
+              <div className="flex justify-between text-2xl font-brand font-semibold text-charcoal pt-4">
                 <span>Totale</span>
                 <span className="text-terracotta">{formatCurrency(total)}</span>
               </div>
             </div>
 
             <div className="mt-6 flex justify-center">
-              <div className="px-4 py-1.5 bg-terracotta/10 text-terracotta rounded-full text-xs font-bold uppercase tracking-wider">
+              <div className="px-4 py-1.5 bg-terracotta/10 text-terracotta rounded-full text-xs font-brand font-semibold uppercase tracking-[0.2em]">
                 {orderType === "ASPORTO" ? "Ritiro in Sede" : "Consegna a Domicilio"}
               </div>
             </div>
@@ -270,15 +271,15 @@ export default function OrdinePage() {
         {authChecked && (
           <div className="reveal">
             {loggedUser ? (
-              <div className="flex items-center gap-3 px-5 py-4 bg-green-50 border border-green-100 rounded-2xl">
+              <div className="flex items-center gap-3 px-5 py-4 bg-green-50/80 border border-green-100 rounded-2xl">
                 <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
                   <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-green-700">{loggedUser.email}</p>
-                  <p className="text-xs text-green-600/70">
+                  <p className="text-xs font-brand font-semibold text-green-700">{loggedUser.email}</p>
+                  <p className="text-xs text-green-700/70 font-body">
                     {customerName || customerPhone
                       ? "Dati compilati automaticamente"
                       : "Sei loggato — completa i dati per il prossimo ordine li ricorderemo"}
@@ -286,15 +287,15 @@ export default function OrdinePage() {
                 </div>
               </div>
             ) : (
-              <div className="bg-charcoal/[0.03] border border-charcoal/8 rounded-[2rem] p-6 space-y-4">
+              <div className="bg-white/55 border border-charcoal/8 rounded-[2rem] p-6 space-y-4 backdrop-blur-sm shadow-sm">
                 <div>
-                  <h2 className="text-sm font-bold text-charcoal/70 mb-0.5">Hai già un account?</h2>
-                  <p className="text-xs text-gray-400">Accedi e i tuoi dati vengono compilati in automatico.</p>
+                  <h2 className="text-sm font-brand font-semibold text-charcoal/70 mb-0.5">Hai già un account?</h2>
+                  <p className="text-xs text-charcoal/40 font-body">Accedi e i tuoi dati vengono compilati in automatico.</p>
                 </div>
                 <button
                   type="button"
                   onClick={handleGoogleLogin}
-                  className="w-full py-3 bg-white border border-charcoal/10 rounded-2xl text-sm font-semibold text-charcoal hover:border-charcoal/25 active:scale-95 transition-all flex items-center justify-center gap-3 shadow-sm"
+                  className="w-full py-3 bg-white border border-charcoal/10 rounded-2xl text-sm font-brand font-semibold text-charcoal hover:border-charcoal/25 active:scale-95 transition-all flex items-center justify-center gap-3 shadow-sm"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -304,7 +305,7 @@ export default function OrdinePage() {
                   </svg>
                   Continua con Google
                 </button>
-                <p className="text-center text-xs text-gray-400">
+                <p className="text-center text-xs text-charcoal/35 font-body">
                   oppure{" "}
                   <Link href="/accedi?next=/ordine" className="text-terracotta font-semibold hover:underline">
                     accedi con email
@@ -318,34 +319,34 @@ export default function OrdinePage() {
         {/* SECTION 2: DATI CLIENTE */}
         <div className="reveal space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-gray-400">Dati Personali</h2>
+            <h2 className="ds-micro-label text-charcoal/35">Dati Personali</h2>
           </div>
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-500 ml-4">NOME E COGNOME</label>
+              <label className="text-xs font-brand font-semibold text-charcoal/45 ml-4 tracking-[0.18em] uppercase">Nome e cognome</label>
               <input
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
                 required
                 placeholder="Inserisci il tuo nome"
-                className="w-full px-6 py-4 bg-gray-50 border-none rounded-[1.5rem] focus:ring-2 focus:ring-orange-500 transition-all outline-none"
+                className="w-full px-6 py-4 bg-white/70 border border-charcoal/8 rounded-[1.5rem] focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta transition-all outline-none font-body"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-500 ml-4">TELEFONO</label>
+              <label className="text-xs font-brand font-semibold text-charcoal/45 ml-4 tracking-[0.18em] uppercase">Telefono</label>
               <input
                 type="tel"
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
                 required
                 placeholder="333 123 4567"
-                className="w-full px-6 py-4 bg-gray-50 border-none rounded-[1.5rem] focus:ring-2 focus:ring-orange-500 transition-all outline-none"
+                className="w-full px-6 py-4 bg-white/70 border border-charcoal/8 rounded-[1.5rem] focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta transition-all outline-none font-body"
               />
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-gray-500 ml-4">
-              EMAIL <span className="text-gray-400 font-normal normal-case tracking-normal">(facoltativa — per ricevere aggiornamenti sull&apos;ordine)</span>
+            <label className="text-xs font-brand font-semibold text-charcoal/45 ml-4 tracking-[0.18em] uppercase">
+              Email <span className="text-charcoal/35 font-body normal-case tracking-normal">(facoltativa — per ricevere aggiornamenti sull&apos;ordine)</span>
             </label>
             <input
               type="email"
@@ -353,7 +354,7 @@ export default function OrdinePage() {
               onChange={(e) => setCustomerEmail(e.target.value)}
               placeholder="tuaemail@esempio.it"
               autoComplete="email"
-              className="w-full px-6 py-4 bg-gray-50 border-none rounded-[1.5rem] focus:ring-2 focus:ring-orange-500 transition-all outline-none"
+              className="w-full px-6 py-4 bg-white/70 border border-charcoal/8 rounded-[1.5rem] focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta transition-all outline-none font-body"
             />
           </div>
         </div>
@@ -361,7 +362,7 @@ export default function OrdinePage() {
         {/* SECTION 3: INDIRIZZO (Solo Delivery) */}
         {orderType === "DELIVERY" && (
           <div className="reveal space-y-6">
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-gray-400">Dove Consegniamo?</h2>
+            <h2 className="ds-micro-label text-charcoal/35">Dove Consegniamo?</h2>
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-500 ml-4">INDIRIZZO</label>

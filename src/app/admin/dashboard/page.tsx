@@ -105,18 +105,18 @@ export default function DashboardPage() {
     <div className="pb-20">
       <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8">
         <div>
-          <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-4 block">
+          <span className="ds-micro-label text-terracotta/60 mb-4 block">
             Monitoraggio Operativo
           </span>
-          <h1 className="text-5xl md:text-6xl font-display tracking-tight text-charcoal">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-display tracking-tight text-charcoal leading-none">
             Overview <span className="text-terracotta">Ordini.</span>
           </h1>
-          <p className="font-body italic text-charcoal/40 mt-4 tracking-widest uppercase text-xs">Live Update • {today}</p>
+          <p className="font-body italic text-charcoal/45 mt-4 text-sm">Live update • {today}</p>
         </div>
 
         <button
           onClick={fetchOrders}
-          className="w-fit px-8 py-4 rounded-full border border-charcoal/10 bg-white shadow-sm text-charcoal font-brand font-bold uppercase tracking-widest text-[10px] hover:bg-charcoal hover:text-white transition-all active:scale-95"
+          className="w-fit px-8 py-4 rounded-full border border-charcoal/10 bg-white shadow-sm text-charcoal font-brand font-semibold uppercase tracking-[0.2em] text-[10px] hover:bg-charcoal hover:text-white transition-all active:scale-95"
         >
           Aggiorna Dati
         </button>
@@ -129,9 +129,9 @@ export default function DashboardPage() {
           { label: "In Cucina", value: preparingOrders, accent: "marigold" },
           { label: "Fatturato", value: formatCurrency(totalRevenue), accent: "charcoal" },
         ].map((stat, i) => (
-          <div key={i} className="bg-white/50 backdrop-blur-md rounded-2xl md:rounded-[2rem] border border-charcoal/5 p-5 md:p-6 shadow-sm">
-            <p className="text-[10px] uppercase font-brand font-bold tracking-[0.2em] text-charcoal/30 mb-4">{stat.label}</p>
-            <p className={cn("text-3xl font-brand font-medium tracking-tight", stat.accent === "terracotta" ? "text-terracotta" : stat.accent === "marigold" ? "text-marigold" : "text-charcoal")}>
+          <div key={i} className="bg-white/60 backdrop-blur-md rounded-2xl md:rounded-[2rem] border border-charcoal/5 p-5 md:p-6 shadow-sm">
+            <p className="text-[10px] uppercase font-brand font-semibold tracking-[0.2em] text-charcoal/30 mb-4">{stat.label}</p>
+            <p className={cn("text-3xl font-brand font-semibold tracking-tight", stat.accent === "terracotta" ? "text-terracotta" : stat.accent === "marigold" ? "text-marigold" : "text-charcoal")}>
               {stat.value}
             </p>
           </div>
@@ -143,12 +143,12 @@ export default function DashboardPage() {
         {KANBAN_COLUMNS.map((status) => {
           const columnOrders = orders.filter((o) => o.status === status);
           return (
-            <div key={status} className="rounded-[2rem] border border-charcoal/5 bg-white/30 overflow-hidden">
-              <div className="flex items-center gap-3 px-5 py-3 border-b border-charcoal/5">
-                <span className={`px-3 py-1 rounded-full text-[9px] font-brand font-bold uppercase tracking-widest ${getStatusBadgeClass(status)}`}>
+            <div key={status} className="rounded-[2rem] border border-charcoal/5 bg-white/35 backdrop-blur-sm overflow-hidden">
+              <div className="flex items-center gap-3 px-5 py-3 border-b border-charcoal/5 bg-white/40">
+                <span className={`px-3 py-1 rounded-full text-[9px] font-brand font-semibold uppercase tracking-[0.18em] ${getStatusBadgeClass(status)}`}>
                   {ORDER_STATUS_LABELS[status]}
                 </span>
-                <span className="text-[10px] font-brand font-bold text-charcoal/25">{columnOrders.length}</span>
+                <span className="text-[10px] font-brand font-semibold text-charcoal/25">{columnOrders.length}</span>
               </div>
 
               {columnOrders.length === 0 ? (
@@ -156,19 +156,19 @@ export default function DashboardPage() {
                   Vuoto
                 </div>
               ) : (
-                <div className="flex gap-4 overflow-x-auto px-5 py-4 scrollbar-none">
+                <div className="flex gap-4 overflow-x-auto px-5 py-4 no-scrollbar">
                   {columnOrders.map((order) => (
                     <div
                       key={order.id}
                       onClick={() => router.push(`/admin/ordini/${order.id}`)}
-                      className="flex-shrink-0 w-52 bg-white rounded-[1.5rem] shadow-sm border border-charcoal/5 p-5 hover:shadow-lg hover:scale-[1.02] transition-all group cursor-pointer"
+                      className="flex-shrink-0 w-56 bg-white rounded-[1.5rem] shadow-sm border border-charcoal/5 p-5 hover:shadow-lg hover:shadow-terracotta/5 hover:scale-[1.02] transition-all group cursor-pointer"
                     >
                       <div className="flex items-baseline justify-between mb-3">
-                        <span className="font-brand font-bold text-charcoal text-base">#{formatOrderCode(order)}</span>
+                        <span className="font-brand font-semibold text-charcoal text-base">#{formatOrderCode(order)}</span>
                         <span className="text-[10px] font-body text-charcoal/30">{formatTime(order.createdAt)}</span>
                       </div>
 
-                      <p className="text-xs font-brand font-bold text-charcoal uppercase tracking-tight mb-0.5">{order.customerName}</p>
+                      <p className="text-sm font-brand font-semibold text-charcoal mb-0.5 truncate">{order.customerName}</p>
                       <p className="text-[10px] font-body text-charcoal/40 italic mb-1">
                         {order.type === "ASPORTO" ? "Ritiro Sede" : "Consegna"}
                       </p>
@@ -188,7 +188,7 @@ export default function DashboardPage() {
                       </div>
 
                       <div className="flex items-center justify-between pt-3 border-t border-charcoal/5">
-                        <span className="font-brand font-bold text-charcoal text-sm">{formatCurrency(Number(order.total))}</span>
+                        <span className="font-brand font-semibold text-charcoal text-sm">{formatCurrency(Number(order.total))}</span>
                         <div className="flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
                           {status === "RECEIVED" ? (
                             <button
@@ -208,7 +208,7 @@ export default function DashboardPage() {
                                 <button
                                   key={nextStatus}
                                   onClick={(e) => { e.stopPropagation(); updateStatus(order.id, nextStatus); }}
-                                  className="flex-shrink-0 h-8 px-2.5 rounded-xl font-brand font-bold text-[8px] uppercase tracking-widest whitespace-nowrap transition-all bg-charcoal/5 text-charcoal hover:bg-charcoal hover:text-white"
+                                  className="flex-shrink-0 h-8 px-2.5 rounded-xl font-brand font-semibold text-[8px] uppercase tracking-[0.16em] whitespace-nowrap transition-all bg-charcoal/5 text-charcoal hover:bg-charcoal hover:text-white"
                                 >
                                   {ORDER_STATUS_LABELS[nextStatus]}
                                 </button>
@@ -231,8 +231,8 @@ export default function DashboardPage() {
           <div className="w-full max-w-md bg-warm-light rounded-[3rem] p-10 shadow-2xl border border-white/20">
             <div className="flex justify-between items-start mb-10">
               <div>
-                <span className="text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-red-500 mb-2 block">⚠ Azione Irreversibile</span>
-                <h3 className="text-3xl font-brand font-medium text-charcoal uppercase tracking-tight">Annulla Ordine</h3>
+                <span className="text-[10px] font-brand font-semibold uppercase tracking-[0.3em] text-red-500 mb-2 block">⚠ Azione Irreversibile</span>
+                <h3 className="text-3xl font-display font-semibold text-charcoal tracking-tight">Annulla Ordine</h3>
                 <p className="font-body italic text-charcoal/50 text-sm mt-2">#{formatOrderCode(cancelTarget)} · {cancelTarget.customerName}</p>
               </div>
               <button

@@ -57,7 +57,7 @@ export default function AdminLogin() {
             <span className="text-5xl md:text-6xl">🍕</span>
             <div className="text-center">
               <h2 className="text-2xl md:text-3xl font-display tracking-wider text-white leading-tight">
-                La Teglieria
+                LA TEGLIERIA
               </h2>
               <p className="text-[10px] font-brand font-bold text-terracotta mt-2 uppercase tracking-[0.3em]">
                 Console Gestionale

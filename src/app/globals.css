@@ -3,22 +3,29 @@
 @tailwind utilities;
 
 :root {
-  --background: #f5ead7;
-  --foreground: #151b1f;
-  --terracotta: #e66a26;
-  --marigold: #ffa941;
+  --background: #f7f2e8;
+  --foreground: #1a1a1a;
+  --terracotta: #d96a2b;
+  --marigold: #e6a52e;
+  --royal: #2f5fae;
+  --tomato-light: #e78853;
+  --tomato-dark: #b95521;
 }
 
 @layer utilities {
-  /*
-   * FONT SYSTEM
-   * font-logo / font-display → Bebas Neue — titoli display, logo "La Teglieria"
-   * font-brand / font-body / font-subtitle → DM Sans — tutto il resto
-   */
+  /* Font system: Epilogue per display/headlines, Manrope per UI e corpo testo */
+  .font-logo {
+    font-family: var(--font-logo), system-ui, sans-serif;
+  }
+
+  .font-display {
+    font-family: var(--font-display), system-ui, sans-serif;
+  }
+
   .font-brand,
   .font-subtitle,
   .font-body {
-    font-family: var(--font-inter), system-ui, sans-serif;
+    font-family: var(--font-body), system-ui, sans-serif;
   }
 
   /*
@@ -33,17 +40,17 @@
 
   /* Titolo hero (h1 mobile) */
   .ds-heading-hero {
-    @apply font-brand font-semibold leading-[1.1] tracking-tight text-charcoal;
+    @apply font-display font-semibold leading-[1.04] tracking-tight text-charcoal;
   }
 
   /* Titolo di sezione (h2) */
   .ds-heading-section {
-    @apply font-brand font-semibold leading-none text-charcoal;
+    @apply font-display font-semibold leading-none text-charcoal;
   }
 
   /* Titolo card (h3) */
   .ds-heading-card {
-    @apply font-brand font-semibold leading-none text-charcoal;
+    @apply font-display font-semibold leading-none text-charcoal;
   }
 
   /* Micro-label overline uppercase — UNICO caso in cui uppercase è ammesso */
@@ -54,8 +61,8 @@
   /* CTA primario */
   .ds-cta-primary {
     @apply rounded-full font-brand font-semibold tracking-wide text-white
-           bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a]
-           shadow-[0_10px_25px_rgba(230,100,40,0.25)]
+           bg-gradient-to-br from-[#e78853] via-[#d96a2b] to-[#b95521]
+           shadow-[0_10px_25px_rgba(217,106,43,0.24)]
            hover:scale-[1.02] active:scale-95 transition-all;
   }
 
@@ -67,12 +74,20 @@
   }
 }
 
-/* Admin/Rider: DM Sans come tutto il resto del sito */
+/* Admin/Rider: Manrope ovunque per massima leggibilita operativa */
 .admin-layout,
+.rider-layout,
 .admin-layout .font-brand,
+.admin-layout .font-logo,
+.admin-layout .font-display,
 .admin-layout .font-subtitle,
-.admin-layout .font-body {
-  font-family: var(--font-inter), system-ui, sans-serif;
+.admin-layout .font-body,
+.rider-layout .font-brand,
+.rider-layout .font-logo,
+.rider-layout .font-display,
+.rider-layout .font-subtitle,
+.rider-layout .font-body {
+  font-family: var(--font-body), system-ui, sans-serif;
 }
 
 @layer base {
@@ -118,28 +133,28 @@
 }
 
 .glass-morphism {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 251, 245, 0.84);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  box-shadow: 0 10px 32px 0 rgba(26, 26, 26, 0.06);
 }
 
 .tomato-glass {
   background: linear-gradient(
     135deg,
-    rgba(241, 122, 60, 0.86) 0%,
-    rgba(230, 106, 38, 0.82) 52%,
-    rgba(197, 86, 26, 0.86) 100%
+    rgba(231, 136, 83, 0.9) 0%,
+    rgba(217, 106, 43, 0.84) 52%,
+    rgba(185, 85, 33, 0.9) 100%
   );
   backdrop-filter: blur(16px) saturate(145%);
   -webkit-backdrop-filter: blur(16px) saturate(145%);
-  border-color: rgba(255, 230, 210, 0.35);
-  box-shadow: 0 5px 12px rgba(197, 86, 26, 0.16);
+  border-color: rgba(255, 238, 226, 0.42);
+  box-shadow: 0 5px 12px rgba(185, 85, 33, 0.12);
 }
 
 .text-gradient {
-  background: linear-gradient(180deg, #151b1f 0%, #3e4850 100%);
+  background: linear-gradient(180deg, #1a1a1a 0%, #494949 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;

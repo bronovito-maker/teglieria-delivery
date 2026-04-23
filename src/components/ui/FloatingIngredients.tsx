@@ -136,7 +136,12 @@ const FloatingIngredients = () => {
   const rotationScale =
     viewportWidth < 640 ? 0.55 : viewportWidth < 1024 ? 0.78 : 1.05;
   const scaleBoost = viewportWidth < 640 ? 0.04 : viewportWidth < 1024 ? 0.06 : 0.1;
-  const containerOpacity = Math.max(0, 0.96 - rawProgress * 1.02);
+  const isMobile = viewportWidth < 640;
+  const containerOpacity = Math.max(0, (isMobile ? 0.74 : 0.96) - rawProgress * 1.02);
+  const mobileOverrides: Record<number, { left?: string; top?: string; size?: string; opacity?: number }> = {
+    1: { left: "6%", top: "22%", size: "2.15rem", opacity: 0.28 },
+    2: { left: "90%", top: "58%", size: "2.75rem", opacity: 0.22 },
+  };
 
   if (containerOpacity <= 0) return null;
 
@@ -145,21 +150,29 @@ const FloatingIngredients = () => {
       className="absolute inset-0 overflow-hidden pointer-events-none z-0"
       style={{ opacity: containerOpacity }}
     >
-      {ingredients.map((ing) => (
-        <div
-          key={ing.id}
-          className="absolute ingredient-parallax will-change-transform"
-          style={{
-            left: ing.left,
-            top: ing.top,
-            fontSize: ing.size,
-            opacity: ing.opacity,
-            transform: `translate3d(${easedProgress * ing.xDepth * depthScale}px, ${easedProgress * ing.yDepth * depthScale}px, 0) rotate(${easedProgress * ing.rotateDepth * rotationScale}deg) scale(${1 + easedProgress * scaleBoost})`,
-          }}
-        >
-          {ing.icon}
-        </div>
-      ))}
+      {ingredients.map((ing) => {
+        if (isMobile && ![1, 2].includes(ing.id)) {
+          return null;
+        }
+
+        const override = isMobile ? mobileOverrides[ing.id] : undefined;
+
+        return (
+          <div
+            key={ing.id}
+            className="absolute ingredient-parallax will-change-transform"
+            style={{
+              left: override?.left ?? ing.left,
+              top: override?.top ?? ing.top,
+              fontSize: override?.size ?? ing.size,
+              opacity: override?.opacity ?? ing.opacity,
+              transform: `translate3d(${easedProgress * ing.xDepth * depthScale}px, ${easedProgress * ing.yDepth * depthScale}px, 0) rotate(${easedProgress * ing.rotateDepth * rotationScale}deg) scale(${1 + easedProgress * scaleBoost})`,
+            }}
+          >
+            {ing.icon}
+          </div>
+        );
+      })}
     </div>
   );
 };

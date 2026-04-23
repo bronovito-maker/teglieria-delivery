@@ -46,7 +46,7 @@ export default function RiderLoginPage() {
   }
 
   return (
-    <div className="admin-layout min-h-screen bg-warm-light flex items-center justify-center p-4">
+    <div className="rider-layout min-h-screen bg-warm-light flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="bg-white/60 backdrop-blur-2xl rounded-[2.5rem] border border-charcoal/5 shadow-2xl overflow-hidden">
 
@@ -54,9 +54,9 @@ export default function RiderLoginPage() {
           <div className="bg-charcoal flex items-center gap-4 px-7 py-6">
             <span className="text-3xl shrink-0">🛵</span>
             <div>
-              <p className="text-[10px] font-logo font-bold text-terracotta uppercase tracking-[0.3em]">
-                La Teglieria
-              </p>
+            <p className="text-[10px] font-logo font-bold text-terracotta uppercase tracking-[0.3em]">
+              LA TEGLIERIA
+            </p>
               <h2 className="text-2xl font-display tracking-wide text-white leading-tight">
                 Area Rider
               </h2>

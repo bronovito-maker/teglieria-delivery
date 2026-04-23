@@ -156,20 +156,20 @@ export default function RiderOrderPage() {
   }
 
   if (loading) return <div className="p-8 text-center text-gray-500 font-brand uppercase tracking-widest text-xs">Caricamento ordine...</div>;
-  if (!order) return <div className="p-8 text-center text-terracotta font-brand font-bold uppercase tracking-widest text-xs">Ordine non trovato o non disponibile.</div>;
+  if (!order) return <div className="p-8 text-center text-terracotta font-brand font-semibold uppercase tracking-widest text-xs">Ordine non trovato o non disponibile.</div>;
 
   return (
-    <div className="min-h-screen bg-warm-light pb-28 pt-8 px-4 animate-in fade-in duration-700">
+    <div className="rider-layout min-h-screen bg-warm-light pb-28 pt-8 px-4 animate-in fade-in duration-700">
       <div className="max-w-2xl mx-auto space-y-8">
         <header className="flex flex-col gap-4 reveal active">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-2 block">Ordine in Carico</span>
-              <h1 className="text-4xl font-display tracking-tight text-charcoal">
+              <span className="ds-micro-label text-terracotta/60 mb-2 block">Ordine in Carico</span>
+              <h1 className="text-3xl md:text-4xl font-brand font-semibold tracking-tight text-charcoal leading-none">
                 #{formatOrderCode(order)} <span className="text-terracotta">Status.</span>
               </h1>
             </div>
-            <span className={`px-6 py-2 rounded-full text-[10px] font-brand font-bold uppercase tracking-widest border shadow-sm transition-all duration-500 ${
+            <span className={`px-6 py-2 rounded-full text-[10px] font-brand font-semibold uppercase tracking-[0.16em] border shadow-sm transition-all duration-500 ${
               order.status === "DELIVERED" ? "bg-green-50 text-green-600 border-green-100" :
               order.status === "OUT" ? "bg-terracotta text-white border-terracotta animate-pulse" :
               "bg-marigold text-white border-marigold"
@@ -190,22 +190,22 @@ export default function RiderOrderPage() {
         <div className="bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-charcoal/5 shadow-2xl overflow-hidden reveal active">
           <div className="p-10 space-y-10">
             <section className="relative">
-              <span className="text-[9px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/30 mb-3 block">Destinatario</span>
-              <p className="text-3xl font-display text-charcoal">{order.customerName}</p>
-              <a href={`tel:${order.customerPhone}`} className="inline-flex items-center gap-2 mt-3 px-6 py-3 bg-warm-light rounded-full text-[11px] font-brand font-bold uppercase tracking-widest text-charcoal hover:bg-charcoal hover:text-white transition-all">
+              <span className="text-[9px] font-brand font-semibold uppercase tracking-[0.3em] text-charcoal/30 mb-3 block">Destinatario</span>
+              <p className="text-3xl font-brand font-semibold text-charcoal">{order.customerName}</p>
+              <a href={`tel:${order.customerPhone}`} className="inline-flex items-center gap-2 mt-3 px-6 py-3 bg-warm-light rounded-full text-[11px] font-brand font-semibold uppercase tracking-[0.16em] text-charcoal hover:bg-charcoal hover:text-white transition-all">
                 <span>📞</span> Chiama Cliente
               </a>
             </section>
 
             <section>
-              <span className="text-[9px] font-brand font-bold uppercase tracking-[0.3em] text-charcoal/30 mb-3 block">Logistica Consegna</span>
+              <span className="text-[9px] font-brand font-semibold uppercase tracking-[0.3em] text-charcoal/30 mb-3 block">Logistica Consegna</span>
               <div className="flex items-start gap-4">
                 <div className="w-2 h-2 rounded-full bg-terracotta mt-2 flex-shrink-0" />
                 <div>
-                  <p className="text-2xl font-display text-charcoal leading-tight">{order.address}</p>
+                  <p className="text-2xl font-brand font-semibold text-charcoal leading-tight">{order.address}</p>
                   {order.addressDetail && <p className="font-body italic text-sm text-charcoal/50 mt-2">&quot;{order.addressDetail}&quot;</p>}
                   {order.deliveryZone && (
-                    <div className="mt-4 inline-block px-4 py-1.5 bg-charcoal rounded-full text-[8px] font-brand font-bold uppercase tracking-widest text-white/60">
+                    <div className="mt-4 inline-block px-4 py-1.5 bg-charcoal rounded-full text-[8px] font-brand font-semibold uppercase tracking-widest text-white/60">
                       Settore: {order.deliveryZone}
                     </div>
                   )}
@@ -215,14 +215,14 @@ export default function RiderOrderPage() {
 
             <section className="grid grid-cols-2 gap-4">
               <div className="p-6 bg-warm-light/40 rounded-[2rem] border border-charcoal/5">
-                <span className="text-[8px] font-brand font-bold uppercase tracking-widest text-charcoal/40 mb-2 block">Orario Stimato</span>
-                <p className="text-2xl font-brand font-bold text-charcoal">
+                <span className="text-[8px] font-brand font-semibold uppercase tracking-widest text-charcoal/40 mb-2 block">Orario Stimato</span>
+                <p className="text-2xl font-brand font-semibold text-charcoal">
                   {order.estimatedTime ? formatTime(order.estimatedTime) : order.pickupTime}
                 </p>
               </div>
               <div className="p-6 bg-charcoal rounded-[2rem] shadow-xl text-center">
-                <span className="text-[8px] font-brand font-bold uppercase tracking-widest text-white/40 mb-2 block">Importo Incasso</span>
-                <p className="text-2xl font-brand font-bold text-white">
+                <span className="text-[8px] font-brand font-semibold uppercase tracking-widest text-white/40 mb-2 block">Importo Incasso</span>
+                <p className="text-2xl font-brand font-semibold text-white">
                   {formatCurrency(Number(order.total))}
                 </p>
               </div>
@@ -230,7 +230,7 @@ export default function RiderOrderPage() {
 
             {order.notes && (
               <section className="p-6 bg-marigold/5 rounded-[2rem] border border-marigold/20">
-                 <span className="text-[8px] font-brand font-bold uppercase tracking-widest text-marigold mb-2 block">Note Critiche</span>
+                 <span className="text-[8px] font-brand font-semibold uppercase tracking-widest text-marigold mb-2 block">Note Critiche</span>
                  <p className="font-body italic text-sm text-charcoal/70 leading-relaxed">&quot;{order.notes}&quot;</p>
               </section>
             )}
@@ -240,7 +240,7 @@ export default function RiderOrderPage() {
         <div className="space-y-4 reveal active">
           {order.riderId ? (
             <div className="bg-white/50 backdrop-blur-xl rounded-[2.5rem] p-8 text-center border border-charcoal/5 shadow-sm">
-              <p className="text-[10px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/60">
+              <p className="text-[10px] font-brand font-semibold uppercase tracking-[0.2em] text-charcoal/60">
                 {order.rider?.authUserId === user?.id 
                   ? "Consegna correttamente assegnata a te" 
                   : `In carico a: ${order.rider?.name}`}
@@ -250,7 +250,7 @@ export default function RiderOrderPage() {
             <button
               onClick={handleAssign}
               disabled={assigning}
-              className="w-full py-8 bg-charcoal text-white rounded-[2.5rem] font-brand font-bold uppercase tracking-[0.4em] text-xs shadow-2xl shadow-charcoal/30 active:scale-95 transition-all disabled:opacity-50"
+              className="w-full py-8 bg-charcoal text-white rounded-[2.5rem] font-brand font-semibold uppercase tracking-[0.24em] text-xs shadow-2xl shadow-charcoal/30 active:scale-95 transition-all disabled:opacity-50"
             >
               {assigning ? "Registrazione..." : "Accetta Consegna"}
             </button>
@@ -260,7 +260,7 @@ export default function RiderOrderPage() {
             <button
               onClick={handleStartDelivery}
               disabled={assigning}
-              className="w-full py-8 bg-terracotta text-white rounded-[2.5rem] font-brand font-bold uppercase tracking-[0.4em] text-xs shadow-2xl shadow-terracotta/30 active:scale-95 transition-all disabled:opacity-50"
+              className="w-full py-8 bg-terracotta text-white rounded-[2.5rem] font-brand font-semibold uppercase tracking-[0.24em] text-xs shadow-2xl shadow-terracotta/30 active:scale-95 transition-all disabled:opacity-50"
             >
               {assigning ? "Aggiornamento..." : "Inizia Consegna"}
             </button>
@@ -270,7 +270,7 @@ export default function RiderOrderPage() {
             <button
               onClick={handleDelivered}
               disabled={assigning}
-              className="w-full py-8 bg-white text-charcoal border-2 border-charcoal rounded-[2.5rem] font-brand font-bold uppercase tracking-[0.4em] text-xs shadow-2xl hover:bg-warm-light active:scale-95 transition-all disabled:opacity-50"
+              className="w-full py-8 bg-white text-charcoal border-2 border-charcoal rounded-[2.5rem] font-brand font-semibold uppercase tracking-[0.24em] text-xs shadow-2xl hover:bg-warm-light active:scale-95 transition-all disabled:opacity-50"
             >
               {assigning ? "Chiusura..." : "Ordine Consegnato"}
             </button>
@@ -280,7 +280,7 @@ export default function RiderOrderPage() {
         {order.rider?.authUserId === user?.id && order.status !== "DELIVERED" && (
           <div className="bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-charcoal/5 shadow-2xl overflow-hidden reveal active">
              <div className="px-10 py-6 border-b border-charcoal/5 bg-warm-light/20">
-                <h2 className="text-[9px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal">Report Operativo</h2>
+                <h2 className="text-[9px] font-brand font-semibold uppercase tracking-[0.2em] text-charcoal">Report Operativo</h2>
               </div>
             <div className="p-10 space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -290,7 +290,7 @@ export default function RiderOrderPage() {
                     type="button"
                     onClick={() => sendRiderEvent(quickEvent)}
                     disabled={eventLoading}
-                    className="px-6 py-4 rounded-2xl border border-charcoal/10 bg-warm-light/30 text-charcoal/60 text-[10px] font-brand font-bold uppercase tracking-widest hover:bg-charcoal hover:text-white hover:border-charcoal disabled:opacity-50 transition-all text-left"
+                    className="px-6 py-4 rounded-2xl border border-charcoal/10 bg-warm-light/30 text-charcoal/60 text-[10px] font-brand font-semibold uppercase tracking-[0.16em] hover:bg-charcoal hover:text-white hover:border-charcoal disabled:opacity-50 transition-all text-left"
                   >
                     {quickEvent}
                   </button>
@@ -309,7 +309,7 @@ export default function RiderOrderPage() {
                   type="button"
                   onClick={() => sendRiderEvent(eventNote)}
                   disabled={eventLoading || !eventNote.trim()}
-                  className="w-full py-6 bg-charcoal/5 border border-charcoal/10 text-charcoal rounded-full font-brand font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-charcoal hover:text-white transition-all disabled:opacity-50"
+                  className="w-full py-6 bg-charcoal/5 border border-charcoal/10 text-charcoal rounded-full font-brand font-semibold uppercase tracking-[0.2em] text-[10px] hover:bg-charcoal hover:text-white transition-all disabled:opacity-50"
                 >
                   {eventLoading ? "Trasmissione..." : "Invia Nota Operativa"}
                 </button>
@@ -320,7 +320,7 @@ export default function RiderOrderPage() {
 
         <div className="bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-charcoal/5 shadow-2xl overflow-hidden reveal active">
           <div className="px-10 py-6 border-b border-charcoal/5 bg-warm-light/20">
-             <h2 className="text-[9px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal">Timeline Attività</h2>
+             <h2 className="text-[9px] font-brand font-semibold uppercase tracking-[0.2em] text-charcoal">Timeline Attività</h2>
           </div>
           <div className="p-10 space-y-4">
             {order.statusHistory?.slice(-8).reverse().map((log: any) => (
@@ -330,10 +330,10 @@ export default function RiderOrderPage() {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[9px] font-brand font-bold uppercase tracking-widest text-charcoal">
+                    <span className="text-[9px] font-brand font-semibold uppercase tracking-widest text-charcoal">
                       {ORDER_STATUS_LABELS[log.status] || log.status}
                     </span>
-                    <span className="text-[9px] font-brand font-bold italic text-charcoal/30">{formatTime(log.createdAt)}</span>
+                    <span className="text-[9px] font-brand font-semibold italic text-charcoal/30">{formatTime(log.createdAt)}</span>
                   </div>
                   {log.note && <p className="font-body italic text-[11px] text-charcoal/50">{log.note}</p>}
                 </div>
@@ -344,7 +344,7 @@ export default function RiderOrderPage() {
 
         <button 
           onClick={() => router.back()}
-          className="w-full py-10 text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-charcoal/30 hover:text-terracotta transition-colors"
+          className="w-full py-10 text-[10px] font-brand font-semibold uppercase tracking-[0.3em] text-charcoal/30 hover:text-terracotta transition-colors"
         >
           &larr; Torna alla Dashboard
         </button>

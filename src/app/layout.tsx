@@ -1,20 +1,28 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Bebas_Neue } from "next/font/google";
+import { Epilogue, Manrope } from "next/font/google";
 import "./globals.css";
 import PwaRegister from "@/components/PwaRegister";
 import { Analytics } from "@vercel/analytics/react";
 import { GoogleAnalytics } from "@next/third-parties/google";
 
-const inter = DM_Sans({
+const manrope = Manrope({
   subsets: ["latin"],
-  variable: "--font-inter",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-body",
   display: "swap",
 });
 
-const bebas = Bebas_Neue({
-  weight: "400",
+const epilogue = Epilogue({
   subsets: ["latin"],
-  variable: "--font-bebas",
+  weight: ["600", "700", "800"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const epilogueLogo = Epilogue({
+  subsets: ["latin"],
+  weight: ["700", "800"],
+  variable: "--font-logo",
   display: "swap",
 });
 
@@ -102,7 +110,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#cf2a1d",
+  themeColor: "#D96A2B",
 };
 
 export default function RootLayout({
@@ -112,7 +120,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="it">
-      <body className={`${inter.className} ${inter.variable} ${bebas.variable} antialiased`} data-gramm="false" data-gramm_editor="false">
+      <body className={`${manrope.className} ${manrope.variable} ${epilogue.variable} ${epilogueLogo.variable} antialiased`} data-gramm="false" data-gramm_editor="false">
         <PwaRegister />
         {children}
         <Analytics />

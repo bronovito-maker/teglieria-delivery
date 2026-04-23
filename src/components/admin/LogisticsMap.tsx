@@ -86,7 +86,7 @@ function buildInfoWindowContent(
   const routeHtml = route
     ? `<div style="display:flex;align-items:center;gap:6px;margin-top:5px">
         <span style="font-size:13px">🛵</span>
-        <span style="font-size:12px;font-weight:700;color:#e66a26">${route.distance}</span>
+        <span style="font-size:12px;font-weight:700;color:#D96A2B">${route.distance}</span>
         <span style="font-size:11px;color:#888">· ${route.duration}</span>
         ${riderName ? `<span style="font-size:11px;color:#555">· ${riderName}</span>` : ""}
       </div>`
@@ -103,7 +103,7 @@ function buildInfoWindowContent(
   const metaHtml = `<div style="display:flex;align-items:center;gap:10px;margin-top:4px;flex-wrap:wrap">
     ${customerPhone ? `<a href="tel:${customerPhone}" style="font-size:11px;color:#555;text-decoration:none">📞 ${customerPhone}</a>` : ""}
     ${createdTime ? `<span style="font-size:11px;color:#999">🕐 ${createdTime}</span>` : ""}
-    ${etaTime ? `<span style="font-size:11px;color:#e66a26;font-weight:600">⏱ ${etaTime}</span>` : ""}
+    ${etaTime ? `<span style="font-size:11px;color:#D96A2B;font-weight:600">⏱ ${etaTime}</span>` : ""}
   </div>`;
 
   // Admin advances CONFIRMED → READY and READY → OUT from the map.
@@ -117,7 +117,7 @@ function buildInfoWindowContent(
   } else if (status === "READY") {
     actionHtml = `<button
       onclick="document.dispatchEvent(new CustomEvent('iw-action',{detail:{orderId:'${orderId}',action:'OUT'}}))"
-      style="margin-top:8px;width:100%;padding:7px 0;border-radius:7px;background:#e66a26;color:white;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:none;cursor:pointer"
+      style="margin-top:8px;width:100%;padding:7px 0;border-radius:7px;background:#D96A2B;color:white;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:none;cursor:pointer"
     >🛵 Segna Spedito</button>`;
   }
 
@@ -136,10 +136,10 @@ function buildInfoWindowContent(
   return `<div style="font-family:system-ui,sans-serif;width:260px;padding:2px 0;box-sizing:border-box">
     ${lateHtml}
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px">
-      <a href="/admin/ordini/${orderId}" target="_blank" style="font-size:16px;font-weight:700;color:#151b1f;text-decoration:none;border-bottom:2px solid #e66a2640;line-height:1">${orderCode}</a>
+      <a href="/admin/ordini/${orderId}" target="_blank" style="font-size:16px;font-weight:700;color:#1A1A1A;text-decoration:none;border-bottom:2px solid #D96A2B40;line-height:1">${orderCode}</a>
       <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:3px 7px;border-radius:99px;background:${color}22;color:${color};white-space:nowrap">${statusLabel}</span>
     </div>
-    <p style="font-size:13px;font-weight:600;color:#151b1f;margin:0">${customerName}</p>
+    <p style="font-size:13px;font-weight:600;color:#1A1A1A;margin:0">${customerName}</p>
     ${addressHtml}
     ${metaHtml}
     ${riderHtml}
@@ -453,7 +453,7 @@ export default function LogisticsMap({ orders, onStatusChange }: Props) {
             const path = decodePolyline(route.polyline.encodedPolyline);
             const polyline = new maps.Polyline({
               path,
-              strokeColor: "#e66a26",
+              strokeColor: "#D96A2B",
               strokeWeight: 5,
               strokeOpacity: 0.85,
               map,

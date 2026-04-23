@@ -200,7 +200,7 @@ export default function RiderRouteMap({ address, addressDetail, vehicle }: Props
           if (polylineRef.current) polylineRef.current.setMap(null);
           polylineRef.current = new maps.Polyline({
             path,
-            strokeColor: "#e66a26",
+            strokeColor: "#D96A2B",
             strokeWeight: 5,
             strokeOpacity: 0.85,
             map: mapRef.current,
@@ -210,14 +210,14 @@ export default function RiderRouteMap({ address, addressDetail, vehicle }: Props
           const dest = path[path.length - 1];
           const destPin = document.createElement("div");
           destPin.style.cssText =
-            "width:32px;height:32px;border-radius:50%;background:white;border:2.5px solid #e66a26;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,.2)";
+            "width:32px;height:32px;border-radius:50%;background:white;border:2.5px solid #D96A2B;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,.2)";
           destPin.textContent = "📍";
-          new maps.marker.AdvancedMarkerElement({
-            map: mapRef.current,
-            position: dest,
-            title: address,
-            content: destPin,
-          });
+        new maps.marker.AdvancedMarkerElement({
+          map: mapRef.current,
+          position: dest,
+          title: fullDestination,
+          content: destPin,
+        });
 
           // Fit map to route
           const bounds = new maps.LatLngBounds();

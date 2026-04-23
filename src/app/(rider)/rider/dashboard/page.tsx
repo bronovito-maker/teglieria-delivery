@@ -140,7 +140,7 @@ export default function RiderDashboard() {
   const deliveredOrders = orders.filter((o) => o.status === "DELIVERED");
 
   return (
-    <div className="min-h-screen bg-warm-light px-3 pt-3 pb-6 md:px-8 md:pt-5 md:pb-10">
+    <div className="rider-layout min-h-screen bg-warm-light px-3 pt-3 pb-6 md:px-8 md:pt-5 md:pb-10">
       {scanning && <QRScanner onClose={() => setScanning(false)} />}
 
       {/* Toast */}
@@ -157,7 +157,7 @@ export default function RiderDashboard() {
       {/* ── Ultra-compact top bar: single row ── */}
       <header className="flex items-center gap-1.5 mb-3 md:mb-4 reveal active">
         <div className="flex-1 min-w-0">
-          <h1 className="text-[1.25rem] md:text-2xl font-display tracking-tight text-charcoal truncate leading-none">
+          <h1 className="text-[1.18rem] md:text-[1.55rem] font-brand font-semibold tracking-tight text-charcoal truncate leading-none">
             Le mie <span className="text-terracotta">Consegne</span>
           </h1>
         </div>
@@ -228,7 +228,7 @@ export default function RiderDashboard() {
 
             {deliveredOrders.length > 0 && (
               <>
-                <p className="text-[9px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/30 text-center pt-2">
+                <p className="text-[9px] font-brand font-semibold uppercase tracking-[0.2em] text-charcoal/30 text-center pt-2">
                   Completati ({deliveredOrders.length})
                 </p>
                 {deliveredOrders.map((order) => (
@@ -238,7 +238,7 @@ export default function RiderDashboard() {
                     className="opacity-50 flex items-center justify-between px-4 py-3 bg-white/30 rounded-2xl border border-charcoal/5 cursor-pointer active:bg-white/60 transition-colors"
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-brand font-bold text-sm text-charcoal/70 flex-shrink-0">
+                      <span className="font-brand font-semibold text-sm text-charcoal/70 flex-shrink-0">
                         #{formatOrderCode(order)}
                       </span>
                       <span className="text-[8px] font-brand font-bold uppercase tracking-widest bg-green-50 text-green-600 px-2 py-0.5 rounded-full flex-shrink-0">
@@ -258,10 +258,10 @@ export default function RiderDashboard() {
       {orders.length === 0 && (
         <div className="mt-4 p-6 md:p-8 bg-charcoal rounded-[2rem] text-white overflow-hidden relative shadow-2xl shadow-charcoal/40">
           <div className="relative z-10">
-            <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-marigold mb-2 block">
+            <span className="text-[10px] font-brand font-semibold uppercase tracking-[0.4em] text-marigold mb-2 block">
               Guida Operativa
             </span>
-            <h3 className="text-lg font-display tracking-tight mb-2">
+            <h3 className="text-lg font-brand font-semibold tracking-tight mb-2">
               Flusso di <span className="text-terracotta">Lavoro.</span>
             </h3>
             <p className="font-body italic text-white/60 text-sm leading-relaxed max-w-md">
@@ -317,11 +317,11 @@ function OrderCard({
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
-            <p className="font-brand font-bold text-lg tracking-tight text-charcoal leading-none">
+            <p className="font-brand font-semibold text-lg tracking-tight text-charcoal leading-none">
               #{formatOrderCode(order)}
             </p>
             <span
-              className={`inline-block px-2 py-0.5 rounded-full text-[8px] font-brand font-bold uppercase tracking-widest border ${badgeClass}`}
+              className={`inline-block px-2 py-0.5 rounded-full text-[8px] font-brand font-semibold uppercase tracking-[0.16em] border ${badgeClass}`}
             >
               {ORDER_STATUS_LABELS[order.status] || order.status}
             </span>
@@ -336,7 +336,7 @@ function OrderCard({
           )}
         </div>
         <div className="flex-shrink-0 text-right">
-          <p className="font-brand font-bold text-base text-charcoal leading-none">
+          <p className="font-brand font-semibold text-base text-charcoal leading-none">
             {order.estimatedTime
               ? new Date(order.estimatedTime).toLocaleTimeString("it-IT", {
                   hour: "2-digit",
@@ -358,7 +358,7 @@ function OrderCard({
         <button
           onClick={(e) => { e.stopPropagation(); onDelivered(); }}
           disabled={isUpdating}
-          className="w-full py-4 bg-charcoal text-white font-brand font-bold uppercase tracking-[0.2em] text-[11px] active:bg-charcoal/80 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+          className="w-full py-4 bg-charcoal text-white font-brand font-semibold uppercase tracking-[0.2em] text-[11px] active:bg-charcoal/80 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
         >
           {isUpdating ? (
             <>
@@ -384,7 +384,7 @@ function OrderCard({
         <button
           onClick={(e) => { e.stopPropagation(); onStartDelivery(); }}
           disabled={isUpdating}
-          className="w-full py-4 bg-terracotta text-white font-brand font-bold uppercase tracking-[0.2em] text-[11px] active:bg-terracotta/80 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+          className="w-full py-4 bg-terracotta text-white font-brand font-semibold uppercase tracking-[0.2em] text-[11px] active:bg-terracotta/80 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
           >
             {isUpdating ? (
               <>
@@ -409,7 +409,7 @@ function OrderCard({
       {isWaiting && (
         <div className="flex items-center justify-center gap-2 py-3 bg-warm-light/60">
           <span className="w-1.5 h-1.5 rounded-full bg-marigold animate-pulse" />
-          <p className="text-[9px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/40">
+          <p className="text-[9px] font-brand font-semibold uppercase tracking-[0.2em] text-charcoal/40">
             In preparazione — attendi il segnale
           </p>
         </div>
@@ -426,7 +426,7 @@ function EmptyState({ onScan }: { onScan: () => void }) {
       <div className="w-14 h-14 bg-warm-light rounded-full flex items-center justify-center mx-auto mb-4">
         <span className="text-2xl">📦</span>
       </div>
-      <p className="font-brand font-bold uppercase tracking-[0.2em] text-charcoal/60 text-xs mb-1">
+      <p className="font-brand font-semibold uppercase tracking-[0.2em] text-charcoal/60 text-xs mb-1">
         Pianale Vuoto
       </p>
       <p className="font-body italic text-charcoal/40 text-xs mb-5">
@@ -434,7 +434,7 @@ function EmptyState({ onScan }: { onScan: () => void }) {
       </p>
       <button
         onClick={onScan}
-        className="inline-flex items-center gap-2 px-6 py-3 bg-terracotta text-white rounded-full text-[10px] font-brand font-bold uppercase tracking-wide shadow-md shadow-terracotta/20 active:scale-95 transition-all"
+        className="inline-flex items-center gap-2 px-6 py-3 bg-terracotta text-white rounded-full text-[10px] font-brand font-semibold uppercase tracking-wide shadow-md shadow-terracotta/20 active:scale-95 transition-all"
       >
         <svg
           className="w-4 h-4"

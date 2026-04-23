@@ -209,7 +209,7 @@ export default function ProductModal({ product, onClose }: Props) {
               </div>
               <button
                 onClick={handleAdd}
-                className="flex-1 py-4 text-white rounded-full font-bold uppercase tracking-widest text-sm bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] shadow-xl hover:brightness-110 active:scale-[0.98] transition-all transform"
+                className="flex-1 py-4 text-white rounded-full font-bold uppercase tracking-widest text-sm bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] shadow-xl hover:brightness-110 active:scale-[0.98] transition-all transform"
               >
                 Aggiungi • {formatCurrency(total)}
               </button>

@@ -24,7 +24,7 @@ export default function CartDrawer({ open, onClose }: Props) {
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex justify-end" onClick={onClose}>
       <div className="bg-warm-light w-full max-w-md h-full flex flex-col border-l border-charcoal/5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="p-6 border-b border-white/20 bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] text-white shadow-[0_8px_20px_rgba(197,86,26,0.2)] backdrop-blur-xl flex items-center justify-between">
+        <div className="p-6 border-b border-white/20 bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] text-white shadow-[0_8px_20px_rgba(197,86,26,0.2)] backdrop-blur-xl flex items-center justify-between">
           <h2 className="text-xl font-brand uppercase tracking-wider">Il tuo ordine</h2>
           <button onClick={onClose} className="text-white/80 hover:text-white text-2xl">&times;</button>
         </div>
@@ -110,7 +110,7 @@ export default function CartDrawer({ open, onClose }: Props) {
             </button>
             <button
               onClick={handleCheckout}
-              className="w-full py-4 text-white rounded-xl font-bold uppercase tracking-widest bg-gradient-to-br from-[#f17a3c] via-[#e66a26] to-[#c5561a] border border-white/10 shadow-[0_12px_24px_rgba(197,86,26,0.25)] hover:brightness-110 active:scale-[0.98] transition-all"
+              className="w-full py-4 text-white rounded-xl font-bold uppercase tracking-widest bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] border border-white/10 shadow-[0_12px_24px_rgba(197,86,26,0.25)] hover:brightness-110 active:scale-[0.98] transition-all"
             >
               Procedi all&apos;ordine
             </button>
