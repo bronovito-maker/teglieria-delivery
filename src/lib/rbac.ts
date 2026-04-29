@@ -9,7 +9,7 @@ function readCsvEnv(name: string): string[] {
   if (!value) return [];
   return value
     .split(",")
-    .map((item) => item.trim().toLowerCase())
+    .map((item) => item.trim().replace(/^['"]|['"]$/g, "").toLowerCase())
     .filter(Boolean);
 }
 
