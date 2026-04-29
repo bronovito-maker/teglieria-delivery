@@ -11,6 +11,7 @@ export default function AdminLogin() {
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const router = useRouter();
   const supabase = createClient();
 
@@ -22,11 +23,32 @@ export default function AdminLogin() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function checkSession() {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) router.replace("/admin/dashboard");
+      if (!user) {
+        if (!cancelled) setCheckingSession(false);
+        return;
+      }
+
+      const sessionRes = await fetch("/api/admin/session");
+      if (cancelled) return;
+
+      if (sessionRes.ok) {
+        router.replace("/admin/dashboard");
+        return;
+      }
+
+      await supabase.auth.signOut();
+      setError("Non hai i permessi per accedere al pannello admin.");
+      setCheckingSession(false);
     }
+
     checkSession();
+    return () => {
+      cancelled = true;
+    };
   }, [router, supabase]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -39,6 +61,14 @@ export default function AdminLogin() {
 
     if (error) {
       setError("Credenziali non valide. Riprova.");
+      setLoading(false);
+      return;
+    }
+
+    const sessionRes = await fetch("/api/admin/session");
+    if (!sessionRes.ok) {
+      await authClient.auth.signOut();
+      setError("Accesso effettuato, ma questo account non è autorizzato per il pannello admin.");
       setLoading(false);
       return;
     }
@@ -158,10 +188,10 @@ export default function AdminLogin() {
 
               <button
                 type="submit"
-                disabled={loading}
+                  disabled={loading || checkingSession}
                 className="w-full py-4 bg-charcoal text-white rounded-2xl font-brand font-bold uppercase tracking-[0.25em] text-[11px] shadow-xl shadow-charcoal/20 hover:bg-terracotta active:scale-95 disabled:opacity-50 transition-all min-h-[52px] flex items-center justify-center gap-3"
               >
-                {loading ? (
+                {loading || checkingSession ? (
                   <>
                     <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
