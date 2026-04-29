@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logisticsSlotsQuerySchema } from "@/lib/validation/catalog";
 
 function generateSlots(start: string, end: string, slotMinutes = 30): string[] {
   const [sh, sm] = start.split(":").map(Number);
@@ -16,7 +17,12 @@ function generateSlots(start: string, end: string, slotMinutes = 30): string[] {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const dateStr = searchParams.get("date") || new Date().toISOString().split("T")[0];
+  const parsed = logisticsSlotsQuerySchema.safeParse(Object.fromEntries(searchParams.entries()));
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Query non valida", issues: parsed.error.flatten() }, { status: 400 });
+  }
+
+  const dateStr = parsed.data.date || new Date().toISOString().split("T")[0];
 
   // 1. Global config (capacity)
   let config = await prisma.globalConfig.findFirst();

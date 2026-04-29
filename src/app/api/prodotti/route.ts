@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
+import { productCreateSchema } from "@/lib/validation/catalog";
 
 export async function GET() {
   const products = await prisma.product.findMany({
@@ -22,7 +23,12 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
   if (isAdminRbacStrictEnabled() && !isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
 
-  const body = await request.json();
+  const parsed = productCreateSchema.safeParse(await request.json());
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Payload non valido", issues: parsed.error.flatten() }, { status: 400 });
+  }
+
+  const body = parsed.data;
   const product = await prisma.product.create({
     data: {
       name: body.name,

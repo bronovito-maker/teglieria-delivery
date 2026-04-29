@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { OrderStatus, RiderVehicle } from "@prisma/client";
+import { OrderStatus } from "@prisma/client";
 import { sendRiderInviteEmail } from "@/lib/email";
-
-const VALID_VEHICLES: RiderVehicle[] = ["BIKE", "SCOOTER", "CAR"];
 import { calculateRiderCompensation } from "@/lib/finance";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 import { writeAuditLog } from "@/lib/audit";
+import { captureError } from "@/lib/monitoring";
+import { riderCreateSchema } from "@/lib/validation/catalog";
 
 const ACTIVE_ORDER_STATUSES: OrderStatus[] = ["CONFIRMED", "READY", "OUT"];
 
@@ -141,26 +141,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
     }
 
-    const body = await request.json();
-
-    if (!body.name || typeof body.name !== "string" || body.name.trim().length < 2) {
-      return NextResponse.json(
-        { error: "Nome rider non valido" },
-        { status: 400 }
-      );
+    const parsed = riderCreateSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Payload non valido", issues: parsed.error.flatten() }, { status: 400 });
     }
 
-    const vehicle: RiderVehicle = VALID_VEHICLES.includes(body.vehicle)
-      ? body.vehicle
-      : "SCOOTER";
+    const body = parsed.data;
 
     const rider = await prisma.rider.create({
       data: {
         name: body.name.trim(),
-        email: typeof body.email === "string" && body.email.trim() ? body.email.trim() : null,
-        phone: typeof body.phone === "string" && body.phone.trim() ? body.phone.trim() : null,
-        vehicle,
-        zone: typeof body.zone === "string" && body.zone.trim() ? body.zone.trim() : null,
+        email: body.email?.trim() || null,
+        phone: body.phone?.trim() || null,
+        vehicle: body.vehicle ?? "SCOOTER",
+        zone: body.zone?.trim() || null,
         active: true,
       },
     });
@@ -181,12 +175,12 @@ export async function POST(request: Request) {
         email: rider.email,
         name: rider.name,
         registerUrl: `${siteUrl}/rider/register`,
-      }).catch((err) => console.error("[EMAIL] Rider invite fallita:", err));
+      }).catch((err) => captureError(err, { area: "email", action: "rider.invite", riderId: rider.id }));
     }
 
     return NextResponse.json(rider, { status: 201 });
   } catch (err: unknown) {
-    console.error("[RIDERS][POST] Errore creazione rider:", err);
+    captureError(err, { area: "api", route: "/api/riders", method: "POST" });
     const isUniqueViolation =
       err instanceof Error && err.message.includes("Unique constraint");
     return NextResponse.json(

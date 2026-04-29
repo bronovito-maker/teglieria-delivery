@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
+import { closureUpsertSchema } from "@/lib/validation/catalog";
 
 export async function GET() {
   const closures = await prisma.closedDate.findMany({
@@ -16,8 +17,12 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
   if (isAdminRbacStrictEnabled() && !isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
 
-  const { date, reason } = await request.json();
-  if (!date) return NextResponse.json({ error: "date required" }, { status: 400 });
+  const parsed = closureUpsertSchema.safeParse(await request.json());
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Payload non valido", issues: parsed.error.flatten() }, { status: 400 });
+  }
+
+  const { date, reason } = parsed.data;
 
   const record = await prisma.closedDate.upsert({
     where: { date },

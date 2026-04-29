@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
+import { createOrderSchema, generateOrderCode, orderStatusSchema, orderTypeSchema, toNullableJson } from "@/lib/validation/orders";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -13,9 +15,11 @@ export async function GET(request: Request) {
   const phone = searchParams.get("phone");
   const countOnly = searchParams.get("countOnly") === "1";
 
-  const where: any = {};
-  if (status) where.status = status;
-  if (type) where.type = type;
+  const where: Prisma.OrderWhereInput = {};
+  const parsedStatus = status ? orderStatusSchema.safeParse(status) : null;
+  const parsedType = type ? orderTypeSchema.safeParse(type) : null;
+  if (parsedStatus?.success) where.status = parsedStatus.data;
+  if (parsedType?.success) where.type = parsedType.data;
   if (phone) where.customerPhone = phone;
   if (date) {
     const start = new Date(date);
@@ -48,16 +52,16 @@ export async function GET(request: Request) {
   return NextResponse.json(orders);
 }
 
-function generateOrderCode(type: string, count: number): string {
-  const prefix = type === "DELIVERY" ? "D" : "A";
-  // 1-999 → zero-padded 3 digits; 1000+ → natural width
-  const num = count + 1;
-  const padded = num < 1000 ? String(num).padStart(3, "0") : String(num);
-  return `${prefix}${padded}`;
-}
-
 export async function POST(request: Request) {
-  const body = await request.json();
+  const parsed = createOrderSchema.safeParse(await request.json());
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Payload non valido", issues: parsed.error.flatten() },
+      { status: 400 }
+    );
+  }
+
+  const body = parsed.data;
 
   // Leggi sessione opzionale — gli ordini guest hanno authUserId null
   let authUserId: string | null = null;
@@ -75,11 +79,8 @@ export async function POST(request: Request) {
   let order;
   try {
     order = await prisma.$transaction(async (tx) => {
-      const count = await tx.order.count({ where: { type: body.type } });
-      const orderCode = generateOrderCode(body.type, count);
-
       // Validate product IDs exist to avoid FK violations (cart may have stale IDs after DB reset)
-      const productIds: string[] = body.items.map((i: any) => i.productId).filter(Boolean);
+      const productIds = body.items.map((i) => i.productId).filter(Boolean);
       const existingProducts = await tx.product.findMany({
         where: { id: { in: productIds } },
         select: { id: true },
@@ -90,9 +91,8 @@ export async function POST(request: Request) {
         throw new Error("STALE_CART");
       }
 
-      return tx.order.create({
+      const createdOrder = await tx.order.create({
         data: {
-          orderCode,
           authUserId,
           type: body.type,
           channel: body.channel || "WEB",
@@ -113,15 +113,15 @@ export async function POST(request: Request) {
           paymentMethod: body.paymentMethod || "CONTANTI",
           items: {
             createMany: {
-              data: body.items.map((item: any) => ({
+              data: body.items.map((item) => ({
                 productId: item.productId,
                 productName: item.productName,
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,
                 totalPrice: item.totalPrice,
                 variant: item.variant,
-                additions: item.additions,
-                removals: item.removals,
+                additions: toNullableJson(item.additions),
+                removals: toNullableJson(item.removals),
                 notes: item.notes,
               })),
             },
@@ -132,6 +132,24 @@ export async function POST(request: Request) {
         },
         include: { items: true },
       });
+
+      const orderCode = generateOrderCode(body.type, createdOrder.orderNumber);
+      try {
+        return await tx.order.update({
+          where: { id: createdOrder.id },
+          data: { orderCode },
+          include: { items: true },
+        });
+      } catch (err) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+          return tx.order.update({
+            where: { id: createdOrder.id },
+            data: { orderCode: generateOrderCode(body.type, createdOrder.orderNumber, createdOrder.id.slice(-4).toUpperCase()) },
+            include: { items: true },
+          });
+        }
+        throw err;
+      }
     }); // end $transaction
   } catch (err) {
     console.error("[ORDINI POST]", err);

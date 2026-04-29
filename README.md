@@ -1,93 +1,136 @@
-# 🍕 Teglieria Delivery - Documentazione Progetto
+# La Teglieria - Documentazione Progetto
 
-Benvenuti nel repository di **Teglieria**, una piattaforma integrata per la gestione di ordini (asporto e delivery) e la logistica dei rider.
+Repository di **La Teglieria**, piattaforma integrata per ordini online, checkout, gestione admin, logistica rider e portale cliente.
 
-## 📌 Obiettivo del Progetto
-Realizzare un ecosistema unico che permetta ai clienti di ordinare online e allo staff di gestire l'intero ciclo di vita dell'ordine, dalla preparazione alla consegna, inclusa l'automazione dell'assegnazione ai rider tramite QR code.
+## Obiettivo
 
----
+Realizzare un ecosistema unico per:
 
-## 🛠️ Tech Stack
-- **Framework**: Next.js 14 (App Router)
-- **Database**: PostgreSQL via Supabase
-- **ORM**: Prisma
-- **Autenticazione**: Supabase Auth
-- **Styling**: Tailwind CSS & Lucide Icons
-- **Gestione Stato**: Zustand (Carrello)
-- **Utility**: `qrcode` (generazione interna), `date-fns`
+- ordinazione online asporto/delivery
+- conferma manuale ordine da admin
+- gestione stati e ETA
+- assegnazione rider
+- logistica con mappa e suggerimenti operativi
+- dashboard rider
+- dashboard cliente per ordini attivi e storico
+- PWA installabile
 
----
+## Tech Stack
 
-## 🚀 Funzionalità Implementate
+- Framework: Next.js 14 App Router
+- Linguaggio: TypeScript
+- Database: PostgreSQL via Supabase
+- ORM: Prisma
+- Auth: Supabase Auth
+- Styling: Tailwind CSS
+- Stato client: Zustand
+- Icone UI: Lucide React dove usato
+- Mappe: Google Maps API
+- Email: Brevo / webhook notifiche stato ordine
+- PWA: manifest + service worker
 
-### Fase 1: Core System
-#### 🛒 Area Cliente
-- **Menù Digitale**: Consultazione prodotti con categorie.
-- **Personalizzazione**: Modale per varianti, aggiunte (+€) e rimozioni ingredienti.
-- **Checkout**: Scelta tra Asporto/Delivery, inserimento dati e riepilogo.
-- **Tracking**: Pagina stato ordine in tempo reale con polling automatico.
+## Brand System
 
-#### 🏗️ Area Admin (Gestionale)
-- **Live Dashboard**: Visualizzazione Kanban degli ordini per stato (Ricevuto, Confermato, In Preparazione, ecc.).
-- **Gestione Catalogo**: CRUD completo per Prodotti, Varianti e Categorie.
-- **Ordini Manuali**: Interfaccia per inserimento ordini presi al telefono o al banco.
-- **Reporting**: Report base di fine serata con vendite e canali.
+Font attuali:
 
----
+- `Epilogue`: display, headline, logo testuale
+- `Manrope`: body, UI, admin, rider, form, bottoni
 
-### Fase 2: Logistica Avanzata
-#### ⏱️ Gestione Tempi "Just Eat Style"
-- Gli amministratori possono posticipare o anticipare l'orario stimato di consegna con pulsanti rapidi (+15m, +30m, -15m), aggiornando istantaneamente il tracking del cliente.
+Colori principali:
 
-#### 🚴 Rider App & Automazione QR
-- **Auth Rider**: Registrazione e Login dedicato per il personale di consegna.
-- **QR Code Printing**: Ogni scontrino generato include un QR Code univoco generato server-side.
-- **Auto-assegnazione**: Il rider scansiona il QR e può assegnarsi l'ordine con un clic («Assegnami questa consegna»).
-- **Dashboard Rider**: Vista ottimizzata per mobile con elenco consegne attive e storico.
+- `charcoal`: `#1A1A1A`
+- `warm-light`: `#F7F2E8`
+- `terracotta`: `#D96A2B`
+- `marigold`: `#E6A52E`
+- `royal`: `#2F5FAE`
 
-#### 📅 Fasce Orarie Dinamiche
-- Sistema di slot da 30 minuti con capienza configurabile (es. max 5 ordini ogni 30 min).
-- Blocco automatico degli slot saturi nel frontend cliente.
-- Pannello di configurazione admin per modificare la capienza globale.
+Il logo in top bar deve essere sempre `LA TEGLIERIA`, tutto maiuscolo, con `LA` in charcoal e `TEGLIERIA` in terracotta.
 
----
+Documenti di riferimento:
 
-## 📊 Schema Database (Prisma)
-I modelli principali includono:
-- `Order`: Gestisce tipi (Asporto/Delivery), stati e dati cliente.
-- `OrderItem`: Dettagli prodotti, varianti e modifiche.
-- `Product` / `Category`: Struttura del menù.
-- `Rider`: Profilo lavoratore e associazione `auth.uid`.
-- `GlobalConfig`: Parametri di sistema (capienza fasce, costi fissi).
+- [BRAND_TOKENS.md](/Users/bronovito/Documents/Sviluppo-AI/Progetti-Web/delivery_precania/BRAND_TOKENS.md)
+- [DESIGN_SYSTEM.md](/Users/bronovito/Documents/Sviluppo-AI/Progetti-Web/delivery_precania/DESIGN_SYSTEM.md)
+- [CLAUDE.md](/Users/bronovito/Documents/Sviluppo-AI/Progetti-Web/delivery_precania/CLAUDE.md)
 
----
+## Funzionalita Implementate
 
-## 👨‍💻 Passi Futuri (Roadmap)
+### Area Cliente
 
-Secondo la [Specifica Teglieria](file:///Users/bronovito/Documents/Sviluppo-AI/Progetti-Web/delivery_precania/Specifica_Teglieria_aggiornata.pdf), i prossimi sviluppi includeranno:
+- Landing pubblica responsive
+- Menu digitale con categorie
+- Modale prodotto con varianti, aggiunte e rimozioni
+- Checkout asporto/delivery
+- Carrello con aggregazione prodotti uguali
+- Tracking ordine
+- Dashboard cliente `/account/orders`
+- PWA installabile
 
-### 1. Gestione Tavoli (Modulo Base) - *Posticipato*
-- Mappa interattiva della sala.
-- Apertura/Chiusura tavoli e gestione conti multipli.
-- Stati tavolo (Aperto, Servito, Conto richiesto).
+### Area Admin
 
-### 2. Integrazioni Esterne
-- **Just Eat**: API per ricevere ordini direttamente nel gestionale.
-- **Google Maps API**: Per calcolo preciso dei KM e ottimizzazione giri consegna.
+- Login admin con layout dedicato
+- Dashboard gestionale
+- Kanban ordini
+- Conferma manuale ordine
+- Gestione ETA stile order pad
+- Stampa ordine
+- Cancellazione ordine confermato protetta da password
+- Ordini manuali
+- CRUD prodotti e categorie
+- Report vendite
+- RBAC opzionale via allowlist
 
-### 3. Analytics & Reportistica Avanzata
-- Analisi storica dei carichi per fascia oraria.
-- Stima suggerita del numero di rider necessari in base allo storico.
-- Report periodici dettagliati per categorie e varianti più vendute.
+### Logistica E Rider
 
----
+- Sezione logistica admin
+- Anagrafica rider
+- Assegnazione ordini ai rider
+- Suggerimento rider automatico v1
+- Timer consegne e soglie SLA
+- Eventi operativi rider
+- Alert admin per eventi critici
+- Dashboard rider mobile-first
+- Dettaglio ordine rider
+- Stato `IN_CONSEGNA` / `CONSEGNATO`
+- Mappa e navigazione rider
 
-## ⚙️ Setup Locale
-1. Clonare il repository.
-2. `npm install`
-3. Configurare `.env` con `DATABASE_URL` e chiavi Supabase.
-4. `npx prisma db push` per sincronizzare lo schema.
-5. `npm run dev` per avviare il server.
+## Schema Database
 
----
-*Ultimo aggiornamento: 13 Aprile 2026*
+Modelli principali:
+
+- `Order`: tipo, stato, ETA, cliente, assegnazione rider
+- `OrderItem`: prodotti, varianti e modifiche
+- `Product`: prodotti menu
+- `Category`: categorie menu
+- `Rider`: profili fattorini
+- `GlobalConfig`: configurazioni operative
+
+## Setup Locale
+
+1. `npm install`
+2. configura `.env` partendo da `.env.example`
+3. `npx prisma generate`
+4. `npx prisma db push` o migrazione equivalente
+5. `npm run dev`
+
+## Deploy
+
+Configurazione Render consigliata:
+
+- Language: Node
+- Build Command: `npm ci && npm run build`
+- Start Command: `npm run start`
+
+Variabili importanti:
+
+- `DATABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
+- `ADMIN_ORDER_DELETE_PASSWORD`
+- `ADMIN_RBAC_STRICT`
+- `ADMIN_ALLOWLIST_EMAILS`
+- `OPERATOR_ALLOWLIST_EMAILS`
+- `ORDER_STATUS_WEBHOOK_URL`
+
+Ultimo aggiornamento: 29 aprile 2026

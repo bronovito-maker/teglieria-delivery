@@ -23,7 +23,7 @@ function extractRole(user: UserLike): string | null {
 }
 
 export function isAdminRbacStrictEnabled(): boolean {
-  return String(process.env.ADMIN_RBAC_STRICT || "false").toLowerCase() === "true";
+  return String(process.env.ADMIN_RBAC_STRICT || "true").toLowerCase() !== "false";
 }
 
 export function isAdminUser(user: UserLike): boolean {

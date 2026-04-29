@@ -94,12 +94,12 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
-      { url: "/icon", sizes: "32x32", type: "image/png" },
-      { url: "/icon", sizes: "192x192", type: "image/png" },
-      { url: "/icon", sizes: "512x512", type: "image/png" },
+      { url: "/icons/LT_icon_tile.webp", sizes: "32x32", type: "image/webp" },
+      { url: "/icons/LT_icon_tile.webp", sizes: "192x192", type: "image/webp" },
+      { url: "/icons/LT_icon_tile.webp", sizes: "512x512", type: "image/webp" },
     ],
-    shortcut: ["/icon"],
-    apple: [{ url: "/apple-icon", sizes: "180x180", type: "image/png" }],
+    shortcut: ["/icons/LT_icon_tile.webp"],
+    apple: [{ url: "/icons/LT_icon_tile.webp", sizes: "180x180", type: "image/webp" }],
   },
   appleWebApp: {
     capable: true,

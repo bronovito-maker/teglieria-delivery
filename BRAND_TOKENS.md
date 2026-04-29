@@ -1,5 +1,7 @@
 # La Teglieria - Brand Tokens
 
+Ultimo aggiornamento: 2026-04-29
+
 ## Visione
 - tono: artigianale, architettonico, premium minimal
 - feeling: caldo, strutturato, contemporaneo, editoriale
@@ -10,6 +12,7 @@
 ### Primary Display / Headlines
 - font family: `Epilogue`
 - source: Google Fonts
+- loaded weights: `600`, `700`, `800`
 - use:
   - hero
   - headline sezione
@@ -19,6 +22,7 @@
 ### Secondary Body / UI / Labels
 - font family: `Manrope`
 - source: Google Fonts
+- loaded weights: `400`, `500`, `600`, `700`
 - use:
   - body text
   - bottoni
@@ -85,6 +89,8 @@
 - `Manrope` for paragraph, cards, labels, forms
 - primary CTA: tomato gradient
 - backgrounds: cream / white glass
+- public top bar: warm premium glassmorphism
+- textual logo: always `LA TEGLIERIA`, all caps
 
 ### Admin / Rider
 - prefer `Manrope` almost everywhere for immediate readability
@@ -96,6 +102,13 @@
   - large touch targets
 
 ## UI Rules
+
+### Logo
+- public lockup: `LA TEGLIERIA`
+- `LA`: `#1A1A1A`
+- `TEGLIERIA`: `#D96A2B`
+- use `Epilogue` through `font-logo`
+- favicon/app tile: terracotta background with white `LT`, using `public/icons/LT_icon_tile.webp`
 
 ### Uppercase
 - allowed only for micro-labels, pills, badges, meta text <= `12px`

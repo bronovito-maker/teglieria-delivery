@@ -4,11 +4,17 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ORDER_STATUS_LABELS } from "@/lib/constants";
-import { formatOrderCode } from "@/lib/utils";
+import { formatOrderCode, formatTime } from "@/lib/utils";
 import dynamic from "next/dynamic";
 
 const QRScanner = dynamic(() => import("@/components/rider/QRScanner"), { ssr: false });
 const RiderMapPanel = dynamic(() => import("@/components/rider/RiderMapPanel"), { ssr: false });
+
+type RiderProfile = {
+  name: string;
+  email?: string | null;
+  vehicle?: "BIKE" | "SCOOTER" | "CAR" | null;
+};
 
 export default function RiderDashboard() {
   const router = useRouter();
@@ -16,6 +22,7 @@ export default function RiderDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
+  const [profile, setProfile] = useState<RiderProfile | null>(null);
   const [vehicle, setVehicle] = useState<"BIKE" | "SCOOTER" | "CAR" | null>(null);
   const [showMap, setShowMap] = useState(true);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
@@ -32,7 +39,10 @@ export default function RiderDashboard() {
         await fetchRiderOrders();
         fetch("/api/rider/profile")
           .then((r) => r.ok ? r.json() : null)
-          .then((data) => { if (data?.vehicle) setVehicle(data.vehicle); })
+          .then((data: RiderProfile | null) => {
+            setProfile(data);
+            if (data?.vehicle) setVehicle(data.vehicle);
+          })
           .catch(() => {});
         interval = setInterval(fetchRiderOrders, 10000);
       }
@@ -160,6 +170,12 @@ export default function RiderDashboard() {
           <h1 className="text-[1.18rem] md:text-[1.55rem] font-brand font-semibold tracking-tight text-charcoal truncate leading-none">
             Le mie <span className="text-terracotta">Consegne</span>
           </h1>
+          {profile && (
+            <p className="mt-1 truncate text-[10px] md:text-xs font-brand font-semibold uppercase tracking-[0.16em] text-charcoal/35">
+              Ciao {profile.name}
+              {profile.email ? <span className="normal-case tracking-normal"> · {profile.email}</span> : null}
+            </p>
+          )}
         </div>
 
         {/* Map toggle */}
@@ -202,9 +218,9 @@ export default function RiderDashboard() {
       </header>
 
       {/* Map Panel */}
-      {showMap && orders.length > 0 && (
+      {showMap && activeOrders.length > 0 && (
         <div className="mb-3 md:mb-4 reveal active">
-          <RiderMapPanel orders={orders} vehicle={vehicle} />
+          <RiderMapPanel orders={activeOrders} vehicle={vehicle} />
         </div>
       )}
 
@@ -278,6 +294,24 @@ export default function RiderDashboard() {
 
 // ── Order Card ───────────────────────────────────────────────────────────
 
+function formatRiderOrderDateTime(order: any): string {
+  const raw = order.estimatedTime ?? order.pickupTime ?? order.createdAt;
+  if (!raw) return "--:--";
+
+  const date = new Date(raw);
+  const today = new Date();
+  const isToday = date.toLocaleDateString("it-IT", { timeZone: "Europe/Rome" }) ===
+    today.toLocaleDateString("it-IT", { timeZone: "Europe/Rome" });
+
+  if (isToday) return formatTime(date);
+
+  return date.toLocaleDateString("it-IT", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "Europe/Rome",
+  }) + " " + formatTime(date);
+}
+
 type OrderCardProps = {
   order: any;
   idx: number;
@@ -337,12 +371,7 @@ function OrderCard({
         </div>
         <div className="flex-shrink-0 text-right">
           <p className="font-brand font-semibold text-base text-charcoal leading-none">
-            {order.estimatedTime
-              ? new Date(order.estimatedTime).toLocaleTimeString("it-IT", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : "--:--"}
+            {formatRiderOrderDateTime(order)}
           </p>
           <svg className="w-3 h-3 text-charcoal/20 ml-auto mt-1" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />

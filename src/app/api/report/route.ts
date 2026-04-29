@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { calculateRiderCompensation } from "@/lib/finance";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
+import { reportQuerySchema } from "@/lib/validation/catalog";
 
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -11,7 +12,12 @@ export async function GET(request: Request) {
   if (isAdminRbacStrictEnabled() && !isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
 
   const { searchParams } = new URL(request.url);
-  const date = searchParams.get("date") || new Date().toISOString().split("T")[0];
+  const parsed = reportQuerySchema.safeParse(Object.fromEntries(searchParams.entries()));
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Query non valida", issues: parsed.error.flatten() }, { status: 400 });
+  }
+
+  const date = parsed.data.date || new Date().toISOString().split("T")[0];
 
   const start = new Date(date);
   const end = new Date(date);

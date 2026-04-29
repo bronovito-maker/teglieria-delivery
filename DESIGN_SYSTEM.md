@@ -1,66 +1,187 @@
-# Teglieria Design System
+# La Teglieria - Design System
 
-Versione: 2026-04-14 (Premium Update)
+Versione: 2026-04-29
 
-Questo documento definisce lo stile UI da riutilizzare su Landing, Admin e Rider.
+Questo documento descrive il sistema visivo attualmente in uso su landing, menu, checkout, account cliente, admin e rider.
 
-## Visione
-- **Apple-style Premium**: Pulizia estrema, tipografia editoriale, materiali (blur) sofisticati.
-- **Identità Forte**: Contrasto tra un brand condensato e moderno e sottotitoli serif classici.
-- **Interactive Motion**: L'interfaccia reagisce all'utente (parallax su scroll) anziché avere animazioni passive.
+## Direzione
 
-## Sistema Tipografico (Premium Mix)
-Abbiamo abbandonato i font di sistema per un sistema a tre livelli personalizzato:
+- tono: artigianale, architettonico, premium minimal
+- feeling: caldo, strutturato, editoriale, contemporaneo
+- pubblico: più espressivo e fotografico
+- admin/rider: più leggibile, operativo, touch-friendly
 
-1.  **Brand Font: Narkiss Tam Condensed**
-    - **Uso**: Titoli brand "LA TEGLIERIA" e nomi prodotti hero.
-    - **Stile**: Uppercase obbligatorio, peso Medium (500), `tracking-wider`.
-    - **Utility**: `.font-brand`
+## Font
 
-2.  **Subtitle Font: Odile**
-    - **Uso**: Sottotitoli (Hero), etichette sopra i titoli di sezione (es. *Chi Siamo*), copyright.
-    - **Stile**: Serif elegante, pesi da Light a Semibold.
-    - **Utility**: `.font-subtitle`
+Usiamo solo font gratuiti da Google Fonts tramite `next/font/google`.
 
-3.  **Body Font: Kit Sans**
-    - **Uso**: **Default globale**. Testo descrittivo, pulsanti, input, tabelle, gestione admin.
-    - **Stile**: Alta leggibilità, pulizia sans-serif moderna. Sostituisce *Inter*.
-    - **Utility**: `.font-body` (applicato automaticamente al `body`)
+| Ruolo | Font | Variabile | Uso |
+|---|---|---|---|
+| Display / Headlines | `Epilogue` | `--font-display` | Hero, headline pubbliche, titoli editoriali |
+| Logo testuale | `Epilogue` | `--font-logo` | Lockup `LA TEGLIERIA` |
+| Body / UI | `Manrope` | `--font-body` | Testi, bottoni, form, dashboard, admin, rider |
 
-## Palette Colori (Teglieria Premium)
-- **Charcoal (Corpo)**: `#151b1f` (Profondo, elegante, alta leggibilità)
-- **Warm Light (Sfondo)**: `#f5ead7` (Eearthy, accogliente, meno stancante del bianco puro)
-- **Terracotta (Sottotitoli & Brand)**: `#e66a26` (Sostituisce il Tomato red, un'anima aranciata e calda)
-- **Marigold (Accenti & Detail)**: `#ffa941` (Vibrante, usato per accenti e interazioni)
+Pesi caricati:
 
-## Glassmorphism & Materiali
-- **Terracotta Glass** (`.tomato-glass`):
-  - Gradiente dal terracotta chiaro al terracotta scuro con blur 16px.
-  - Usato per top bar e CTA primarie.
-- **Premium Blur** (`.glass-morphism`):
-  - Sfondo bianco 85% opacità con **blur 20px**.
-  - Ombra soft `rgba(31, 38, 135, 0.07)`.
-  - Usato per card e pannelli informativi.
+- `Epilogue`: `600`, `700`, `800`
+- `Epilogue logo`: `700`, `800`
+- `Manrope`: `400`, `500`, `600`, `700`
 
-## Motion & Parallax
-L'interfaccia "prende vita" durante lo scorrimento:
+Nota operativa:
 
-- **Scroll-based Parallax**: Gli ingredienti in background si muovono a velocità diverse (profondità 3D).
-- **Dynamic Transforms**: Gli elementi rotano e hanno un leggero "drift" laterale durante lo scroll.
-- **Scroll Reveal**: Sezioni che sfumano e si sollevano con curve `cubic-bezier(0.16, 1, 0.3, 1)`.
+- nelle aree `.admin-layout` e `.rider-layout` forziamo `Manrope` anche sulle classi display/logo, per privilegiare leggibilità e velocità d'uso.
 
-## Componenti UI
-### Bottoni
-- **Primari**: `tomato-glass` (Terracotta) con testo `font-brand` uppercase.
-- **Secondari**: Bordo sottile, fondo bianco, `font-body`.
+## Palette
 
-### Card & Layout
-- Border radius ampio: `2xl` o `3xl`.
-- Bordi quasi invisibili: `border-red-100/70`.
+| Token Tailwind | Hex | Uso |
+|---|---|---|
+| `charcoal` | `#1A1A1A` | Testo principale, contrasto forte |
+| `warm-light` | `#F7F2E8` | Sfondo base crema |
+| `terracotta` | `#D96A2B` | Colore brand principale, CTA, accenti |
+| `marigold` | `#E6A52E` | Accento caldo secondario, badge |
+| `royal` | `#2F5FAE` | Accento freddo/contrasto, stati informativi |
 
-## File di Riferimento
-- `src/app/layout.tsx` (Configurazione Fonts)
-- `src/app/globals.css` (Utility classes e variabili)
-- `src/components/ui/FloatingIngredients.tsx` (Logica Parallax)
-- `src/components/client/MobileTopBar.tsx`
-- `src/app/page.tsx` (Esempio principale del sistema)
+Variabili CSS extra:
+
+```css
+:root {
+  --background: #f7f2e8;
+  --foreground: #1a1a1a;
+  --terracotta: #d96a2b;
+  --marigold: #e6a52e;
+  --royal: #2f5fae;
+  --tomato-light: #e78853;
+  --tomato-dark: #b95521;
+}
+```
+
+## CTA E Accenti
+
+CTA principale:
+
+```css
+linear-gradient(135deg, #E78853, #D96A2B, #B95521)
+```
+
+Uso consigliato:
+
+- `terracotta`: azioni primarie, highlight brand, parole chiave
+- `marigold`: badge e accenti caldi
+- `royal`: informazioni, mappa, contrasto freddo dosato
+- `charcoal`: testo primario e UI ad alto contrasto
+- `warm-light`: base pagina
+
+## Top Bar
+
+La top bar pubblica usa un glassmorphism caldo:
+
+- sfondo crema/bianco traslucido
+- `backdrop-blur-[26px]`
+- bordo chiaro `white/55`
+- ombra morbida con lieve componente terracotta
+- logo testuale sempre `LA TEGLIERIA`, in maiuscolo
+
+Il lockup top bar mobile e overlay hamburger devono restare allineati tra loro:
+
+- stessa dimensione font
+- stesso padding
+- stesso offset verticale
+
+## Logo E Favicon
+
+Logo testuale:
+
+- formato: `LA TEGLIERIA`
+- `LA` in `charcoal`
+- `TEGLIERIA` in `terracotta`
+- font: `Epilogue`
+
+Favicon/app icon:
+
+- asset unico: `public/icons/LT_icon_tile.webp`
+- tile terracotta con lettere `LT` bianche
+- metadata configurati in `src/app/layout.tsx`
+
+## Tipografia
+
+Regole base:
+
+- headline pubbliche: `Epilogue`
+- corpo, UI, form, card: `Manrope`
+- admin/rider: `Manrope` quasi ovunque
+- micro-label e badge possono essere uppercase
+- testi lunghi e CTA principali restano leggibili, non urlati
+
+Classi globali:
+
+```css
+.font-logo      -> Epilogue logo
+.font-display   -> Epilogue
+.font-brand     -> Manrope
+.font-subtitle  -> Manrope
+.font-body      -> Manrope
+```
+
+Classi design system:
+
+```css
+.ds-heading-hero
+.ds-heading-section
+.ds-heading-card
+.ds-micro-label
+.ds-cta-primary
+.ds-cta-secondary
+```
+
+## Glassmorphism
+
+Il glass deve sembrare caldo e materico:
+
+- base crema/bianco
+- blur morbido
+- bordo bianco leggero
+- ombre corte e basse
+- evitare vetro freddo/blu o troppo lattiginoso
+
+Usi principali:
+
+- top bar
+- CTA secondarie
+- badge su immagini
+- card leggere dove serve profondità
+
+## Motion
+
+Motion pubblica:
+
+- ingredienti flottanti/parallax nella hero
+- reveal on scroll leggero
+- hover fotografici lenti sulle immagini
+
+Motion operativa:
+
+- feedback immediati
+- stati loading chiari
+- niente animazioni decorative che rallentano admin o rider
+
+## Route Di Riferimento
+
+| Route | Uso |
+|---|---|
+| `/` | Landing pubblica |
+| `/menu` | Menu prodotti |
+| `/ordine` | Checkout |
+| `/account/orders` | Dashboard ordini cliente |
+| `/admin/dashboard` | Dashboard gestionale |
+| `/admin/logistica` | Rider, mappa, assegnazioni |
+| `/rider/dashboard` | Dashboard rider |
+| `/rider/ordine/[id]` | Dettaglio operativo rider |
+
+## File Di Riferimento
+
+- `src/app/layout.tsx`: font, metadata, favicon
+- `src/app/globals.css`: variabili, utility, classi DS
+- `tailwind.config.ts`: token Tailwind
+- `src/components/client/MobileTopBar.tsx`: top bar pubblica
+- `src/app/page.tsx`: landing e hero principale
+- `BRAND_TOKENS.md`: fonte compatta per colori/font/regole

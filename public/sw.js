@@ -7,9 +7,7 @@ const CORE_ASSETS = [
   "/admin/login",
   "/rider/login",
   "/manifest.webmanifest",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png",
-  "/icons/apple-touch-icon.png",
+  "/icons/LT_icon_tile.webp",
   OFFLINE_URL,
 ];
 

@@ -1,4 +1,5 @@
 import { ORDER_STATUS_LABELS } from "@/lib/constants";
+import { captureError, captureInfo } from "@/lib/monitoring";
 
 type OrderNotificationInput = {
   id: string;
@@ -70,7 +71,10 @@ export async function notifyCustomerOrderStatus(order: OrderNotificationInput): 
   };
 
   if (!webhookUrl) {
-    console.info("[NOTIFY][SKIPPED] ORDER_STATUS_WEBHOOK_URL non configurato", payload);
+    captureInfo("orderStatusWebhook.skipped", {
+      reason: "ORDER_STATUS_WEBHOOK_URL non configurato",
+      orderId: order.id,
+    });
     return;
   }
 
@@ -85,12 +89,15 @@ export async function notifyCustomerOrderStatus(order: OrderNotificationInput): 
 
     if (!res.ok) {
       const errorText = await res.text();
-      console.error("[NOTIFY][ERROR] Webhook failed", {
+      captureError(new Error("Order status webhook failed"), {
+        area: "webhook",
+        action: "order.status",
+        orderId: order.id,
         status: res.status,
         body: errorText,
       });
     }
   } catch (error) {
-    console.error("[NOTIFY][ERROR] Network error", error);
+    captureError(error, { area: "webhook", action: "order.status", orderId: order.id });
   }
 }

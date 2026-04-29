@@ -63,10 +63,10 @@ export default function ProductModal({ product, onClose }: Props) {
       <div className="bg-warm-light w-full sm:max-w-md sm:rounded-[2.5rem] rounded-t-[2.5rem] max-h-[90vh] overflow-y-auto border border-charcoal/5 shadow-2xl transition-all duration-500 ease-out translate-y-0" onClick={(e) => e.stopPropagation()}>
 
         {/* Immagine hero (se presente) */}
-        {(product as any).imageUrl && (
+        {product.imageUrl && (
           <div className="relative w-full h-52 rounded-t-[2.5rem] overflow-hidden">
             <Image
-              src={(product as any).imageUrl}
+              src={product.imageUrl}
               alt={product.name}
               fill
               className="object-cover"
@@ -97,7 +97,7 @@ export default function ProductModal({ product, onClose }: Props) {
                 )}
               </div>
             </div>
-            {!(product as any).imageUrl && (
+            {!product.imageUrl && (
               <button
                 onClick={onClose}
                 className="ml-4 w-10 h-10 flex items-center justify-center rounded-full bg-charcoal/5 text-charcoal/40 hover:text-terracotta transition-colors text-2xl"

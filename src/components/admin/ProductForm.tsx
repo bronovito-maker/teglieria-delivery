@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
+import type { ProductWithRelations } from "@/types";
 
 const BUCKET = "product-images";
 
@@ -40,7 +41,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
     if (productId) {
       fetch(`/api/prodotti/${productId}`)
         .then((r) => r.json())
-        .then((p) => {
+        .then((p: ProductWithRelations) => {
           setName(p.name);
           setDescription(p.description || "");
           setPrice(String(p.price));
@@ -53,9 +54,9 @@ export default function ProductForm({ productId }: ProductFormProps) {
             const match = p.imageUrl.match(/product-images\/(.+)$/);
             if (match) setImagePath(match[1]);
           }
-          setVariants(p.variants.map((v: any) => ({ name: v.name, priceDelta: Number(v.priceDelta) })));
-          setAdditions(p.additions.map((a: any) => ({ name: a.name, price: Number(a.price) })));
-          setRemovals(p.removals.map((r: any) => ({ name: r.name })));
+          setVariants(p.variants.map((v) => ({ name: v.name, priceDelta: Number(v.priceDelta) })));
+          setAdditions(p.additions.map((a) => ({ name: a.name, price: Number(a.price) })));
+          setRemovals(p.removals.map((r) => ({ name: r.name })));
         });
     }
   }, [productId]);

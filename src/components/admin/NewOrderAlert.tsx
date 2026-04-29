@@ -30,16 +30,18 @@ function formatPickupDate(pickupTime: Date | string | null | undefined): string 
 export default function NewOrderAlert() {
   const router = useRouter();
   const [confirmingOrder, setConfirmingOrder] = useState<OrderWithItems | null>(null);
+  const [pendingOrders, setPendingOrders] = useState<OrderWithItems[]>([]);
   const [etaMinutes, setEtaMinutes] = useState(30);
   const [confirmingLoading, setConfirmingLoading] = useState(false);
   const [isRepeatCustomer, setIsRepeatCustomer] = useState(false);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
   const [mounted, setMounted] = useState(false);
 
-  const prevCountRef = useRef(0);
   const alertIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const alertCtxRef = useRef<AudioContext | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const notifiedOrderIdsRef = useRef<Set<string>>(new Set());
+  const confirmingOrderRef = useRef<OrderWithItems | null>(null);
   // Stable ref so event listener and fetchNewOrders don't need openConfirmModal as dep
   const openConfirmModalRef = useRef<(order: OrderWithItems) => void>(() => {});
 
@@ -60,7 +62,7 @@ export default function NewOrderAlert() {
     return () => window.removeEventListener("open-order-alert", handler);
   }, []);
 
-  function playBeepPattern(ctx: AudioContext) {
+  const playBeepPattern = useCallback((ctx: AudioContext) => {
     [0, 0.18, 0.36].forEach((delay) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -74,29 +76,37 @@ export default function NewOrderAlert() {
       osc.start(ctx.currentTime + delay);
       osc.stop(ctx.currentTime + delay + 0.15);
     });
-  }
+  }, []);
 
-  function startOrderAlert() {
+  const startOrderAlert = useCallback(() => {
+    if (alertIntervalRef.current || alertCtxRef.current) return;
     try {
       const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
       alertCtxRef.current = ctx;
       playBeepPattern(ctx);
       alertIntervalRef.current = setInterval(() => playBeepPattern(ctx), 2200);
-      const stop = () => stopOrderAlert();
-      document.addEventListener("pointerdown", stop, { once: true });
     } catch {
-      audioRef.current?.play().catch(() => {});
+      const audio = audioRef.current;
+      if (!audio) return;
+      audio.loop = true;
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
     }
-  }
+  }, [playBeepPattern]);
 
-  function stopOrderAlert() {
+  const stopOrderAlert = useCallback(() => {
     if (alertIntervalRef.current) {
       clearInterval(alertIntervalRef.current);
       alertIntervalRef.current = null;
     }
     alertCtxRef.current?.close().catch(() => {});
     alertCtxRef.current = null;
-  }
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current.loop = false;
+    }
+  }, []);
 
   function openConfirmModal(order: OrderWithItems) {
     // For future-date orders, ETA widget is irrelevant — default to 30 min
@@ -112,7 +122,6 @@ export default function NewOrderAlert() {
     }
     setConfirmingOrder(order);
     setIsRepeatCustomer(false);
-    startOrderAlert();
 
     if (order.customerPhone) {
       fetch(`/api/ordini?phone=${encodeURIComponent(order.customerPhone)}&countOnly=1`)
@@ -122,11 +131,33 @@ export default function NewOrderAlert() {
     }
   }
 
-  // Keep ref pointing to the latest version of openConfirmModal (updated every render)
-  openConfirmModalRef.current = openConfirmModal;
+  // Keep ref pointing to the latest modal opener for polling/event listeners.
+  useEffect(() => {
+    openConfirmModalRef.current = openConfirmModal;
+  });
+
+  useEffect(() => {
+    confirmingOrderRef.current = confirmingOrder;
+  }, [confirmingOrder]);
+
+  useEffect(() => {
+    if (!confirmingOrder && pendingOrders.length > 0) {
+      const [nextOrder, ...rest] = pendingOrders;
+      setPendingOrders(rest);
+      openConfirmModalRef.current(nextOrder);
+    }
+  }, [confirmingOrder, pendingOrders]);
+
+  useEffect(() => {
+    if (confirmingOrder || pendingOrders.length > 0) {
+      startOrderAlert();
+      return;
+    }
+
+    stopOrderAlert();
+  }, [confirmingOrder, pendingOrders.length, startOrderAlert, stopOrderAlert]);
 
   function closeConfirmModal() {
-    stopOrderAlert();
     setConfirmingOrder(null);
     setEtaMinutes(30);
     setConfirmingLoading(false);
@@ -139,13 +170,15 @@ export default function NewOrderAlert() {
 
   async function confirmIncomingOrder() {
     if (!confirmingOrder) return;
+    const orderId = confirmingOrder.id;
     setConfirmingLoading(true);
     const estimatedTime = new Date(Date.now() + etaMinutes * 60000).toISOString();
-    await fetch(`/api/ordini/${confirmingOrder.id}`, {
+    await fetch(`/api/ordini/${orderId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: "CONFIRMED", estimatedTime }),
     });
+    setPendingOrders((orders) => orders.filter((order) => order.id !== orderId));
     closeConfirmModal();
     // Signal dashboard (and any other page) to refresh
     window.dispatchEvent(new CustomEvent("order-status-changed"));
@@ -153,12 +186,14 @@ export default function NewOrderAlert() {
 
   async function rejectOrder() {
     if (!confirmingOrder) return;
+    const orderId = confirmingOrder.id;
     closeConfirmModal();
-    await fetch(`/api/ordini/${confirmingOrder.id}`, {
+    await fetch(`/api/ordini/${orderId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: "CANCELLED" }),
     });
+    setPendingOrders((orders) => orders.filter((order) => order.id !== orderId));
     window.dispatchEvent(new CustomEvent("order-status-changed"));
   }
 
@@ -184,22 +219,43 @@ export default function NewOrderAlert() {
     const data = await res.json();
     if (!Array.isArray(data)) return;
 
-    const receivedOrders = data.filter((o: OrderWithItems) => o.status === "RECEIVED");
-    const prevReceived = prevCountRef.current;
+    const receivedOrders = data
+      .filter((o: OrderWithItems) => o.status === "RECEIVED")
+      .sort((a: OrderWithItems, b: OrderWithItems) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    const receivedIds = new Set(receivedOrders.map((order: OrderWithItems) => order.id));
 
-    if (prevReceived > 0 && receivedOrders.length > prevReceived) {
-      const newest = receivedOrders[receivedOrders.length - 1];
-      if (typeof Notification !== "undefined" && Notification.permission === "granted" && newest) {
+    receivedOrders.forEach((order: OrderWithItems) => {
+      if (notifiedOrderIdsRef.current.has(order.id)) return;
+      notifiedOrderIdsRef.current.add(order.id);
+
+      if (typeof Notification !== "undefined" && Notification.permission === "granted") {
         new Notification("Nuovo Ordine — La Teglieria", {
-          body: `#${formatOrderCode(newest)} · ${newest.customerName} · ${newest.type === "DELIVERY" ? "Delivery" : "Asporto"}`,
+          body: `#${formatOrderCode(order)} · ${order.customerName} · ${order.type === "DELIVERY" ? "Delivery" : "Asporto"}`,
           icon: "/favicon.ico",
-          tag: newest.id,
+          tag: order.id,
           requireInteraction: true,
         });
       }
-      if (newest) openConfirmModalRef.current(newest);
+    });
+
+    setPendingOrders((current) => {
+      const currentId = confirmingOrderRef.current?.id ?? null;
+      const queuedById = new Map(current.map((order) => [order.id, order]));
+
+      receivedOrders.forEach((order: OrderWithItems) => {
+        if (order.id === currentId) return;
+        queuedById.set(order.id, order);
+      });
+
+      return Array.from(queuedById.values())
+        .filter((order) => receivedIds.has(order.id) && order.id !== currentId)
+        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    });
+
+    const activeOrder = confirmingOrderRef.current;
+    if (activeOrder && !receivedIds.has(activeOrder.id)) {
+      closeConfirmModal();
     }
-    prevCountRef.current = receivedOrders.length;
   }, [router]);
 
   useEffect(() => {

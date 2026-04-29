@@ -1,19 +1,20 @@
 import { NextResponse } from "next/server";
-import { OrderStatus, RiderVehicle } from "@prisma/client";
-
-const VALID_VEHICLES: RiderVehicle[] = ["BIKE", "SCOOTER", "CAR"];
+import { OrderStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 import { writeAuditLog } from "@/lib/audit";
+import { captureError } from "@/lib/monitoring";
+import { riderPatchSchema } from "@/lib/validation/catalog";
 
 const ACTIVE_ORDER_STATUSES: OrderStatus[] = ["CONFIRMED", "READY", "OUT"];
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createClient();
     const {
       data: { user },
@@ -26,10 +27,15 @@ export async function PATCH(
       return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
     }
 
-    const body = await request.json();
+    const parsed = riderPatchSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Payload non valido", issues: parsed.error.flatten() }, { status: 400 });
+    }
+
+    const body = parsed.data;
 
     const rider = await prisma.rider.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { id: true },
     });
 
@@ -38,14 +44,14 @@ export async function PATCH(
     }
 
     const updated = await prisma.rider.update({
-      where: { id: params.id },
+      where: { id },
       data: {
-        name: typeof body.name === "string" ? body.name.trim() : undefined,
-        phone: typeof body.phone === "string" ? body.phone.trim() || null : undefined,
-        email: typeof body.email === "string" ? body.email.trim() || null : undefined,
-        active: typeof body.active === "boolean" ? body.active : undefined,
-        vehicle: VALID_VEHICLES.includes(body.vehicle) ? body.vehicle : undefined,
-        zone: typeof body.zone === "string" ? body.zone.trim() || null : undefined,
+        name: body.name?.trim(),
+        phone: body.phone?.trim() || null,
+        email: body.email?.trim() || null,
+        active: body.active,
+        vehicle: body.vehicle,
+        zone: body.zone?.trim() || null,
       },
     });
 
@@ -61,7 +67,8 @@ export async function PATCH(
     });
 
     return NextResponse.json(updated);
-  } catch {
+  } catch (err) {
+    captureError(err, { area: "api", route: "/api/riders/[id]", method: "PATCH" });
     return NextResponse.json(
       { error: "Impossibile aggiornare il rider (email già in uso o dati non validi)" },
       { status: 400 }
@@ -71,8 +78,9 @@ export async function PATCH(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const supabase = await createClient();
   const {
     data: { user },
@@ -86,7 +94,7 @@ export async function DELETE(
   }
 
   const rider = await prisma.rider.findUnique({
-    where: { id: params.id },
+    where: { id },
     select: { id: true, name: true, authUserId: true },
   });
 
@@ -96,11 +104,11 @@ export async function DELETE(
 
   // Sgancia tutti gli ordini (attivi e storici) prima di eliminare il rider
   const unassigned = await prisma.order.updateMany({
-    where: { riderId: params.id },
+    where: { riderId: id },
     data: { riderId: null },
   });
 
-  await prisma.rider.delete({ where: { id: params.id } });
+  await prisma.rider.delete({ where: { id } });
 
   // Revoca account Supabase se il rider aveva completato la registrazione
   if (rider.authUserId) {
@@ -110,14 +118,14 @@ export async function DELETE(
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
     await adminClient.auth.admin.deleteUser(rider.authUserId).catch((err) =>
-      console.error("[RIDER DELETE] Supabase user deletion failed:", err)
+      captureError(err, { area: "supabase", action: "rider.deleteUser", riderId: id })
     );
   }
 
   writeAuditLog({
     action: "rider.delete",
     entity: "rider",
-    entityId: params.id,
+    entityId: id,
     actorEmail: user.email,
     actorId: user.id,
     metadata: {

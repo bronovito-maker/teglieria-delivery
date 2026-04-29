@@ -5,13 +5,26 @@ import { sendRiderDepartedEmail, sendTimeUpdateEmail, sendOrderConfirmedEmail, s
 import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 import { writeAuditLog } from "@/lib/audit";
+import { orderPatchSchema, type DeliveryStatusInput, type OrderPatchBody, type OrderStatusInput } from "@/lib/validation/orders";
+
+function isRiderSafePatch(body: OrderPatchBody, riderId: string): boolean {
+  const allowedStatuses = new Set(["OUT", "DELIVERED"]);
+  const allowedDeliveryStatuses = new Set(["ASSIGNED", "EN_ROUTE", "DELIVERED"]);
+
+  if (body.estimatedTime) return false;
+  if (body.riderId !== undefined && body.riderId !== riderId) return false;
+  if (body.status && !allowedStatuses.has(body.status)) return false;
+  if (body.deliveryStatus && !allowedDeliveryStatuses.has(body.deliveryStatus)) return false;
+  return true;
+}
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const order = await prisma.order.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       items: true,
       rider: true,
@@ -25,15 +38,60 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const body = await request.json();
 
-  const data: any = {};
+  if (!user) {
+    return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
+  }
+
+  const parsed = orderPatchSchema.safeParse(await request.json());
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Payload non valido", issues: parsed.error.flatten() },
+      { status: 400 }
+    );
+  }
+
+  const body = parsed.data;
+  const existingOrder = await prisma.order.findUnique({
+    where: { id },
+    select: { id: true, riderId: true },
+  });
+
+  if (!existingOrder) {
+    return NextResponse.json({ error: "Ordine non trovato" }, { status: 404 });
+  }
+
+  const isOperator = !isAdminRbacStrictEnabled() || isOperatorUser(user);
+  const rider = await prisma.rider.findFirst({
+    where: {
+      active: true,
+      OR: [{ authUserId: user.id }, ...(user.email ? [{ email: user.email }] : [])],
+    },
+    select: { id: true },
+  });
+  const isAssignedRider =
+    Boolean(rider) &&
+    (existingOrder.riderId === rider!.id ||
+      (existingOrder.riderId === null && body.riderId === rider!.id));
+
+  if (!isOperator && (!rider || !isAssignedRider || !isRiderSafePatch(body, rider.id))) {
+    return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
+  }
+
+  const data: {
+    status?: OrderStatusInput;
+    riderId?: string | null;
+    deliveryStatus?: DeliveryStatusInput;
+    actualTime?: Date;
+    estimatedTime?: Date;
+  } = {};
   if (body.status) data.status = body.status;
   if (body.riderId !== undefined) data.riderId = body.riderId;
   if (body.deliveryStatus) data.deliveryStatus = body.deliveryStatus;
@@ -41,7 +99,7 @@ export async function PATCH(
   if (body.estimatedTime) data.estimatedTime = new Date(body.estimatedTime);
 
   const order = await prisma.order.update({
-    where: { id: params.id },
+    where: { id },
     data,
     include: {
       items: true,
@@ -54,7 +112,7 @@ export async function PATCH(
   if (body.status || body.statusNote) {
     await prisma.orderStatusLog.create({
       data: {
-        orderId: params.id,
+        orderId: id,
         status: body.status || order.status,
         note: body.statusNote,
       },
@@ -150,8 +208,9 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const supabase = await createClient();
   const {
     data: { user },
@@ -165,7 +224,7 @@ export async function DELETE(
   }
 
   const order = await prisma.order.findUnique({
-    where: { id: params.id },
+    where: { id },
     select: { id: true, status: true },
   });
 
@@ -195,13 +254,13 @@ export async function DELETE(
   }
 
   await prisma.order.delete({
-    where: { id: params.id },
+    where: { id },
   });
 
   writeAuditLog({
     action: "order.delete",
     entity: "order",
-    entityId: params.id,
+    entityId: id,
     actorEmail: user.email,
     actorId: user.id,
     metadata: {

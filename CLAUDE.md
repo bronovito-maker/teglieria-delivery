@@ -1,5 +1,7 @@
 # La Teglieria — Design System & Regole Codebase
 
+Ultimo aggiornamento: 2026-04-29
+
 ## Stack
 - **Framework**: Next.js App Router (TypeScript)
 - **Database**: Supabase (PostgreSQL) + Prisma ORM
@@ -25,7 +27,7 @@
 | Classe | Font | Uso |
 |---|---|---|
 | `font-display` | **Epilogue** | Headline, hero, titoli sezione |
-| `font-logo` | **Epilogue** | Lockup/logo testo "La Teglieria" |
+| `font-logo` | **Epilogue** | Lockup/logo testo `LA TEGLIERIA` |
 | `font-brand` | **Manrope** | UI, bottoni, dati, card, nav |
 | `font-body` | **Manrope** | Corpo testo, descrizioni, form |
 | `font-subtitle` | **Manrope** | Alias di font-body |
@@ -35,6 +37,15 @@
 - `Epilogue` per hero, heading e lockup
 - `Manrope` per tutto ciò che è operativo o leggibile a colpo d'occhio
 - in `admin` e `rider`, anche i titoli devono restare tendenzialmente su `Manrope` se l'uso è funzionale e non editoriale
+- il lockup pubblico deve essere sempre `LA TEGLIERIA`, tutto maiuscolo
+
+### Logo, Top Bar E Icone
+
+- Top bar pubblica: glassmorphism caldo, crema/bianco, blur marcato, bordo chiaro e ombra breve.
+- Logo top bar: `LA` in `charcoal`, `TEGLIERIA` in `terracotta`.
+- Overlay hamburger: deve mantenere stessa dimensione, padding e allineamento del logo della top bar chiusa.
+- Favicon/app icon: tile terracotta con `LT` bianca, asset unico in `public/icons/LT_icon_tile.webp`.
+- Non usare piu favicon Vercel o icone generiche.
 
 ### Regole Tipografia
 

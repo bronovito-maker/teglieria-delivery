@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
+import { scheduleDaysSchema } from "@/lib/validation/catalog";
 
 const DEFAULTS = Array.from({ length: 7 }, (_, i) => ({
   dayOfWeek: i,
@@ -30,16 +31,12 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
   if (isAdminRbacStrictEnabled() && !isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
 
-  const days: Array<{
-    dayOfWeek: number;
-    isOpen: boolean;
-    lunchActive: boolean;
-    lunchStart: string;
-    lunchEnd: string;
-    dinnerActive: boolean;
-    dinnerStart: string;
-    dinnerEnd: string;
-  }> = await request.json();
+  const parsed = scheduleDaysSchema.safeParse(await request.json());
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Payload non valido", issues: parsed.error.flatten() }, { status: 400 });
+  }
+
+  const days = parsed.data;
 
   await Promise.all(
     days.map((day) =>
