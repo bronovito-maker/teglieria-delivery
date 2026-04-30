@@ -42,12 +42,16 @@ export default function OrdinePage() {
   }, [supabase]);
 
   async function handleGoogleLogin() {
-    await supabase.auth.signInWithOAuth({
+    setError("");
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/api/auth/callback?type=customer&next=/ordine`,
       },
     });
+    if (oauthError) {
+      setError("Impossibile avviare Google. Riprova tra poco.");
+    }
   }
   const [address, setAddress] = useState("");
   const [addressDetail, setAddressDetail] = useState("");
@@ -56,9 +60,11 @@ export default function OrdinePage() {
   const [pickupTime, setPickupTime] = useState("");
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"CONTANTI" | "POS">("CONTANTI");
-  const [slots, setSlots] = useState<{time: string, available: boolean, remaining: number}[]>([]);
+  const [slots, setSlots] = useState<{ time: string, available: boolean, remaining: number }[]>([]);
   const [dayClosed, setDayClosed] = useState(false);
   const [closedDays, setClosedDays] = useState<Set<string>>(new Set());
+  const [slotsCache, setSlotsCache] = useState<Record<string, { slots: { time: string, available: boolean, remaining: number }[]; closed: boolean }>>({});
+  const [slotsLoading, setSlotsLoading] = useState(false);
 
   // Pre-check availability for all 7 days shown
   useEffect(() => {
@@ -72,10 +78,16 @@ export default function OrdinePage() {
         checks.map((date) => fetch(`/api/logistica/fasce?date=${date}`).then((r) => r.json()).catch(() => ({ closed: true })))
       );
       const closed = new Set<string>();
+      const cachePatch: Record<string, { slots: { time: string, available: boolean, remaining: number }[]; closed: boolean }> = {};
       results.forEach((r, i) => {
         if (r.closed || r.slots?.length === 0) closed.add(checks[i]);
+        cachePatch[checks[i]] = {
+          slots: Array.isArray(r.slots) ? r.slots : [],
+          closed: !!r.closed || (Array.isArray(r.slots) && r.slots.length === 0),
+        };
       });
       setClosedDays(closed);
+      setSlotsCache((prev) => ({ ...prev, ...cachePatch }));
 
       // Auto-select first available day if the current selection has no slots
       const firstOpen = checks.find((d) => !closed.has(d));
@@ -86,20 +98,36 @@ export default function OrdinePage() {
 
   useEffect(() => {
     async function fetchSlots() {
+      if (slotsCache[selectedDate]) {
+        const cached = slotsCache[selectedDate];
+        setSlots(cached.slots);
+        setDayClosed(cached.closed);
+        setPickupTime("");
+        return;
+      }
+      setSlotsLoading(true);
       try {
         const res = await fetch(`/api/logistica/fasce?date=${selectedDate}`);
         if (res.ok) {
           const data = await res.json();
-          setSlots(data.slots);
-          setDayClosed(!!data.closed || data.slots?.length === 0);
+          const resolvedSlots = Array.isArray(data.slots) ? data.slots : [];
+          const resolvedClosed = !!data.closed || resolvedSlots.length === 0;
+          setSlots(resolvedSlots);
+          setDayClosed(resolvedClosed);
+          setSlotsCache((prev) => ({
+            ...prev,
+            [selectedDate]: { slots: resolvedSlots, closed: resolvedClosed },
+          }));
           setPickupTime(""); // reset orario quando cambia data
         }
       } catch (err) {
         console.error("Errore fetch fasce:", err);
+      } finally {
+        setSlotsLoading(false);
       }
     }
     fetchSlots();
-  }, [selectedDate]);
+  }, [selectedDate, slotsCache]);
 
   // Scroll Reveal Logic
   useEffect(() => {
@@ -121,8 +149,8 @@ export default function OrdinePage() {
       <div className="text-center py-24 px-6">
         <div className="text-6xl mb-6 opacity-20">🛒</div>
         <h2 className="text-3xl font-display mb-4">Il carrello è vuoto</h2>
-        <button 
-          onClick={() => router.push("/menu")} 
+        <button
+          onClick={() => router.push("/menu")}
           className="px-8 py-3 bg-charcoal text-white rounded-full font-semibold hover:scale-105 transition-transform"
         >
           Vai al Menu
@@ -190,10 +218,11 @@ export default function OrdinePage() {
       if (loggedUser) {
         // Aggiorna profilo utente con telefono e ultimo indirizzo (fire-and-forget)
         const updateData: Record<string, string> = {};
+        if (customerName) updateData.full_name = customerName;
         if (customerPhone) updateData.phone = customerPhone;
         if (orderType === "DELIVERY" && address) updateData.lastAddress = address;
         if (Object.keys(updateData).length > 0) {
-          supabase.auth.updateUser({ data: updateData }).catch(() => {});
+          supabase.auth.updateUser({ data: updateData }).catch(() => { });
         }
       } else {
         // Salva dati guest per proposta registrazione post-ordine
@@ -204,7 +233,10 @@ export default function OrdinePage() {
         }));
       }
 
-      router.push(`/stato-ordine/${order.id}`);
+      const trackingUrl = order.statusAccessToken
+        ? `/stato-ordine/${order.id}?token=${encodeURIComponent(order.statusAccessToken)}`
+        : `/stato-ordine/${order.id}`;
+      router.push(trackingUrl);
     } catch {
       setError("Si è verificato un errore. Riprova.");
       setLoading(false);
@@ -214,7 +246,7 @@ export default function OrdinePage() {
   return (
     <div className="max-w-2xl mx-auto pb-24 pt-8 px-4">
       <header className="mb-12 rounded-[2.5rem] border border-charcoal/5 bg-white/55 backdrop-blur-sm px-6 py-8 md:px-8 shadow-sm">
-        <span className="ds-micro-label text-terracotta/60 mb-4 block">Checkout artigianale</span>
+        <span className="ds-micro-label text-terracotta/60 mb-4 block">Checkout</span>
         <h1 className="text-5xl md:text-6xl font-display tracking-tight text-charcoal mb-3 leading-none">
           Concludi l&apos;Ordine
         </h1>
@@ -241,7 +273,7 @@ export default function OrdinePage() {
                 </div>
               ))}
             </div>
-            
+
             <div className="mt-8 pt-6 border-t border-charcoal/10 space-y-2">
               <div className="flex justify-between text-charcoal/50 font-body">
                 <span>Subtotale</span>
@@ -290,7 +322,7 @@ export default function OrdinePage() {
               <div className="bg-white/55 border border-charcoal/8 rounded-[2rem] p-6 space-y-4 backdrop-blur-sm shadow-sm">
                 <div>
                   <h2 className="text-sm font-brand font-semibold text-charcoal/70 mb-0.5">Hai già un account?</h2>
-                  <p className="text-xs text-charcoal/40 font-body">Accedi e i tuoi dati vengono compilati in automatico.</p>
+                  <p className="text-xs text-charcoal/40 font-body">Accedi e completi il checkout in pochi secondi.</p>
                 </div>
                 <button
                   type="button"
@@ -298,10 +330,10 @@ export default function OrdinePage() {
                   className="w-full py-3 bg-white border border-charcoal/10 rounded-2xl text-sm font-brand font-semibold text-charcoal hover:border-charcoal/25 active:scale-95 transition-all flex items-center justify-center gap-3 shadow-sm"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                   </svg>
                   Continua con Google
                 </button>
@@ -376,20 +408,20 @@ export default function OrdinePage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-500 ml-4">CITOFONO / PIANO</label>
-                  <input 
-                    value={addressDetail} 
+                  <input
+                    value={addressDetail}
                     onChange={(e) => setAddressDetail(e.target.value)}
                     placeholder="Scala B, Piano 4..."
-                    className="w-full px-6 py-4 bg-gray-50 border-none rounded-[1.5rem] focus:ring-2 focus:ring-orange-500 outline-none" 
+                    className="w-full px-6 py-4 bg-gray-50 border-none rounded-[1.5rem] focus:ring-2 focus:ring-orange-500 outline-none"
                   />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-500 ml-4">ZONA CONSEGNA</label>
-                  <input 
-                    value={deliveryZone} 
+                  <input
+                    value={deliveryZone}
                     onChange={(e) => setDeliveryZone(e.target.value)}
                     placeholder="Es. Quartiere..."
-                    className="w-full px-6 py-4 bg-gray-50 border-none rounded-[1.5rem] focus:ring-2 focus:ring-orange-500 outline-none" 
+                    className="w-full px-6 py-4 bg-gray-50 border-none rounded-[1.5rem] focus:ring-2 focus:ring-orange-500 outline-none"
                   />
                 </div>
               </div>
@@ -404,7 +436,46 @@ export default function OrdinePage() {
           </h2>
 
           {/* Selezione data — prossimi 7 giorni */}
-          <div className="grid grid-cols-7 gap-1.5">
+          <div className="md:hidden -mx-1 px-1 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex gap-2.5 min-w-max">
+              {Array.from({ length: 7 }, (_, offset) => {
+                const d = new Date();
+                d.setDate(d.getDate() + offset);
+                const dateStr = d.toISOString().split("T")[0];
+                const weekday = offset === 0 ? "Oggi" : d.toLocaleDateString("it-IT", { weekday: "short" });
+                const day = d.getDate();
+                const month = d.toLocaleDateString("it-IT", { month: "short" });
+                const isSelected = selectedDate === dateStr;
+                const isClosed = closedDays.has(dateStr);
+                return (
+                  <button
+                    key={dateStr}
+                    type="button"
+                    onClick={() => !isClosed && setSelectedDate(dateStr)}
+                    disabled={isClosed}
+                    className={`w-[74px] shrink-0 flex flex-col items-center py-3 px-1 rounded-2xl border transition-all gap-1 ${isSelected
+                        ? "bg-terracotta border-terracotta text-white shadow-xl"
+                        : isClosed
+                          ? "bg-charcoal/3 border-charcoal/5 opacity-40 cursor-not-allowed"
+                          : "bg-white/50 border-charcoal/10 text-charcoal"
+                      }`}
+                  >
+                    <span className={`text-[9px] font-brand font-bold uppercase tracking-widest ${isSelected ? "text-white/80" : "text-charcoal/40"}`}>
+                      {weekday}
+                    </span>
+                    <span className={`text-lg font-brand font-medium leading-none ${isSelected ? "text-white" : "text-charcoal"}`}>
+                      {day}
+                    </span>
+                    <span className={`text-[9px] font-brand font-bold uppercase tracking-widest ${isSelected ? "text-white/70" : isClosed ? "text-charcoal/30" : "text-charcoal/30"}`}>
+                      {isClosed ? "chiuso" : month}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="hidden md:grid grid-cols-7 gap-1.5">
             {Array.from({ length: 7 }, (_, offset) => {
               const d = new Date();
               d.setDate(d.getDate() + offset);
@@ -420,13 +491,12 @@ export default function OrdinePage() {
                   type="button"
                   onClick={() => !isClosed && setSelectedDate(dateStr)}
                   disabled={isClosed}
-                  className={`flex flex-col items-center py-3 px-1 rounded-2xl border transition-all gap-1 ${
-                    isSelected
+                  className={`flex flex-col items-center py-3 px-1 rounded-2xl border transition-all gap-1 ${isSelected
                       ? "bg-terracotta border-terracotta text-white shadow-xl scale-105"
                       : isClosed
-                      ? "bg-charcoal/3 border-charcoal/5 opacity-40 cursor-not-allowed"
-                      : "bg-white/50 border-charcoal/10 text-charcoal hover:border-terracotta"
-                  }`}
+                        ? "bg-charcoal/3 border-charcoal/5 opacity-40 cursor-not-allowed"
+                        : "bg-white/50 border-charcoal/10 text-charcoal hover:border-terracotta"
+                    }`}
                 >
                   <span className={`text-[9px] font-brand font-bold uppercase tracking-widest ${isSelected ? "text-white/80" : "text-charcoal/40"}`}>
                     {weekday}
@@ -448,26 +518,28 @@ export default function OrdinePage() {
             </div>
           )}
 
-          <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
+          {slotsLoading && (
+            <p className="text-xs text-charcoal/40 text-center py-3 font-body italic">Aggiorniamo gli orari disponibili...</p>
+          )}
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
             {slots.map((slot) => (
               <button
                 key={slot.time}
                 type="button"
                 disabled={!slot.available}
                 onClick={() => setPickupTime(slot.time)}
-                className={`py-3 text-xs font-bold rounded-2xl border transition-all ${
-                  pickupTime === slot.time
+                className={`py-3 text-xs font-bold rounded-2xl border transition-all ${pickupTime === slot.time
                     ? "bg-terracotta border-terracotta text-white shadow-xl scale-105"
                     : slot.available
-                    ? "bg-white/50 border-charcoal/10 text-charcoal hover:border-terracotta"
-                    : "bg-charcoal/5 border-transparent text-charcoal/30 cursor-not-allowed opacity-50"
-                }`}
+                      ? "bg-white/50 border-charcoal/10 text-charcoal hover:border-terracotta"
+                      : "bg-charcoal/5 border-transparent text-charcoal/30 cursor-not-allowed opacity-50"
+                  }`}
               >
                 {slot.time}
               </button>
             ))}
           </div>
-          {slots.length === 0 && <p className="text-sm text-gray-400 text-center py-4">Caricamento disponibilità...</p>}
+          {!slotsLoading && slots.length === 0 && <p className="text-sm text-gray-400 text-center py-4">Nessun orario disponibile per questa data.</p>}
         </div>
 
         {/* SECTION 5: PAGAMENTO */}
@@ -477,11 +549,10 @@ export default function OrdinePage() {
             <button
               type="button"
               onClick={() => setPaymentMethod("CONTANTI")}
-              className={`flex-1 py-4 px-6 rounded-[1.6rem] transition-all flex items-center justify-center gap-3 font-bold ${
-                paymentMethod === "CONTANTI"
+              className={`flex-1 py-4 px-6 rounded-[1.6rem] transition-all flex items-center justify-center gap-3 font-bold ${paymentMethod === "CONTANTI"
                   ? "bg-white shadow-xl text-charcoal scale-[1.02]"
                   : "text-charcoal/40 hover:text-charcoal/60"
-              }`}
+                }`}
             >
               <span className="text-xl">💵</span>
               Contanti
@@ -489,11 +560,10 @@ export default function OrdinePage() {
             <button
               type="button"
               onClick={() => setPaymentMethod("POS")}
-              className={`flex-1 py-4 px-6 rounded-[1.6rem] transition-all flex items-center justify-center gap-3 font-bold ${
-                paymentMethod === "POS"
+              className={`flex-1 py-4 px-6 rounded-[1.6rem] transition-all flex items-center justify-center gap-3 font-bold ${paymentMethod === "POS"
                   ? "bg-white shadow-xl text-charcoal scale-[1.02]"
                   : "text-charcoal/40 hover:text-charcoal/60"
-              }`}
+                }`}
             >
               <span className="text-xl">💳</span>
               POS / Carta
@@ -513,15 +583,26 @@ export default function OrdinePage() {
           />
         </div>
 
-        <div className="reveal pt-6">
+        <div className="reveal pt-6 pb-24 md:pb-0">
           {error && <p className="text-center text-red-500 mb-4 font-semibold">{error}</p>}
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="w-full py-5 bg-terracotta text-white rounded-full font-bold text-xl shadow-2xl hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
-          >
-            {loading ? "Elaborazione..." : "Conferma e Invia Ordine"}
-          </button>
+          <div className="md:hidden fixed bottom-0 inset-x-0 z-40 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 bg-[linear-gradient(180deg,rgba(250,246,240,0)_0%,rgba(250,246,240,0.88)_22%,rgba(250,246,240,0.98)_100%)] backdrop-blur-sm border-t border-charcoal/8">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-4 bg-terracotta text-white rounded-full font-bold text-lg shadow-2xl hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
+            >
+              {loading ? "Elaborazione..." : `Conferma Ordine · ${formatCurrency(total)}`}
+            </button>
+          </div>
+          <div className="hidden md:block">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-5 bg-terracotta text-white rounded-full font-bold text-xl shadow-2xl hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
+            >
+              {loading ? "Elaborazione..." : "Conferma e Invia Ordine"}
+            </button>
+          </div>
           <p className="text-center text-gray-400 text-sm mt-6">
             Pagherai direttamente {orderType === "ASPORTO" ? "al bancone" : "alla consegna"}
           </p>

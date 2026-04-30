@@ -29,12 +29,16 @@ function RegisterForm() {
   const [done, setDone] = useState(false);
 
   async function handleOAuth(provider: "google") {
-    await supabase.auth.signInWithOAuth({
+    setError(null);
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo: `${window.location.origin}/api/auth/callback?type=customer&next=/ordine`,
       },
     });
+    if (oauthError) {
+      setError("Impossibile avviare Google. Riprova tra poco.");
+    }
   }
 
   async function handleRegister(e: React.FormEvent) {

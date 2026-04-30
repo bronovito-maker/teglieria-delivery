@@ -94,6 +94,8 @@ model Order {
   statusHistory  OrderStatusLog[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+
+  @@index([pickupTime, status, timeSlot])
 }
 
 model GlobalConfig {
@@ -111,8 +113,8 @@ model DaySchedule {
   lunchActive  Boolean  @default(false)
   lunchStart   String   @default("12:00")
   lunchEnd     String   @default("14:30")
-  dinnerActive Boolean  @default(false)
-  dinnerStart  String   @default("18:30")
+  dinnerActive Boolean  @default(true)
+  dinnerStart  String   @default("16:00")
   dinnerEnd    String   @default("22:00")
   updatedAt    DateTime @updatedAt
 }

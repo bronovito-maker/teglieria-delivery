@@ -3,8 +3,12 @@ import { prisma } from "@/lib/prisma";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
+import { enforceSameOrigin } from "@/lib/request-security";
 
-export async function POST() {
+export async function POST(request: Request) {
+  const sameOriginError = enforceSameOrigin(request);
+  if (sameOriginError) return sameOriginError;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 

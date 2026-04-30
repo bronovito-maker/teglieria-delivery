@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 import { scheduleDaysSchema } from "@/lib/validation/catalog";
+import { enforceSameOrigin } from "@/lib/request-security";
 
 const DEFAULTS = Array.from({ length: 7 }, (_, i) => ({
   dayOfWeek: i,
@@ -10,8 +11,8 @@ const DEFAULTS = Array.from({ length: 7 }, (_, i) => ({
   lunchActive: false,
   lunchStart: "12:00",
   lunchEnd: "14:30",
-  dinnerActive: false,
-  dinnerStart: "18:30",
+  dinnerActive: true,
+  dinnerStart: "16:00",
   dinnerEnd: "22:00",
 }));
 
@@ -26,6 +27,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const sameOriginError = enforceSameOrigin(request);
+  if (sameOriginError) return sameOriginError;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });

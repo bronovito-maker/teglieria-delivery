@@ -1,11 +1,19 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
+import { getClientIp, rateLimit } from "@/lib/rate-limit";
+import { sanitizeInternalPath } from "@/lib/request-security";
 
 export async function GET(request: Request) {
+  const ip = getClientIp(request.headers);
+  const limit = await rateLimit(`auth-callback:${ip}`, 60, 60_000);
+  if (!limit.ok) {
+    return NextResponse.redirect(`${new URL(request.url).origin}/accedi`);
+  }
+
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "";
+  const next = sanitizeInternalPath(searchParams.get("next"), "");
   const type = searchParams.get("type") ?? "admin"; // "admin" | "customer"
 
   if (code) {

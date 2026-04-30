@@ -6,6 +6,7 @@ import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
 import type { ProductWithRelations } from "@/types";
 import type { CartItemAddition, CartItemRemoval } from "@/types";
+import { toast } from "sonner";
 
 interface Props {
   product: ProductWithRelations;
@@ -54,6 +55,9 @@ export default function ProductModal({ product, onClose }: Props) {
       removals: selectedRemovals,
       notes: notes || undefined,
       totalPrice: total,
+    });
+    toast.success(`${product.name} aggiunta al carrello`, {
+      description: quantity > 1 ? `Quantità: ${quantity}` : "Perfetto, continua con il menu.",
     });
     onClose();
   }
@@ -190,8 +194,8 @@ export default function ProductModal({ product, onClose }: Props) {
             )}
 
 
-            {/* Azioni finali */}
-            <div className="pt-6 border-t border-charcoal/5 flex items-center gap-4">
+            {/* Azioni finali desktop */}
+            <div className="hidden sm:flex pt-6 border-t border-charcoal/5 items-center gap-4">
               <div className="flex items-center bg-charcoal/5 rounded-full p-1 border border-charcoal/5">
                 <button 
                   onClick={() => setQuantity(Math.max(1, quantity - 1))} 
@@ -213,6 +217,33 @@ export default function ProductModal({ product, onClose }: Props) {
               >
                 Aggiungi • {formatCurrency(total)}
               </button>
+            </div>
+
+            {/* Azioni finali mobile sticky */}
+            <div className="sm:hidden sticky bottom-0 -mx-8 px-4 pt-3 pb-[max(0.9rem,env(safe-area-inset-bottom))] bg-[linear-gradient(180deg,rgba(250,246,240,0)_0%,rgba(250,246,240,0.92)_24%,rgba(250,246,240,0.99)_100%)] border-t border-charcoal/8 backdrop-blur-sm">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center bg-charcoal/5 rounded-full p-1 border border-charcoal/5 shrink-0">
+                  <button
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-9 h-9 flex items-center justify-center text-lg font-bold text-charcoal hover:bg-white rounded-full transition-colors shadow-sm"
+                  >
+                    −
+                  </button>
+                  <span className="w-10 text-center font-bold text-base text-charcoal">{quantity}</span>
+                  <button
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="w-9 h-9 flex items-center justify-center text-lg font-bold text-charcoal hover:bg-white rounded-full transition-colors shadow-sm"
+                  >
+                    +
+                  </button>
+                </div>
+                <button
+                  onClick={handleAdd}
+                  className="flex-1 py-3.5 text-white rounded-full font-bold uppercase tracking-widest text-xs bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] shadow-xl hover:brightness-110 active:scale-[0.98] transition-all"
+                >
+                  Aggiungi • {formatCurrency(total)}
+                </button>
+              </div>
             </div>
           </div>
         </div>

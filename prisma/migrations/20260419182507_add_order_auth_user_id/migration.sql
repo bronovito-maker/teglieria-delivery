@@ -128,8 +128,8 @@ CREATE TABLE "DaySchedule" (
     "lunchActive" BOOLEAN NOT NULL DEFAULT false,
     "lunchStart" TEXT NOT NULL DEFAULT '12:00',
     "lunchEnd" TEXT NOT NULL DEFAULT '14:30',
-    "dinnerActive" BOOLEAN NOT NULL DEFAULT false,
-    "dinnerStart" TEXT NOT NULL DEFAULT '18:30',
+    "dinnerActive" BOOLEAN NOT NULL DEFAULT true,
+    "dinnerStart" TEXT NOT NULL DEFAULT '16:00',
     "dinnerEnd" TEXT NOT NULL DEFAULT '22:00',
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

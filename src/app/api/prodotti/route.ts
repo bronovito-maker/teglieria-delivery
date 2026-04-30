@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 import { productCreateSchema } from "@/lib/validation/catalog";
+import { enforceSameOrigin } from "@/lib/request-security";
 
 export async function GET() {
   const products = await prisma.product.findMany({
@@ -18,6 +19,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const sameOriginError = enforceSameOrigin(request);
+  if (sameOriginError) return sameOriginError;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });

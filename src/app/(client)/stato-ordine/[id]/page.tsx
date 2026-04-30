@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/constants";
 import { formatCurrency, formatTime, formatOrderCode } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -12,8 +12,11 @@ const STATUS_STEPS = ["RECEIVED", "CONFIRMED", "READY", "OUT", "DELIVERED"];
 
 export default function StatoOrdinePage() {
   const { id } = useParams();
+  const searchParams = useSearchParams();
   const [order, setOrder] = useState<OrderWithItems | null>(null);
   const [error, setError] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [showRegisterBanner, setShowRegisterBanner] = useState(false);
   const [guestData, setGuestData] = useState<{ name: string; email: string; phone: string } | null>(null);
 
@@ -34,30 +37,56 @@ export default function StatoOrdinePage() {
   }, []);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let timeout: NodeJS.Timeout;
+    let cancelled = false;
+
+    const scheduleNext = (status?: string) => {
+      if (cancelled) return;
+      if (status === "DELIVERED" || status === "CANCELLED") return;
+      const ms = status === "RECEIVED" ? 12000 : 8000;
+      timeout = setTimeout(fetchOrder, ms);
+    };
 
     async function fetchOrder() {
       try {
-        const res = await fetch(`/api/ordini/${id}`);
-        if (!res.ok) { setError(true); return; }
+        setRefreshing(true);
+        const token = searchParams.get("token");
+        const qs = token ? `?token=${encodeURIComponent(token)}` : "";
+        const res = await fetch(`/api/ordini/${id}${qs}`);
+        if (!res.ok) {
+          setError(true);
+          scheduleNext();
+          return;
+        }
         const data = await res.json();
         setOrder(data);
+        setLastUpdatedAt(new Date());
+        setError(false);
 
-        // Stop polling on terminal states
-        if (data.status === "DELIVERED" || data.status === "CANCELLED") {
-          clearInterval(interval);
-        }
+        scheduleNext(data.status);
       } catch {
         setError(true);
+        scheduleNext();
+      } finally {
+        if (!cancelled) setRefreshing(false);
       }
     }
 
     fetchOrder();
-    interval = setInterval(fetchOrder, 10000);
-    return () => clearInterval(interval);
-  }, [id]);
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
+  }, [id, searchParams]);
 
-  if (error) return <p className="text-center py-12 text-red-500">Ordine non trovato.</p>;
+  if (error && !order) {
+    return (
+      <div className="text-center py-12 px-6">
+        <p className="text-red-500 font-semibold">Non riusciamo ad aggiornare l&apos;ordine adesso.</p>
+        <p className="text-charcoal/45 text-sm mt-2">Controlla la connessione e ricarica tra qualche secondo.</p>
+      </div>
+    );
+  }
   if (!order) return <p className="text-center py-12 text-gray-400">Caricamento...</p>;
 
   const currentStepIndex = STATUS_STEPS.indexOf(order.status);
@@ -72,6 +101,9 @@ export default function StatoOrdinePage() {
           Stato <span className="text-terracotta">Ordine.</span>
         </h1>
         <p className="text-sm font-body italic text-charcoal/40 mt-4 tracking-widest uppercase">Ordine #{formatOrderCode(order)}</p>
+        <p className="text-[10px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/30 mt-3">
+          {refreshing ? "Aggiornamento in corso..." : lastUpdatedAt ? `Aggiornato alle ${formatTime(lastUpdatedAt)}` : "Aggiornamento live"}
+        </p>
       </div>
 
       {order.status === "CANCELLED" ? (
@@ -108,6 +140,16 @@ export default function StatoOrdinePage() {
               </p>
               <p className="text-xs text-charcoal/40 font-body italic mt-2">
                 Il tuo ordine è stato ricevuto ed è in attesa di conferma dallo staff.
+              </p>
+            </div>
+          )}
+          {order.status === "OUT" && (
+            <div className="bg-terracotta/8 border border-terracotta/20 rounded-3xl p-6 mb-8 text-center">
+              <p className="text-xs font-brand font-bold uppercase tracking-widest text-terracotta">
+                Il rider è in arrivo
+              </p>
+              <p className="text-xs text-charcoal/45 font-body italic mt-2">
+                Siamo agli ultimi minuti. Tieni il telefono a portata per eventuali chiamate.
               </p>
             </div>
           )}

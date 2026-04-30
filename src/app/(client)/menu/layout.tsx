@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Menu Pizza in Teglia — La Teglieria Livorno",
     description:
-      "Pizza artigianale con 48h di maturazione. Classiche, gourmet e speciali. Ordina online.",
+      "Pizza artigianale con 48h di maturazione. Classiche e speciali. Ordina online.",
     url: "https://www.lateglieria.it/menu",
     images: [{ url: "/images/pizza-teglia-hero.png", width: 1200, height: 630 }],
   },

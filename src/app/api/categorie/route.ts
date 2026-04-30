@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 import { categoryCreateSchema, categoryPatchSchema } from "@/lib/validation/catalog";
+import { enforceSameOrigin } from "@/lib/request-security";
 
 export async function GET() {
   const categories = await prisma.category.findMany({
@@ -13,6 +14,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const sameOriginError = enforceSameOrigin(request);
+  if (sameOriginError) return sameOriginError;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
@@ -35,6 +39,9 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  const sameOriginError = enforceSameOrigin(request);
+  if (sameOriginError) return sameOriginError;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
@@ -58,6 +65,9 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const sameOriginError = enforceSameOrigin(request);
+  if (sameOriginError) return sameOriginError;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });

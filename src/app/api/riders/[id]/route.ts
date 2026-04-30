@@ -6,6 +6,7 @@ import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 import { writeAuditLog } from "@/lib/audit";
 import { captureError } from "@/lib/monitoring";
 import { riderPatchSchema } from "@/lib/validation/catalog";
+import { enforceSameOrigin } from "@/lib/request-security";
 
 const ACTIVE_ORDER_STATUSES: OrderStatus[] = ["CONFIRMED", "READY", "OUT"];
 
@@ -14,6 +15,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const sameOriginError = enforceSameOrigin(request);
+    if (sameOriginError) return sameOriginError;
+
     const { id } = await params;
     const supabase = await createClient();
     const {
@@ -77,9 +81,12 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const sameOriginError = enforceSameOrigin(request);
+  if (sameOriginError) return sameOriginError;
+
   const { id } = await params;
   const supabase = await createClient();
   const {

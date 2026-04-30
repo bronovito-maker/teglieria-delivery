@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 import { productPatchSchema } from "@/lib/validation/catalog";
+import { enforceSameOrigin } from "@/lib/request-security";
 
 export async function GET(
   _request: Request,
@@ -27,6 +28,9 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const sameOriginError = enforceSameOrigin(request);
+  if (sameOriginError) return sameOriginError;
+
   const { id } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -86,9 +90,12 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const sameOriginError = enforceSameOrigin(request);
+  if (sameOriginError) return sameOriginError;
+
   const { id } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

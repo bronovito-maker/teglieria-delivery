@@ -100,15 +100,9 @@ export default function LandingPage() {
     openingHoursSpecification: [
       {
         "@type": "OpeningHoursSpecification",
-        dayOfWeek: ["Monday", "Wednesday", "Thursday", "Friday"],
-        opens: "18:30",
-        closes: "22:30",
-      },
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: ["Saturday", "Sunday"],
-        opens: "17:30",
-        closes: "23:00",
+        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        opens: "16:00",
+        closes: "23:59",
       },
     ],
     hasMenu: "https://www.lateglieria.it/menu",
@@ -160,7 +154,7 @@ export default function LandingPage() {
             <span className="relative -left-[8px] block w-full text-center whitespace-nowrap text-terracotta">di quartiere.</span>
           </h1>
           <div className="relative mt-1.5 w-full h-[63vw] min-h-[292px] max-h-[450px] rounded-[1.9rem] overflow-hidden shadow-[0_18px_45px_rgba(26,26,26,0.12)] border border-charcoal/5">
-            <Image src="/images/pizza-teglia-hero.png" alt="Pizza in teglia La Teglieria" fill className="object-cover object-[center_46%]" priority />
+            <Image src="/images/pizza-teglia-hero.png" alt="Pizza in teglia La Teglieria" fill sizes="100vw" className="object-cover object-[center_46%]" priority />
             <div className="absolute inset-0 bg-gradient-to-t from-charcoal/40 via-transparent to-transparent" />
             <span className="absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-white/60 bg-[linear-gradient(180deg,rgba(255,255,255,0.82)_0%,rgba(250,246,240,0.72)_100%)] px-4 py-2 text-[10px] font-brand font-bold uppercase tracking-[0.16em] text-charcoal backdrop-blur-xl shadow-[0_10px_20px_rgba(26,26,26,0.12)]">🔥 Tempo medio consegna 34 min</span>
           </div>
@@ -169,12 +163,12 @@ export default function LandingPage() {
           </Link>
           <div className="relative z-20 flex flex-col items-center gap-2.5 w-full pt-0.5">
             <div className="relative w-full">
-              <div className="absolute inset-0 rounded-[999px] bg-terracotta/24 blur-lg animate-pulse" />
-              <Link href="/menu?type=DELIVERY" className="relative flex min-h-[4.9rem] items-center justify-center w-full py-3.5 rounded-[999px] text-[1.68rem] leading-none font-display text-white bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] shadow-[0_10px_24px_rgba(230,100,40,0.28)] active:scale-95 transition-all">
+              <div className="absolute inset-0 rounded-[999px] bg-terracotta/18 blur-md animate-pulse" />
+              <Link href="/menu?type=DELIVERY" className="relative flex min-h-[4.35rem] items-center justify-center w-full py-3 rounded-[999px] text-[1.5rem] leading-none font-display text-white bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] shadow-[0_10px_22px_rgba(230,100,40,0.24)] active:scale-95 transition-all">
                 Ordina ora
               </Link>
             </div>
-            <Link href="/menu?type=ASPORTO" className="flex min-h-[3.6rem] items-center justify-center w-full py-3 bg-white/80 backdrop-blur-md text-charcoal border border-charcoal/10 shadow-[0_10px_26px_rgba(26,26,26,0.06)] rounded-[999px] text-[1rem] leading-none font-body font-semibold active:scale-95 transition-all hover:bg-white/88">
+            <Link href="/menu?type=ASPORTO" className="flex min-h-[3.4rem] items-center justify-center w-full py-3 bg-white/80 backdrop-blur-md text-charcoal border border-charcoal/10 shadow-[0_10px_26px_rgba(26,26,26,0.06)] rounded-[999px] text-[0.98rem] leading-none font-body font-semibold active:scale-95 transition-all hover:bg-white/88">
               Ritira in sede
             </Link>
           </div>
@@ -223,6 +217,7 @@ export default function LandingPage() {
               src="/images/pizza-teglia-hero.png"
               alt="Pizza in teglia La Teglieria"
               fill
+              sizes="(max-width: 1024px) 100vw, 52vw"
               className="object-cover object-[center_47%] hover:scale-105 transition-transform duration-[3s]"
               priority
             />
@@ -271,7 +266,7 @@ export default function LandingPage() {
           {highlights.map((p, idx) => (
             <div key={p.id} className="reveal group cursor-pointer" style={{ transitionDelay: `${idx * 0.1}s` }}>
               <div className="relative aspect-square rounded-[2rem] overflow-hidden bg-charcoal/5 mb-8 shadow-lg group-hover:shadow-2xl transition-all border border-charcoal/5">
-                <Image src="/images/pizza-teglia-slices.png" alt={p.name} fill className="object-cover group-hover:scale-110 transition-transform duration-1000" />
+                <Image src="/images/pizza-teglia-slices.png" alt={p.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-110 transition-transform duration-1000" />
                 <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-bold text-charcoal shadow-sm">
                   {formatCurrency(p.price)}
                 </div>
@@ -298,6 +293,7 @@ export default function LandingPage() {
             src="/images/pizza-teglia-hero.png"
             alt="Pizza in Teglia Artigianale"
             fill
+            sizes="(max-width: 768px) 100vw, 80vw"
             className="object-cover transition-transform duration-[2s] group-hover:scale-110"
             priority
           />
@@ -362,23 +358,23 @@ export default function LandingPage() {
           <div className="md:col-span-7 reveal space-y-10">
             <header>
               <p className="text-sm font-brand font-bold uppercase tracking-[0.3em] leading-none text-terracotta mb-4">
-                L&apos;Eredità
+                La Nostra Identità
               </p>
-              <h2 className="text-6xl md:text-7xl font-display leading-none text-charcoal">
-                Dietro ogni teglia <br /> <span className="text-terracotta">c&apos;è ricerca.</span>
+              <h2 className="text-[3.25rem] md:text-7xl font-display leading-[0.94] text-charcoal">
+                Un sogno di quartiere, <br /> <span className="text-terracotta">fatto con metodo.</span>
               </h2>
             </header>
             <div className="space-y-6 text-lg md:text-xl text-charcoal/60 leading-relaxed font-body italic">
               <p>
-                Nata nel cuore della città, <span className="text-charcoal font-bold not-italic">La Teglieria</span> non è solo una pizzeria. È un laboratorio dove la tradizione incontra le tecniche di lievitazione più avanzate.
+                <span className="text-charcoal font-bold not-italic">La Teglieria</span> nasce da un sogno semplice: portare nel nostro quartiere un posto vero, fatto bene, capace di farsi ricordare.
               </p>
               <p>
-                Il segreto? <span className="text-terracotta font-bold not-italic">7d 48 ore</span> di maturazione, farina di grani antichi e una passione ossessiva per il &quot;crunch&quot; perfetto. Ogni nostra teglia racconta un viaggio tra sapori autentici e innovazione.
+                Il cuore di tutto è la Scopaia, a Livorno: un quartiere vivo dove vogliamo diventare un punto di riferimento, con l&apos;energia di un progetto giovane e la serietà di chi vuole fare le cose nel modo giusto.
               </p>
             </div>
             <div className="pt-6">
               <Link href="/menu" className="group flex items-center gap-4 text-charcoal font-brand font-semibold text-base leading-none transition-all border-b-2 border-terracotta/20 pb-2 w-fit hover:border-terracotta">
-                Scopri la collezione
+                Scopri il nostro menù
                 <span className="group-hover:translate-x-2 transition-transform">→</span>
               </Link>
             </div>
@@ -406,16 +402,16 @@ export default function LandingPage() {
             <p className="text-sm font-brand font-bold uppercase tracking-[0.3em] leading-none text-terracotta mb-4">
               La Materia Prima
             </p>
-            <h2 className="text-6xl md:text-8xl font-display text-charcoal leading-none">
-              Meno ingredienti, <br /> <span className="text-terracotta">più ricerca.</span>
+            <h2 className="text-[3.2rem] md:text-8xl font-display text-charcoal leading-[0.94]">
+              La qualità comincia <br /> <span className="text-terracotta">prima del <span className="whitespace-nowrap">primo morso.</span></span>
             </h2>
           </div>
 
           <div className="grid md:grid-cols-3 gap-12">
             {[
-              { emoji: "🌾", title: "Impasto 48h", desc: "Lunga maturazione per una digeribilità senza precedenti e un alveolatura perfetta.", delay: "0.1s" },
-              { emoji: "🍅", title: "San Marzano DOP", desc: "Solo pomodori selezionati dai migliori ettari dell'agro sarnese-nocerino.", delay: "0.2s" },
-              { emoji: "🌿", title: "Olio EVO", desc: "Estratto a freddo, aggiunto a crudo per preservare ogni nota aromatica.", delay: "0.3s" }
+              { emoji: "🍅", title: "San Marzano DOP Casa Marrazzo", desc: "Un prodotto campano simbolo del territorio, radicato nell'Agro Sarnese-Nocerino.", delay: "0.1s" },
+              { emoji: "🌾", title: "Farina Petra - Molino Quaglia", desc: "Una firma su gusto, fragranza e personalità dell'impasto, frutto di ricerca e identità.", delay: "0.2s" },
+              { emoji: "🧀", title: "Mozzarelle DOP dalla Campania", desc: "Ogni elemento parla lo stesso linguaggio: origine, autenticità e qualità riconoscibile.", delay: "0.3s" }
             ].map((item, i) => (
               <div key={i} className="reveal bg-warm-light p-12 rounded-[2.5rem] space-y-6 hover:shadow-2xl transition-all duration-500 border border-charcoal/5 group hover:-translate-y-2" style={{ transitionDelay: item.delay }}>
                 <div className="w-16 h-16 bg-charcoal/5 rounded-2xl flex items-center justify-center text-4xl group-hover:scale-110 transition-transform">
@@ -432,11 +428,12 @@ export default function LandingPage() {
               src="/images/ingredients.png"
               alt="Ingredienti Premium"
               fill
+              sizes="(max-width: 768px) 100vw, 90vw"
               className="object-cover transition-transform duration-[3s] group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 to-transparent flex items-center justify-center">
               <span className="text-white text-4xl md:text-6xl font-display drop-shadow-2xl text-center px-10 leading-none">
-                Qualità senza <br /> compromessi.
+                Metodo, ricerca <br /> e qualità vera.
               </span>
             </div>
           </div>
@@ -487,28 +484,28 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-12 md:gap-24 font-brand uppercase tracking-widest text-sm leading-none">
-              <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-24 font-brand uppercase tracking-[0.14em] md:tracking-widest text-sm leading-tight w-full md:w-auto">
+              <div className="space-y-6 md:space-y-8">
                 <h4 className="text-charcoal/30 font-bold">Menu</h4>
-                <ul className="space-y-4 text-charcoal font-bold">
+                <ul className="space-y-3 md:space-y-4 text-charcoal font-bold">
                   <li><Link href="/#ordina" className="hover:text-terracotta transition-colors">Ordina</Link></li>
                   <li><Link href="/#menu" className="hover:text-terracotta transition-colors">Classiche</Link></li>
-                  <li><Link href="/#menu" className="hover:text-terracotta transition-colors">Gourmet</Link></li>
+                  <li><Link href="/#menu" className="hover:text-terracotta transition-colors">Speciali</Link></li>
                 </ul>
               </div>
-              <div className="space-y-8">
+              <div className="space-y-6 md:space-y-8">
                 <h4 className="text-charcoal/30 font-bold">Contatti</h4>
-                <ul className="space-y-4 text-charcoal font-bold">
+                <ul className="space-y-3 md:space-y-4 text-charcoal font-bold tracking-[0.08em] md:tracking-widest">
                   <li>Via Inghilterra, 68, 57128 Livorno LI</li>
                   <li><a href="tel:+39061234567" className="hover:text-terracotta transition-colors">+39 06 123 4567</a></li>
-                  <li className="text-terracotta">Chiuso il Martedì</li>
                 </ul>
               </div>
-              <div className="space-y-8 col-span-2 md:col-span-1">
+              <div className="space-y-6 md:space-y-8">
                 <h4 className="text-charcoal/30 font-bold">Orari</h4>
-                <ul className="space-y-4 text-charcoal font-bold">
-                  <li>Lun - Ven: 18:30 - 22:30</li>
-                  <li>Sab - Dom: 17:30 - 23:00</li>
+                <ul className="space-y-3 md:space-y-4 text-charcoal font-bold tracking-[0.08em] md:tracking-widest">
+                  <li className="text-terracotta">Aperti tutti i giorni</li>
+                  <li>16:00 - 24:00</li>
+                  <li>Ultime consegne: entro le 22:00</li>
                 </ul>
               </div>
             </div>

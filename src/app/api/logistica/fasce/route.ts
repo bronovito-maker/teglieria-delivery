@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logisticsSlotsQuerySchema } from "@/lib/validation/catalog";
+import { getClientIp, rateLimit } from "@/lib/rate-limit";
 
 function generateSlots(start: string, end: string, slotMinutes = 30): string[] {
   const [sh, sm] = start.split(":").map(Number);
@@ -16,6 +17,12 @@ function generateSlots(start: string, end: string, slotMinutes = 30): string[] {
 }
 
 export async function GET(request: Request) {
+  const ip = getClientIp(request.headers);
+  const limit = await rateLimit(`slots:${ip}`, 120, 60_000);
+  if (!limit.ok) {
+    return NextResponse.json({ error: "Troppe richieste. Riprova tra poco." }, { status: 429 });
+  }
+
   const { searchParams } = new URL(request.url);
   const parsed = logisticsSlotsQuerySchema.safeParse(Object.fromEntries(searchParams.entries()));
   if (!parsed.success) {
@@ -24,14 +31,17 @@ export async function GET(request: Request) {
 
   const dateStr = parsed.data.date || new Date().toISOString().split("T")[0];
 
-  // 1. Global config (capacity)
+  // 1. Read config + schedule data
   let config = await prisma.globalConfig.findFirst();
-  if (!config) {
-    config = await prisma.globalConfig.create({ data: { maxOrdersPerSlot: 5 } });
-  }
+  if (!config) config = await prisma.globalConfig.create({ data: { maxOrdersPerSlot: 5 } });
+
+  const dayOfWeek = new Date(dateStr + "T12:00:00").getDay();
+  const [closure, daySchedule] = await Promise.all([
+    prisma.closedDate.findUnique({ where: { date: dateStr } }),
+    prisma.daySchedule.findUnique({ where: { dayOfWeek } }),
+  ]);
 
   // 2. Check specific closure
-  const closure = await prisma.closedDate.findUnique({ where: { date: dateStr } });
   if (closure) {
     return NextResponse.json({
       date: dateStr,
@@ -43,8 +53,6 @@ export async function GET(request: Request) {
   }
 
   // 3. Day of week schedule (0=Sun...6=Sat)
-  const dayOfWeek = new Date(dateStr + "T12:00:00").getDay();
-  const daySchedule = await prisma.daySchedule.findUnique({ where: { dayOfWeek } });
 
   if (!daySchedule || !daySchedule.isOpen) {
     return NextResponse.json({
@@ -63,6 +71,9 @@ export async function GET(request: Request) {
   if (daySchedule.dinnerActive) {
     baseSlots.push(...generateSlots(daySchedule.dinnerStart, daySchedule.dinnerEnd));
   }
+  if (baseSlots.length === 0) {
+    return NextResponse.json({ date: dateStr, slots: [], closed: true, maxPerSlot: config.maxOrdersPerSlot });
+  }
 
   // 5. Filter past slots for today (+ 30 min buffer)
   // Use Italian timezone to avoid UTC offset issues on the server
@@ -79,10 +90,15 @@ export async function GET(request: Request) {
       })
     : baseSlots;
 
-  // 6. Get order counts per slot
+  if (filteredSlots.length === 0) {
+    return NextResponse.json({ date: dateStr, slots: [], closed: true, maxPerSlot: config.maxOrdersPerSlot });
+  }
+
+  // 6. Get order counts per slot (only for currently relevant slots)
   const orders = await prisma.order.groupBy({
     by: ["timeSlot"],
     where: {
+      timeSlot: { in: filteredSlots },
       pickupTime: {
         gte: new Date(dateStr),
         lt: new Date(new Date(dateStr).getTime() + 86400000),

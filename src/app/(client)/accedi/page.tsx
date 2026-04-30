@@ -6,6 +6,14 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Suspense } from "react";
 
+function sanitizeNextPath(next: string | null) {
+  if (!next) return "/ordine";
+  if (!next.startsWith("/")) return "/ordine";
+  if (next.startsWith("//")) return "/ordine";
+  if (next.includes("://")) return "/ordine";
+  return next;
+}
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -16,7 +24,7 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const redirectTo = searchParams.get("next") || "/ordine";
+  const redirectTo = sanitizeNextPath(searchParams.get("next"));
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -26,12 +34,15 @@ function LoginForm() {
 
   async function handleOAuth(provider: "google") {
     setError(null);
-    await supabase.auth.signInWithOAuth({
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo: `${window.location.origin}/api/auth/callback?type=customer&next=${encodeURIComponent(redirectTo)}`,
       },
     });
+    if (oauthError) {
+      setError("Impossibile avviare Google. Riprova tra poco.");
+    }
   }
 
   async function handleLogin(e: React.FormEvent) {

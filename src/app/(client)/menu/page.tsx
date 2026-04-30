@@ -9,7 +9,7 @@ import ProductModal from "@/components/client/ProductModal";
 import type { CategoryWithProducts, ProductWithRelations } from "@/types";
 
 export default function MenuPage() {
-  const { setOrderType } = useCartStore();
+  const { setOrderType, getSubtotal, orderType } = useCartStore();
   const [categories, setCategories] = useState<CategoryWithProducts[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<ProductWithRelations | null>(null);
@@ -17,6 +17,11 @@ export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
   const itemCount = useCartStore((s) => s.getItemCount());
+  const prevItemCountRef = useRef(0);
+  const [cartPulse, setCartPulse] = useState(false);
+  const subtotal = getSubtotal();
+  const deliveryFee = orderType === "DELIVERY" ? 2.5 : 0;
+  const cartTotal = subtotal + deliveryFee;
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -79,6 +84,16 @@ export default function MenuPage() {
     if (pill) pill.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
   }, [activeCategory]);
 
+  useEffect(() => {
+    if (itemCount > prevItemCountRef.current) {
+      setCartPulse(true);
+      const t = setTimeout(() => setCartPulse(false), 320);
+      prevItemCountRef.current = itemCount;
+      return () => clearTimeout(t);
+    }
+    prevItemCountRef.current = itemCount;
+  }, [itemCount]);
+
   const scrollToCategory = (catId: string) => {
     const el = document.getElementById(`cat-${catId}`);
     if (!el) return;
@@ -137,11 +152,11 @@ export default function MenuPage() {
       {categories.map((cat, idx) => (
         <div key={cat.id} id={`cat-${cat.id}`} className="mb-16">
           {/* CATEGORY HEADER - Sticky Glass */}
-          <div className="sticky top-[49px] z-20 mb-6 flex min-h-[4.5rem] items-center justify-between border-b border-charcoal/5 bg-warm-light/90 px-6 py-4 backdrop-blur-md">
-            <h2 className="relative top-[4px] flex items-center text-sm leading-none font-brand font-semibold uppercase tracking-[0.3em] text-charcoal/85">
+          <div className="sticky top-[49px] z-20 mb-5 flex min-h-[4.5rem] items-center justify-between border-b border-charcoal/5 bg-warm-light/90 px-6 py-4 backdrop-blur-md">
+            <h2 className="relative top-[3px] flex items-center text-xs sm:text-sm leading-none font-brand font-semibold uppercase tracking-[0.24em] sm:tracking-[0.3em] text-charcoal/85">
               {cat.name}
             </h2>
-            <span className="relative top-[4px] flex items-center text-[10px] leading-none font-brand font-bold uppercase tracking-widest text-charcoal/30">
+            <span className="relative top-[3px] flex items-center text-[10px] leading-none font-brand font-bold uppercase tracking-[0.2em] text-charcoal/30">
               {cat.products.length} Opzioni
             </span>
           </div>
@@ -151,15 +166,15 @@ export default function MenuPage() {
               <button
                 key={product.id}
                 onClick={() => setSelectedProduct(product)}
-                className="reveal group flex items-start justify-between bg-white/60 backdrop-blur-sm border border-charcoal/5 rounded-[2rem] p-6 hover:shadow-xl hover:shadow-terracotta/5 hover:border-terracotta/20 hover:bg-white transition-all text-left w-full relative overflow-hidden"
+                className="reveal group flex items-start justify-between bg-white/60 backdrop-blur-sm border border-charcoal/5 rounded-[1.6rem] sm:rounded-[2rem] px-4 sm:px-6 py-4 sm:py-6 hover:shadow-xl hover:shadow-terracotta/5 hover:border-terracotta/20 hover:bg-white transition-all text-left w-full relative overflow-hidden"
                 style={{ transitionDelay: `${pIdx * 50}ms` }}
               >
                 {/* Subtle Hover Gradient */}
                 <div className="absolute inset-0 bg-gradient-to-br from-terracotta/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                 
-                <div className="flex-1 relative z-10 pr-4">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-[1.85rem] font-display tracking-tight text-charcoal group-hover:text-terracotta transition-colors">
+                <div className="flex-1 relative z-10 pr-3">
+                  <div className="flex items-center gap-2.5 mb-1.5">
+                    <h3 className="text-[1.45rem] sm:text-[1.85rem] font-display tracking-tight text-charcoal group-hover:text-terracotta transition-colors leading-[0.96]">
                       {product.name}
                     </h3>
                     {pIdx === 0 && (
@@ -169,19 +184,22 @@ export default function MenuPage() {
                     )}
                   </div>
                   {product.description && (
-                    <p className="text-charcoal/50 text-sm font-body leading-relaxed line-clamp-2 italic">
+                    <p className="text-charcoal/52 text-[13px] sm:text-sm font-body leading-relaxed line-clamp-2 italic pr-2">
                       {product.description}
                     </p>
                   )}
-                  <span className="mt-3 inline-block font-brand font-semibold text-lg text-charcoal">
-                    {formatCurrency(Number(product.price))}
-                  </span>
+                  <div className="mt-3 flex items-center gap-2">
+                    <span className="inline-block font-brand font-semibold text-base sm:text-lg text-charcoal">
+                      {formatCurrency(Number(product.price))}
+                    </span>
+                    <span className="text-[10px] uppercase tracking-[0.16em] font-brand font-bold text-charcoal/30">a partire da</span>
+                  </div>
                 </div>
 
                 {/* Immagine o pulsante + */}
-                <div className="relative z-10 flex-shrink-0 flex flex-col items-end justify-between h-full gap-3">
+                <div className="relative z-10 flex-shrink-0 flex flex-col items-end justify-between h-full gap-2.5">
                   {(product as any).imageUrl ? (
-                    <div className="relative w-24 h-24 rounded-2xl overflow-hidden border border-charcoal/5 shadow-sm">
+                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border border-charcoal/5 shadow-sm">
                       <Image
                         src={(product as any).imageUrl}
                         alt={product.name}
@@ -189,15 +207,18 @@ export default function MenuPage() {
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
                         sizes="96px"
                       />
-                      <div className="absolute bottom-1.5 right-1.5 w-7 h-7 rounded-full bg-terracotta flex items-center justify-center text-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute bottom-1.5 right-1.5 w-7 h-7 rounded-full bg-terracotta flex items-center justify-center text-white shadow-md opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                         <span className="text-base font-light leading-none">+</span>
                       </div>
                     </div>
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-charcoal/5 flex items-center justify-center text-charcoal/40 group-hover:bg-terracotta group-hover:text-white transition-all shadow-sm active:scale-90 mt-auto">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-charcoal/5 flex items-center justify-center text-charcoal/40 group-hover:bg-terracotta group-hover:text-white transition-all shadow-sm active:scale-90 mt-auto">
                       <span className="text-xl font-light">+</span>
                     </div>
                   )}
+                  <span className="text-[10px] font-brand font-bold uppercase tracking-[0.16em] text-charcoal/30 hidden sm:block">
+                    Personalizza
+                  </span>
                 </div>
               </button>
             ))}
@@ -241,10 +262,10 @@ export default function MenuPage() {
       {/* FLOATING CART BUTTON */}
       <button
         onClick={() => setCartOpen(true)}
-        className="fixed bottom-8 right-6 md:right-10 z-40 group flex items-center gap-3 bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] text-white rounded-full px-7 py-4 font-brand font-semibold uppercase tracking-[0.22em] text-[11px] shadow-[0_15px_30px_rgba(185,85,33,0.22)] hover:scale-105 active:scale-95 transition-all border border-white/25"
+        className={`fixed bottom-8 right-6 md:right-10 z-40 group flex items-center gap-3 bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] text-white rounded-full px-7 py-4 font-brand font-semibold uppercase tracking-[0.22em] text-[11px] shadow-[0_15px_30px_rgba(185,85,33,0.22)] hover:scale-105 active:scale-95 transition-all border border-white/25 ${cartPulse ? "scale-110" : ""}`}
       >
         <span className="text-lg">🛒</span>
-        Carrello
+        {itemCount > 0 ? `Carrello · ${formatCurrency(cartTotal)}` : "Carrello"}
         {itemCount > 0 && (
           <span className="flex items-center justify-center bg-white text-terracotta text-[10px] w-5 h-5 rounded-full font-bold shadow-sm animate-scale-in">
             {itemCount}

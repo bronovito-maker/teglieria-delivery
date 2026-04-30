@@ -129,7 +129,7 @@ async function main() {
           lunchStart: "12:00",
           lunchEnd: "14:30",
           dinnerActive: true,
-          dinnerStart: "18:30",
+          dinnerStart: "16:00",
           dinnerEnd: "22:00",
         },
         update: {},  // non sovrascrive se già configurato

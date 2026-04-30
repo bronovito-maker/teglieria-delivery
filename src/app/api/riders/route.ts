@@ -8,6 +8,7 @@ import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 import { writeAuditLog } from "@/lib/audit";
 import { captureError } from "@/lib/monitoring";
 import { riderCreateSchema } from "@/lib/validation/catalog";
+import { enforceSameOrigin } from "@/lib/request-security";
 
 const ACTIVE_ORDER_STATUSES: OrderStatus[] = ["CONFIRMED", "READY", "OUT"];
 
@@ -129,6 +130,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const sameOriginError = enforceSameOrigin(request);
+    if (sameOriginError) return sameOriginError;
+
     const supabase = await createClient();
     const {
       data: { user },

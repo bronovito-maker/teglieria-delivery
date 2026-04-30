@@ -6,6 +6,9 @@ import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 import { writeAuditLog } from "@/lib/audit";
 import { orderPatchSchema, type DeliveryStatusInput, type OrderPatchBody, type OrderStatusInput } from "@/lib/validation/orders";
+import { verifyOrderStatusToken } from "@/lib/order-status-token";
+import { getClientIp, rateLimit } from "@/lib/rate-limit";
+import { enforceSameOrigin, safeEqual } from "@/lib/request-security";
 
 function isRiderSafePatch(body: OrderPatchBody, riderId: string): boolean {
   const allowedStatuses = new Set(["OUT", "DELIVERED"]);
@@ -18,11 +21,54 @@ function isRiderSafePatch(body: OrderPatchBody, riderId: string): boolean {
   return true;
 }
 
+type TrackingOrder = {
+  id: string;
+  orderCode: string | null;
+  orderNumber: number;
+  type: string;
+  status: string;
+  address: string | null;
+  estimatedTime: Date | null;
+  actualTime: Date | null;
+  total: unknown;
+  items: unknown;
+  rider: unknown;
+  statusHistory: unknown;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function toPublicTrackingOrder(order: TrackingOrder | null) {
+  if (!order) return null;
+  return {
+    id: order.id,
+    orderCode: order.orderCode,
+    orderNumber: order.orderNumber,
+    type: order.type,
+    status: order.status,
+    address: order.address,
+    estimatedTime: order.estimatedTime,
+    actualTime: order.actualTime,
+    total: order.total,
+    items: order.items,
+    rider: order.rider,
+    statusHistory: order.statusHistory,
+    createdAt: order.createdAt,
+    updatedAt: order.updatedAt,
+  };
+}
+
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const ip = getClientIp(request.headers);
+  const limit = await rateLimit(`order-read:${ip}`, 60, 60_000);
+  if (!limit.ok) {
+    return NextResponse.json({ error: "Troppe richieste. Riprova tra poco." }, { status: 429 });
+  }
+
   const order = await prisma.order.findUnique({
     where: { id },
     include: {
@@ -33,6 +79,31 @@ export async function GET(
   });
   if (!order)
     return NextResponse.json({ error: "Non trovato" }, { status: 404 });
+
+  const url = new URL(request.url);
+  const token = url.searchParams.get("token");
+  if (token && verifyOrderStatusToken(token, id)) {
+    return NextResponse.json(toPublicTrackingOrder(order));
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
+  }
+
+  const isOperator = !isAdminRbacStrictEnabled() || isOperatorUser(user);
+  if (isOperator) return NextResponse.json(order);
+
+  const isOwner =
+    order.authUserId === user.id ||
+    (Boolean(user.email) && order.customerEmail?.toLowerCase() === user.email!.toLowerCase());
+  if (!isOwner) {
+    return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
+  }
+
   return NextResponse.json(order);
 }
 
@@ -40,6 +111,14 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const sameOriginError = enforceSameOrigin(request);
+  if (sameOriginError) return sameOriginError;
+  const ip = getClientIp(request.headers);
+  const limit = await rateLimit(`order-patch:${ip}`, 120, 60_000);
+  if (!limit.ok) {
+    return NextResponse.json({ error: "Troppe richieste. Riprova tra poco." }, { status: 429 });
+  }
+
   const { id } = await params;
   const supabase = await createClient();
   const {
@@ -210,6 +289,14 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const sameOriginError = enforceSameOrigin(request);
+  if (sameOriginError) return sameOriginError;
+  const ip = getClientIp(request.headers);
+  const limit = await rateLimit(`order-delete:${ip}`, 20, 60_000);
+  if (!limit.ok) {
+    return NextResponse.json({ error: "Troppe richieste. Riprova tra poco." }, { status: 429 });
+  }
+
   const { id } = await params;
   const supabase = await createClient();
   const {
@@ -246,7 +333,7 @@ export async function DELETE(
       { status: 500 }
     );
   }
-  if (!body.adminPassword || body.adminPassword !== deletePassword) {
+  if (!body.adminPassword || !safeEqual(body.adminPassword, deletePassword)) {
     return NextResponse.json(
       { error: "Password amministratore non valida" },
       { status: 403 }

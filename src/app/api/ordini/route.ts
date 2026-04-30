@@ -6,6 +6,9 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 import { createOrderSchema, generateOrderCode, orderStatusSchema, orderTypeSchema, toNullableJson } from "@/lib/validation/orders";
+import { createOrderStatusToken } from "@/lib/order-status-token";
+import { getClientIp, rateLimit } from "@/lib/rate-limit";
+import { enforceSameOrigin } from "@/lib/request-security";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -53,6 +56,15 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const sameOriginError = enforceSameOrigin(request);
+  if (sameOriginError) return sameOriginError;
+
+  const ip = getClientIp(request.headers);
+  const limit = await rateLimit(`order-create:${ip}`, 20, 60_000);
+  if (!limit.ok) {
+    return NextResponse.json({ error: "Troppe richieste. Riprova tra poco." }, { status: 429 });
+  }
+
   const parsed = createOrderSchema.safeParse(await request.json());
   if (!parsed.success) {
     return NextResponse.json(
@@ -201,5 +213,11 @@ export async function POST(request: Request) {
     }).catch((err) => console.error("[EMAIL] Conferma ordine fallita:", err));
   }
 
-  return NextResponse.json(order, { status: 201 });
+  return NextResponse.json(
+    {
+      ...order,
+      statusAccessToken: createOrderStatusToken(order.id, order.createdAt),
+    },
+    { status: 201 }
+  );
 }

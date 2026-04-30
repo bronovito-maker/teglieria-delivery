@@ -13,6 +13,9 @@ export default function CartDrawer({ open, onClose }: Props) {
   const router = useRouter();
   const { items, removeItem, updateQuantity, clearCart, getSubtotal, orderType, setOrderType } =
     useCartStore();
+  const subtotal = getSubtotal();
+  const deliveryFee = orderType === "DELIVERY" ? 2.5 : 0;
+  const total = subtotal + deliveryFee;
 
   if (!open) return null;
 
@@ -98,9 +101,21 @@ export default function CartDrawer({ open, onClose }: Props) {
         {/* Footer */}
         {items.length > 0 && (
           <div className="border-t p-4 space-y-3">
+            <div className="space-y-1.5 text-sm">
+              <div className="flex justify-between text-charcoal/60 font-semibold">
+                <span>Subtotale</span>
+                <span>{formatCurrency(subtotal)}</span>
+              </div>
+              {orderType === "DELIVERY" && (
+                <div className="flex justify-between text-charcoal/60 font-semibold">
+                  <span>Consegna</span>
+                  <span>{formatCurrency(deliveryFee)}</span>
+                </div>
+              )}
+            </div>
             <div className="flex justify-between font-bold text-2xl text-charcoal">
               <span>Totale</span>
-              <span className="text-terracotta">{formatCurrency(getSubtotal())}</span>
+              <span className="text-terracotta">{formatCurrency(total)}</span>
             </div>
             <button
               onClick={clearCart}
@@ -112,7 +127,7 @@ export default function CartDrawer({ open, onClose }: Props) {
               onClick={handleCheckout}
               className="w-full py-4 text-white rounded-xl font-bold uppercase tracking-widest bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] border border-white/10 shadow-[0_12px_24px_rgba(197,86,26,0.25)] hover:brightness-110 active:scale-[0.98] transition-all"
             >
-              Procedi all&apos;ordine
+              Vai al checkout · {formatCurrency(total)}
             </button>
           </div>
         )}
