@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Epilogue, Manrope } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 import PwaRegister from "@/components/PwaRegister";
 import { Analytics } from "@vercel/analytics/react";
@@ -130,11 +129,6 @@ export default function RootLayout({
         {process.env.NEXT_PUBLIC_GA_ID && (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
         )}
-        <Script
-          src="https://cdn.zirel.org/widget.js"
-          data-tenant-id="zrl_la_teglieria"
-          strategy="afterInteractive"
-        />
       </body>
     </html>
   );
