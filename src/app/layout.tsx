@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Epilogue, Manrope } from "next/font/google";
 import "./globals.css";
 import PwaRegister from "@/components/PwaRegister";
+import ZirelWidgetHomeOnly from "@/components/client/ZirelWidgetHomeOnly";
 import { Analytics } from "@vercel/analytics/react";
 import { GoogleAnalytics } from "@next/third-parties/google";
 
@@ -125,6 +126,7 @@ export default function RootLayout({
       <body className={`${manrope.className} ${manrope.variable} ${epilogue.variable} ${epilogueLogo.variable} antialiased`} data-gramm="false" data-gramm_editor="false">
         <PwaRegister />
         {children}
+        <ZirelWidgetHomeOnly />
         <Analytics />
         {process.env.NEXT_PUBLIC_GA_ID && (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />

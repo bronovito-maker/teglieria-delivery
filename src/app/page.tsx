@@ -3,23 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import Script from "next/script";
 import FloatingIngredients from "@/components/ui/FloatingIngredients";
 import MobileTopBar from "@/components/client/MobileTopBar";
 import { formatCurrency } from "@/lib/utils";
-
-function cleanupZirelArtifacts() {
-  const selectors = [
-    "script[src*='cdn.zirel.org/widget.js']",
-    "iframe[src*='zirel.org']",
-    "[id*='zirel']",
-    "[class*='zirel']",
-  ];
-
-  selectors.forEach((selector) => {
-    document.querySelectorAll(selector).forEach((node) => node.remove());
-  });
-}
 
 // Observer for scroll animations
 const useScrollReveal = () => {
@@ -86,12 +72,6 @@ export default function LandingPage() {
         const allProducts = data.flatMap((c: any) => c.products);
         setHighlights(allProducts.slice(0, 3));
       });
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      cleanupZirelArtifacts();
-    };
   }, []);
 
   const jsonLd = {
@@ -548,13 +528,7 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
-
       {/* MOBILE STICKY CTA — nascosto per ora */}
-      <Script
-        src="https://cdn.zirel.org/widget.js"
-        data-tenant-id="zrl_la_teglieria"
-        strategy="afterInteractive"
-      />
     </main>
   );
 }

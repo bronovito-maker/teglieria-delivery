@@ -1,0 +1,200 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e175]: Menu — Pizza in Teglia Livorno — La Teglieria Livorno
+  - generic [ref=e176]: Hai domande sul menu? Ti aiuto io 🍕
+  - generic [ref=e177]:
+    - button "Chiudi" [ref=e179] [cursor=pointer]
+    - generic [ref=e181]:
+      - button "Fate consegna a domicilio?" [ref=e182] [cursor=pointer]
+      - button "Quali sono gli orari?" [ref=e183] [cursor=pointer]
+      - button "Dove siete?" [ref=e184] [cursor=pointer]
+  - button "💬" [ref=e185] [cursor=pointer]
+  - generic [ref=e186]:
+    - banner [ref=e187]:
+      - generic [ref=e189]:
+        - link "LA TEGLIERIA" [ref=e190] [cursor=pointer]:
+          - /url: /
+          - text: LA
+          - generic [ref=e191]: TEGLIERIA
+        - navigation [ref=e192]:
+          - link "Ordina" [ref=e193] [cursor=pointer]:
+            - /url: /#ordina
+          - link "Menu" [ref=e194] [cursor=pointer]:
+            - /url: /#menu
+          - link "Chi Siamo" [ref=e195] [cursor=pointer]:
+            - /url: /#chi-siamo
+          - link "Dicono di Noi" [ref=e196] [cursor=pointer]:
+            - /url: /#dicono-di-noi
+          - link "Contatti" [ref=e197] [cursor=pointer]:
+            - /url: /#contatti
+        - generic [ref=e198]:
+          - link "Accedi" [ref=e199] [cursor=pointer]:
+            - /url: /accedi
+          - link "Ordina ora" [ref=e200] [cursor=pointer]:
+            - /url: /menu?type=DELIVERY
+      - generic:
+        - generic:
+          - link "LA TEGLIERIA":
+            - /url: /
+            - text: LA
+            - generic: TEGLIERIA
+          - button "Chiudi menu"
+        - navigation:
+          - link "Ordina →":
+            - /url: /#ordina
+            - text: Ordina
+            - generic: →
+          - link "Menu →":
+            - /url: /#menu
+            - text: Menu
+            - generic: →
+          - link "Chi Siamo →":
+            - /url: /#chi-siamo
+            - text: Chi Siamo
+            - generic: →
+          - link "Dicono di Noi →":
+            - /url: /#dicono-di-noi
+            - text: Dicono di Noi
+            - generic: →
+          - link "Contatti →":
+            - /url: /#contatti
+            - text: Contatti
+            - generic: →
+          - generic:
+            - link "Ordina ora":
+              - /url: /menu?type=DELIVERY
+            - link "Ritira in sede":
+              - /url: /menu?type=ASPORTO
+            - link "Accedi":
+              - /url: /accedi
+    - banner [ref=e201]:
+      - link "LA TEGLIERIA" [ref=e203] [cursor=pointer]:
+        - /url: /
+    - main [ref=e204]:
+      - generic [ref=e205]:
+        - generic [ref=e206]:
+          - generic [ref=e207]:
+            - generic [ref=e208]: Artigianato Romano
+            - heading "I Nostri Impasti." [level=1] [ref=e209]
+          - paragraph [ref=e211]: Scegli la tua teglia preferita, preparata con 48 ore di lenta maturazione.
+        - generic [ref=e213]:
+          - button "Pizze" [ref=e214] [cursor=pointer]
+          - button "Teglie" [ref=e215] [cursor=pointer]
+          - button "Bibite" [ref=e216] [cursor=pointer]
+          - button "Dolci" [ref=e217] [cursor=pointer]
+        - generic [ref=e218]:
+          - generic [ref=e219]:
+            - heading "Pizze" [level=2] [ref=e220]
+            - generic [ref=e221]: 3 Opzioni
+          - generic [ref=e222]:
+            - button "Margherita Top Pomodoro, mozzarella, basilico 7,00 € a partire da + Personalizza" [ref=e223] [cursor=pointer]:
+              - generic [ref=e224]:
+                - generic [ref=e225]:
+                  - heading "Margherita" [level=3] [ref=e226]
+                  - generic [ref=e227]: Top
+                - paragraph [ref=e228]: Pomodoro, mozzarella, basilico
+                - generic [ref=e229]:
+                  - generic [ref=e230]: 7,00 €
+                  - generic [ref=e231]: a partire da
+              - generic [ref=e232]:
+                - generic [ref=e234]: +
+                - generic [ref=e235]: Personalizza
+            - button "Diavola Pomodoro, mozzarella, salame piccante 8,50 € a partire da + Personalizza" [ref=e236] [cursor=pointer]:
+              - generic [ref=e237]:
+                - heading "Diavola" [level=3] [ref=e239]
+                - paragraph [ref=e240]: Pomodoro, mozzarella, salame piccante
+                - generic [ref=e241]:
+                  - generic [ref=e242]: 8,50 €
+                  - generic [ref=e243]: a partire da
+              - generic [ref=e244]:
+                - generic [ref=e246]: +
+                - generic [ref=e247]: Personalizza
+            - button "Capricciosa Pomodoro, mozzarella, prosciutto, funghi, carciofi, olive 9,00 € a partire da + Personalizza" [ref=e248] [cursor=pointer]:
+              - generic [ref=e249]:
+                - heading "Capricciosa" [level=3] [ref=e251]
+                - paragraph [ref=e252]: Pomodoro, mozzarella, prosciutto, funghi, carciofi, olive
+                - generic [ref=e253]:
+                  - generic [ref=e254]: 9,00 €
+                  - generic [ref=e255]: a partire da
+              - generic [ref=e256]:
+                - generic [ref=e258]: +
+                - generic [ref=e259]: Personalizza
+        - generic [ref=e260]:
+          - generic [ref=e261]:
+            - heading "Teglie" [level=2] [ref=e262]
+            - generic [ref=e263]: 2 Opzioni
+          - generic [ref=e264]:
+            - button "Teglia Margherita Top Teglia classica con pomodoro e mozzarella 12,00 € a partire da + Personalizza" [ref=e265] [cursor=pointer]:
+              - generic [ref=e266]:
+                - generic [ref=e267]:
+                  - heading "Teglia Margherita" [level=3] [ref=e268]
+                  - generic [ref=e269]: Top
+                - paragraph [ref=e270]: Teglia classica con pomodoro e mozzarella
+                - generic [ref=e271]:
+                  - generic [ref=e272]: 12,00 €
+                  - generic [ref=e273]: a partire da
+              - generic [ref=e274]:
+                - generic [ref=e276]: +
+                - generic [ref=e277]: Personalizza
+            - button "Teglia Patate e Rosmarino 10,00 € a partire da + Personalizza" [ref=e278] [cursor=pointer]:
+              - generic [ref=e279]:
+                - heading "Teglia Patate e Rosmarino" [level=3] [ref=e281]
+                - generic [ref=e282]:
+                  - generic [ref=e283]: 10,00 €
+                  - generic [ref=e284]: a partire da
+              - generic [ref=e285]:
+                - generic [ref=e287]: +
+                - generic [ref=e288]: Personalizza
+        - generic [ref=e289]:
+          - generic [ref=e290]:
+            - heading "Bibite" [level=2] [ref=e291]
+            - generic [ref=e292]: 3 Opzioni
+          - generic [ref=e293]:
+            - button "Coca Cola 33cl Top 2,50 € a partire da + Personalizza" [ref=e294] [cursor=pointer]:
+              - generic [ref=e295]:
+                - generic [ref=e296]:
+                  - heading "Coca Cola 33cl" [level=3] [ref=e297]
+                  - generic [ref=e298]: Top
+                - generic [ref=e299]:
+                  - generic [ref=e300]: 2,50 €
+                  - generic [ref=e301]: a partire da
+              - generic [ref=e302]:
+                - generic [ref=e304]: +
+                - generic [ref=e305]: Personalizza
+            - button "Acqua naturale 50cl 1,00 € a partire da + Personalizza" [ref=e306] [cursor=pointer]:
+              - generic [ref=e307]:
+                - heading "Acqua naturale 50cl" [level=3] [ref=e309]
+                - generic [ref=e310]:
+                  - generic [ref=e311]: 1,00 €
+                  - generic [ref=e312]: a partire da
+              - generic [ref=e313]:
+                - generic [ref=e315]: +
+                - generic [ref=e316]: Personalizza
+            - button "Birra Moretti 33cl 3,00 € a partire da + Personalizza" [ref=e317] [cursor=pointer]:
+              - generic [ref=e318]:
+                - heading "Birra Moretti 33cl" [level=3] [ref=e320]
+                - generic [ref=e321]:
+                  - generic [ref=e322]: 3,00 €
+                  - generic [ref=e323]: a partire da
+              - generic [ref=e324]:
+                - generic [ref=e326]: +
+                - generic [ref=e327]: Personalizza
+        - generic [ref=e328]:
+          - generic [ref=e329]:
+            - heading "Dolci" [level=2] [ref=e330]
+            - generic [ref=e331]: 1 Opzioni
+          - button "Tiramisù Top 4,00 € a partire da + Personalizza" [ref=e333] [cursor=pointer]:
+            - generic [ref=e334]:
+              - generic [ref=e335]:
+                - heading "Tiramisù" [level=3] [ref=e336]
+                - generic [ref=e337]: Top
+              - generic [ref=e338]:
+                - generic [ref=e339]: 4,00 €
+                - generic [ref=e340]: a partire da
+            - generic [ref=e341]:
+              - generic [ref=e343]: +
+              - generic [ref=e344]: Personalizza
+        - button "🛒 Carrello" [ref=e345] [cursor=pointer]:
+          - generic [ref=e346]: 🛒
+          - text: Carrello
+    - region "Notifications alt+T"
+    - contentinfo [ref=e347]: La Teglieria © 2026
