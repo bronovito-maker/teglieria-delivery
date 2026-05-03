@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
 import CartDrawer from "@/components/client/CartDrawer";
 import ProductModal from "@/components/client/ProductModal";
 import type { CategoryWithProducts, ProductWithRelations } from "@/types";
+import { SITE_CONFIG } from "@/lib/site-config";
 
 export default function MenuPage() {
   const { setOrderType, getSubtotal, orderType } = useCartStore();
@@ -22,6 +24,31 @@ export default function MenuPage() {
   const subtotal = getSubtotal();
   const deliveryFee = orderType === "DELIVERY" ? 2.5 : 0;
   const cartTotal = subtotal + deliveryFee;
+  const menuSchema = {
+    "@context": "https://schema.org",
+    "@type": "Menu",
+    name: "Menu La Teglieria",
+    inLanguage: "it-IT",
+    hasMenuSection: categories.map((cat) => ({
+      "@type": "MenuSection",
+      name: cat.name,
+      hasMenuItem: cat.products.map((product) => ({
+        "@type": "MenuItem",
+        name: product.name,
+        description: product.description || undefined,
+        offers: {
+          "@type": "Offer",
+          priceCurrency: "EUR",
+          price: Number(product.price).toFixed(2),
+        },
+      })),
+    })),
+    provider: {
+      "@type": "Restaurant",
+      name: SITE_CONFIG.name,
+      url: SITE_CONFIG.url,
+    },
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -104,6 +131,9 @@ export default function MenuPage() {
 
   return (
     <div className="max-w-3xl mx-auto pb-32 bg-warm-light min-h-screen">
+      {categories.length > 0 && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(menuSchema) }} />
+      )}
       {/* HEADER SECTION */}
       <div className="flex flex-col items-center text-center px-6 pt-12 pb-14 md:pb-16">
         <div className="reveal active flex flex-col items-center gap-4">
@@ -251,6 +281,15 @@ export default function MenuPage() {
           <p className="text-charcoal/40 font-body italic text-sm">Torna a trovarci tra poco!</p>
         </div>
       )}
+
+      <div className="px-6 mt-8 flex flex-wrap gap-3">
+        <Link href="/servizi" className="rounded-full border border-charcoal/12 bg-white/80 px-4 py-2 text-xs font-brand font-semibold uppercase tracking-[0.16em] text-charcoal/70 hover:text-terracotta">
+          Orari e servizi
+        </Link>
+        <Link href="/#faq" className="rounded-full border border-charcoal/12 bg-white/80 px-4 py-2 text-xs font-brand font-semibold uppercase tracking-[0.16em] text-charcoal/70 hover:text-terracotta">
+          FAQ consegna
+        </Link>
+      </div>
 
       {selectedProduct && (
         <ProductModal

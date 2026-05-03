@@ -6,6 +6,7 @@ import Image from "next/image";
 import FloatingIngredients from "@/components/ui/FloatingIngredients";
 import MobileTopBar from "@/components/client/MobileTopBar";
 import { formatCurrency } from "@/lib/utils";
+import { SITE_CONFIG, toPhoneHref } from "@/lib/site-config";
 
 // Observer for scroll animations
 const useScrollReveal = () => {
@@ -74,21 +75,40 @@ export default function LandingPage() {
       });
   }, []);
 
+  const faqItems = [
+    {
+      question: "Fate consegna a domicilio a Livorno?",
+      answer: "Sì, facciamo consegna a domicilio nelle zone coperte di Livorno.",
+    },
+    {
+      question: "Posso ordinare anche da asporto?",
+      answer: "Sì, puoi ordinare online e ritirare in sede in Via Inghilterra 68.",
+    },
+    {
+      question: "Quali sono gli orari?",
+      answer: "Siamo aperti tutti i giorni dalle 16:00 alle 24:00. Ultime consegne entro le 22:00.",
+    },
+    {
+      question: "Quanto costa la consegna?",
+      answer: "La consegna viene calcolata nel checkout in base alle regole attive del servizio.",
+    },
+  ];
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Restaurant",
-    name: "La Teglieria",
-    image: "https://www.lateglieria.it/images/pizza-teglia-hero.png",
-    url: "https://www.lateglieria.it",
-    telephone: "+390612345678",
-    email: "ordini@lateglieria.it",
+    name: SITE_CONFIG.name,
+    image: `${SITE_CONFIG.url}/images/pizza-teglia-hero.png`,
+    url: SITE_CONFIG.url,
+    ...(SITE_CONFIG.phone ? { telephone: SITE_CONFIG.phone } : {}),
+    email: SITE_CONFIG.email,
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Via Inghilterra, 68",
-      addressLocality: "Livorno",
-      postalCode: "57128",
-      addressRegion: "LI",
-      addressCountry: "IT",
+      streetAddress: SITE_CONFIG.address.street,
+      addressLocality: SITE_CONFIG.address.city,
+      postalCode: SITE_CONFIG.address.postalCode,
+      addressRegion: SITE_CONFIG.address.province,
+      addressCountry: SITE_CONFIG.address.countryCode,
     },
     geo: {
       "@type": "GeoCoordinates",
@@ -101,11 +121,21 @@ export default function LandingPage() {
       {
         "@type": "OpeningHoursSpecification",
         dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-        opens: "16:00",
-        closes: "23:59",
+        opens: SITE_CONFIG.hours.open,
+        closes: SITE_CONFIG.hours.close,
       },
     ],
-    hasMenu: "https://www.lateglieria.it/menu",
+    hasMenu: `${SITE_CONFIG.url}/menu`,
+    areaServed: [
+      { "@type": "City", name: "Livorno" },
+      { "@type": "Place", name: "Scopaia" },
+      { "@type": "Place", name: "Collinaia" },
+    ],
+    ...(SITE_CONFIG.social.instagram || SITE_CONFIG.social.facebook
+      ? {
+          sameAs: [SITE_CONFIG.social.instagram, SITE_CONFIG.social.facebook].filter(Boolean),
+        }
+      : {}),
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: "4.8",
@@ -117,11 +147,28 @@ export default function LandingPage() {
     ],
   };
 
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  };
+
   return (
     <main className="min-h-screen bg-warm-light text-charcoal pt-20 md:pt-24 selection:bg-marigold/30">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
       <MobileTopBar />
 
@@ -459,6 +506,30 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section id="servizi" className="scroll-mt-24 py-16 md:py-20 px-6 max-w-5xl mx-auto">
+        <div className="rounded-[2rem] border border-charcoal/10 bg-white/65 backdrop-blur-sm p-8 md:p-10">
+          <p className="text-sm font-brand font-bold uppercase tracking-[0.28em] text-terracotta mb-4">Servizi</p>
+          <h2 className="text-4xl md:text-5xl font-display leading-[0.94] text-charcoal mb-6">Consegna e asporto a Livorno</h2>
+          <div className="grid md:grid-cols-2 gap-5 text-charcoal/75 font-body">
+            <p>Ordina online per consegna a domicilio oppure ritiro in sede.</p>
+            <p>Aperti tutti i giorni: {SITE_CONFIG.hours.display}. {SITE_CONFIG.hours.lastDeliveryDisplay}</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="faq" className="scroll-mt-24 py-10 md:py-14 px-6 max-w-5xl mx-auto">
+        <p className="text-sm font-brand font-bold uppercase tracking-[0.28em] text-terracotta mb-4">FAQ</p>
+        <h2 className="text-4xl md:text-5xl font-display leading-[0.94] text-charcoal mb-7">Domande frequenti</h2>
+        <div className="space-y-4">
+          {faqItems.map((item) => (
+            <details key={item.question} className="rounded-2xl border border-charcoal/10 bg-white/70 px-5 py-4">
+              <summary className="cursor-pointer font-brand font-semibold text-charcoal">{item.question}</summary>
+              <p className="mt-2 text-charcoal/65 font-body">{item.answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
       {/* FOOTER */}
       <footer
         ref={footerRef}
@@ -491,21 +562,29 @@ export default function LandingPage() {
                   <li><Link href="/#ordina" className="hover:text-terracotta transition-colors">Ordina</Link></li>
                   <li><Link href="/#menu" className="hover:text-terracotta transition-colors">Classiche</Link></li>
                   <li><Link href="/#menu" className="hover:text-terracotta transition-colors">Speciali</Link></li>
+                  <li><Link href="/#servizi" className="hover:text-terracotta transition-colors">Servizi</Link></li>
+                  <li><Link href="/#faq" className="hover:text-terracotta transition-colors">FAQ</Link></li>
                 </ul>
               </div>
               <div className="space-y-6 md:space-y-8">
                 <h4 className="text-charcoal/30 font-bold">Contatti</h4>
                 <ul className="space-y-3 md:space-y-4 text-charcoal font-bold tracking-[0.08em] md:tracking-widest">
-                  <li>Via Inghilterra, 68, 57128 Livorno LI</li>
-                  <li><a href="tel:+39061234567" className="hover:text-terracotta transition-colors">+39 06 123 4567</a></li>
+                  <li>{SITE_CONFIG.address.street}, {SITE_CONFIG.address.postalCode} {SITE_CONFIG.address.city} {SITE_CONFIG.address.province}</li>
+                  {SITE_CONFIG.phone && (
+                    <li>
+                      <a href={toPhoneHref(SITE_CONFIG.phone)} className="hover:text-terracotta transition-colors">
+                        {SITE_CONFIG.phone}
+                      </a>
+                    </li>
+                  )}
                 </ul>
               </div>
               <div className="space-y-6 md:space-y-8">
                 <h4 className="text-charcoal/30 font-bold">Orari</h4>
                 <ul className="space-y-3 md:space-y-4 text-charcoal font-bold tracking-[0.08em] md:tracking-widest">
                   <li className="text-terracotta">Aperti tutti i giorni</li>
-                  <li>16:00 - 24:00</li>
-                  <li>Ultime consegne: entro le 22:00</li>
+                  <li>{SITE_CONFIG.hours.display}</li>
+                  <li>{SITE_CONFIG.hours.lastDeliveryDisplay}</li>
                 </ul>
               </div>
             </div>

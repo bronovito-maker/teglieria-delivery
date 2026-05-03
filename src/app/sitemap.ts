@@ -23,6 +23,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
+      url: `${BASE_URL}/servizi`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
       url: `${BASE_URL}/accedi`,
       lastModified: new Date(),
       changeFrequency: "yearly",
