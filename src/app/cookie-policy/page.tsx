@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Cookie Policy — La Teglieria",
-  description: "Informativa sull'uso dei cookie ai sensi del D.Lgs. 69/2012 e del GDPR.",
+  description: "Informativa sull'uso dei cookie, del Meta Pixel e dei servizi di terze parti ai sensi del D.Lgs. 69/2012 e del GDPR.",
 };
 
 export default function CookiePolicyPage() {
@@ -88,6 +88,7 @@ export default function CookiePolicyPage() {
                 {[
                   { nome: "Google Maps", scopo: "Geocodifica indirizzi e calcolo distanze per la consegna", durata: "Variabile" },
                   { nome: "Google OAuth", scopo: "Autenticazione tramite account Google (solo se usato)", durata: "Sessione" },
+                  { nome: "Meta Pixel", scopo: "Misurazione delle visite e delle conversioni delle campagne pubblicitarie Meta", durata: "Variabile" },
                 ].map((c) => (
                   <div key={c.nome} className="px-5 py-4 grid grid-cols-3 gap-4 text-sm">
                     <span className="text-terracotta font-brand font-semibold text-xs">{c.nome}</span>
@@ -98,16 +99,20 @@ export default function CookiePolicyPage() {
               </div>
               <div className="px-5 py-3 bg-charcoal/[0.02] border-t border-charcoal/5">
                 <p className="text-xs text-charcoal/40">
-                  Questi cookie sono gestiti da Google LLC. Consulta la{" "}
+                  Questi cookie sono gestiti dai rispettivi fornitori. Consulta la{" "}
                   <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-terracotta underline underline-offset-2">
                     Privacy Policy di Google
+                  </a>{" "}
+                  e la{" "}
+                  <a href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener noreferrer" className="text-terracotta underline underline-offset-2">
+                    Privacy Policy di Meta
                   </a>.
                 </p>
               </div>
             </div>
 
             <p className="text-sm bg-marigold/10 border border-marigold/20 rounded-2xl px-5 py-4 text-charcoal/70">
-              <strong className="text-charcoal">Non utilizziamo</strong> cookie di profilazione, pixel di tracciamento pubblicitario né strumenti di analisi comportamentale di terze parti (es. Google Analytics, Meta Pixel).
+              <strong className="text-charcoal">Usiamo Meta Pixel</strong> per misurare l&apos;efficacia delle campagne pubblicitarie e migliorare le comunicazioni promozionali. Puoi limitare il tracciamento dalle impostazioni privacy del browser e dalle preferenze del tuo account Meta.
             </p>
           </section>
 
