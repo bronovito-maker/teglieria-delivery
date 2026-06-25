@@ -119,6 +119,10 @@ export default function QRScanner({ onClose }: Props) {
           setErrorMsg(
             "Accesso alla fotocamera negato. Vai nelle impostazioni del browser e abilita la fotocamera per questo sito."
           );
+        } else if (e?.name === "SecurityError") {
+          setErrorMsg(
+            "La fotocamera è bloccata dalle impostazioni di sicurezza del sito. Avvisa lo staff e riprova dopo l'aggiornamento."
+          );
         } else if (e?.name === "NotFoundError") {
           setErrorMsg("Nessuna fotocamera trovata sul dispositivo.");
         } else {

@@ -58,6 +58,37 @@ function toPublicTrackingOrder(order: TrackingOrder | null) {
   };
 }
 
+async function findActiveRiderForUser(user: { id: string; email?: string | null }) {
+  let rider = await prisma.rider.findFirst({
+    where: {
+      active: true,
+      authUserId: user.id,
+    },
+    select: { id: true },
+  });
+
+  if (!rider && user.email) {
+    const byEmail = await prisma.rider.findFirst({
+      where: {
+        active: true,
+        email: user.email,
+        authUserId: null,
+      },
+      select: { id: true },
+    });
+
+    if (byEmail) {
+      rider = await prisma.rider.update({
+        where: { id: byEmail.id },
+        data: { authUserId: user.id },
+        select: { id: true },
+      });
+    }
+  }
+
+  return rider;
+}
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -96,6 +127,13 @@ export async function GET(
 
   const isOperator = !isAdminRbacStrictEnabled() || isOperatorUser(user);
   if (isOperator) return NextResponse.json(order);
+
+  const rider = await findActiveRiderForUser(user);
+  const isRiderVisibleOrder =
+    Boolean(rider) &&
+    order.type === "DELIVERY" &&
+    (order.riderId === null || order.riderId === rider!.id);
+  if (isRiderVisibleOrder) return NextResponse.json(order);
 
   const isOwner =
     order.authUserId === user.id ||
