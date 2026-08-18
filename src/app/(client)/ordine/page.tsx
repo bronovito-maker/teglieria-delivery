@@ -23,7 +23,10 @@ export default function OrdinePage() {
   const [customerEmail, setCustomerEmail] = useState("");
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    let cancelled = false;
+
+    async function restoreCustomerData() {
+      const { data: { user } } = await supabase.auth.getUser();
       // Accetta customer espliciti e utenti OAuth (Google) senza ruolo admin/rider
       const role = user?.user_metadata?.role;
       const isCustomer = user && role !== "admin" && role !== "rider";
@@ -32,15 +35,43 @@ export default function OrdinePage() {
         const phone = user.user_metadata?.phone || "";
         const email = user.email || "";
         const lastAddress = user.user_metadata?.lastAddress || "";
-        setCustomerName(name);
-        setCustomerPhone(phone);
-        setCustomerEmail(email);
-        if (lastAddress) setAddress(lastAddress);
+        const lastAddressDetail = user.user_metadata?.lastAddressDetail || "";
+        const lastDeliveryZone = user.user_metadata?.lastDeliveryZone || "";
+        setCustomerName((current) => current || name);
+        setCustomerPhone((current) => current || phone);
+        setCustomerEmail((current) => current || email);
+        if (lastAddress) setAddress((current) => current || lastAddress);
+        if (lastAddressDetail) setAddressDetail((current) => current || lastAddressDetail);
+        if (lastDeliveryZone) setDeliveryZone((current) => current || lastDeliveryZone);
+
+        // I metadati possono contenere solo l'ultimo indirizzo: completa i
+        // campi usando l'ultimo ordine associato all'account, se disponibile.
+        try {
+          const response = await fetch("/api/user/orders", { cache: "no-store" });
+          if (response.ok) {
+            const orders = await response.json();
+            const latest = Array.isArray(orders) ? orders[0] : null;
+            if (latest && !cancelled) {
+              setCustomerName((current) => current || latest.customerName || "");
+              setCustomerPhone((current) => current || latest.customerPhone || "");
+              setCustomerEmail((current) => current || latest.customerEmail || "");
+              setAddress((current) => current || latest.address || "");
+              setAddressDetail((current) => current || latest.addressDetail || "");
+              setDeliveryZone((current) => current || latest.deliveryZone || "");
+            }
+          }
+        } catch {
+          // Il checkout resta utilizzabile anche se la cronologia non è disponibile.
+        }
+
         setLoggedUser({ name, email });
         setShowDetails(true);
       }
-      setAuthChecked(true);
-    });
+      if (!cancelled) setAuthChecked(true);
+    }
+
+    restoreCustomerData();
+    return () => { cancelled = true; };
   }, [supabase]);
 
   async function handleGoogleLogin() {
@@ -223,6 +254,8 @@ export default function OrdinePage() {
         if (customerName) updateData.full_name = customerName;
         if (customerPhone) updateData.phone = customerPhone;
         if (orderType === "DELIVERY" && address) updateData.lastAddress = address;
+        if (orderType === "DELIVERY" && addressDetail) updateData.lastAddressDetail = addressDetail;
+        if (orderType === "DELIVERY" && deliveryZone) updateData.lastDeliveryZone = deliveryZone;
         if (Object.keys(updateData).length > 0) {
           supabase.auth.updateUser({ data: updateData }).catch(() => { });
         }

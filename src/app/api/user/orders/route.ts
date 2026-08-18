@@ -25,6 +25,11 @@ function mapOrder(order: OrderWithItems): UserOrder {
     total: Number(order.total),
     subtotal: Number(order.subtotal),
     address: order.address ?? null,
+    addressDetail: order.addressDetail ?? null,
+    deliveryZone: order.deliveryZone ?? null,
+    customerName: order.customerName ?? null,
+    customerPhone: order.customerPhone ?? null,
+    customerEmail: order.customerEmail ?? null,
     estimatedTime: order.estimatedTime?.toISOString() ?? null,
   };
 }

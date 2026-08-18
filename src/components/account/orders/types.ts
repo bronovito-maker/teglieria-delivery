@@ -28,6 +28,11 @@ export type UserOrder = {
   total: number;
   subtotal: number;
   address: string | null;
+  addressDetail?: string | null;
+  deliveryZone?: string | null;
+  customerName?: string | null;
+  customerPhone?: string | null;
+  customerEmail?: string | null;
   estimatedTime: string | null; // ISO string, null se non impostato
 };
 
