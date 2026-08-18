@@ -41,6 +41,7 @@ type Props = {
 declare global {
   interface Window {
     google?: any;
+    gm_authFailure?: () => void;
   }
 }
 
@@ -153,10 +154,15 @@ function formatDistance(meters: number): string {
 function loadGoogleMaps(apiKey: string): Promise<any> {
   if (window.google?.maps) return Promise.resolve(window.google.maps);
 
+  const resolveMaps = (resolve: (maps: any) => void, reject: (error: Error) => void) => {
+    if (window.google?.maps) resolve(window.google.maps);
+    else reject(new Error("Lo script Google Maps è stato caricato, ma google.maps non è disponibile. Controlla la restrizione del referrer e le API abilitate."));
+  };
+
   const existing = document.getElementById(MAP_SCRIPT_ID) as HTMLScriptElement | null;
   if (existing) {
     return new Promise((resolve, reject) => {
-      existing.addEventListener("load", () => resolve(window.google?.maps));
+      existing.addEventListener("load", () => resolveMaps(resolve, reject));
       existing.addEventListener("error", () =>
         reject(new Error("Errore caricamento Google Maps"))
       );
@@ -166,10 +172,10 @@ function loadGoogleMaps(apiKey: string): Promise<any> {
   return new Promise((resolve, reject) => {
     const script = document.createElement("script");
     script.id = MAP_SCRIPT_ID;
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker&loading=async`;
     script.async = true;
     script.defer = true;
-    script.onload = () => resolve(window.google?.maps);
+    script.onload = () => resolveMaps(resolve, reject);
     script.onerror = () =>
       reject(new Error("Errore caricamento Google Maps"));
     document.head.appendChild(script);
@@ -253,6 +259,12 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
       }
       if (!containerRef.current) return;
 
+      window.gm_authFailure = () => {
+        const message = "Google Maps ha rifiutato la API key: verifica referrer autorizzati, Maps JavaScript API e fatturazione.";
+        console.error("[Google Maps] gm_authFailure", { message });
+        if (!cancelled) setMapError(message);
+      };
+
       try {
         const maps = await loadGoogleMaps(apiKey);
         if (cancelled) return;
@@ -292,8 +304,10 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
         });
 
         setMapReady(true);
-      } catch {
-        if (!cancelled) setMapError("Impossibile caricare Google Maps.");
+      } catch (caughtError) {
+        const message = caughtError instanceof Error ? caughtError.message : String(caughtError);
+        console.error("[Google Maps] inizializzazione fallita", caughtError);
+        if (!cancelled) setMapError(`Google Maps: ${message}`);
       }
     }
 
