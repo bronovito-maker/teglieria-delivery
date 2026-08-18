@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { Mail, MapPin, Phone } from "lucide-react";
 import MobileTopBar from "@/components/client/MobileTopBar";
-import { SITE_CONFIG } from "@/lib/site-config";
+import { SITE_CONFIG, toPhoneHref } from "@/lib/site-config";
 
 const reviews = [
   {
@@ -133,12 +134,34 @@ export default function LandingPage() {
       </section>
 
       <footer className="mx-auto mt-8 max-w-3xl border-t border-charcoal/5 px-5 py-12 text-center">
-        <div className="flex justify-center gap-5 text-2xl text-charcoal">
-          <a href={SITE_CONFIG.social.facebook || "#"} aria-label="Facebook">●</a>
-          <a href={SITE_CONFIG.social.instagram || "#"} aria-label="Instagram">◎</a>
-          <a href={SITE_CONFIG.phone ? `tel:${SITE_CONFIG.phone}` : "#"} aria-label="Telefono">◌</a>
+        <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-brand font-semibold text-charcoal/65">
+          <Link href="/menu" className="rounded-full border border-charcoal/10 px-4 py-2 transition-colors hover:border-terracotta/30 hover:text-terracotta">
+            Menu
+          </Link>
+          <Link href="/servizi" className="rounded-full border border-charcoal/10 px-4 py-2 transition-colors hover:border-terracotta/30 hover:text-terracotta">
+            Orari e servizi
+          </Link>
+          {SITE_CONFIG.phone && (
+            <a href={toPhoneHref(SITE_CONFIG.phone)} className="inline-flex items-center gap-1.5 rounded-full border border-charcoal/10 px-4 py-2 transition-colors hover:border-terracotta/30 hover:text-terracotta">
+              <Phone className="h-3.5 w-3.5" /> Chiama
+            </a>
+          )}
+          <a href={`mailto:${SITE_CONFIG.email}`} className="inline-flex items-center gap-1.5 rounded-full border border-charcoal/10 px-4 py-2 transition-colors hover:border-terracotta/30 hover:text-terracotta">
+            <Mail className="h-3.5 w-3.5" /> Scrivici
+          </a>
         </div>
-        <p className="mt-10 text-[10px] font-brand text-charcoal/40">© {new Date().getFullYear()} La Teglieria · Privacy · Cookie Policy</p>
+        <div className="mt-8 flex flex-col items-center gap-3 text-[10px] font-brand text-charcoal/40">
+          <a href="https://www.google.com/maps/search/?api=1&query=La+Teglieria+Via+Inghilterra+68+Livorno" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 transition-colors hover:text-terracotta">
+            <MapPin className="h-3.5 w-3.5" /> {SITE_CONFIG.address.street}, {SITE_CONFIG.address.city}
+          </a>
+          <div className="flex items-center gap-4">
+            {SITE_CONFIG.social.instagram && <a href={SITE_CONFIG.social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="font-bold transition-colors hover:text-terracotta">IG</a>}
+            {SITE_CONFIG.social.facebook && <a href={SITE_CONFIG.social.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="font-bold transition-colors hover:text-terracotta">FB</a>}
+            <Link href="/privacy" className="transition-colors hover:text-terracotta">Privacy</Link>
+            <Link href="/cookie-policy" className="transition-colors hover:text-terracotta">Cookie</Link>
+          </div>
+          <span>© {new Date().getFullYear()} La Teglieria</span>
+        </div>
       </footer>
     </main>
   );

@@ -19,15 +19,27 @@ type Highlight = {
  */
 export default function PreshopPage() {
   const [highlights, setHighlights] = useState<Highlight[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/menu")
-      .then((response) => response.json())
+    const controller = new AbortController();
+
+    fetch("/api/menu", { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error("Menu non disponibile");
+        return response.json();
+      })
       .then((categories) => {
         const products = categories.flatMap((category: { products: Highlight[] }) => category.products);
         setHighlights(products.slice(0, 3));
       })
-      .catch(() => setHighlights([]));
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setHighlights([]);
+      })
+      .finally(() => setIsLoading(false));
+
+    return () => controller.abort();
   }, []);
 
   return (
@@ -68,7 +80,16 @@ export default function PreshopPage() {
         </div>
 
         <div className="mt-9 grid gap-7 sm:grid-cols-3 sm:gap-5">
-          {highlights.map((product) => (
+          {isLoading
+            ? Array.from({ length: 3 }, (_, index) => (
+                <div key={`highlight-skeleton-${index}`} className="animate-pulse" aria-hidden="true">
+                  <div className="aspect-[1.12] overflow-hidden rounded-[1.25rem] bg-charcoal/10" />
+                  <div className="mt-3 h-6 w-3/4 rounded-full bg-charcoal/10" />
+                  <div className="mt-2 h-3 w-full rounded-full bg-charcoal/5" />
+                  <div className="mt-1 h-3 w-2/3 rounded-full bg-charcoal/5" />
+                </div>
+              ))
+            : highlights.map((product) => (
             <Link key={product.id} href="/menu" className="group block">
               <div className="relative aspect-[1.12] overflow-hidden rounded-[1.25rem] bg-charcoal/5 shadow-sm">
                 <Image src="/images/pizza-teglia-slices.png" alt={product.name} fill className="object-cover transition-transform duration-700 group-hover:scale-105" sizes="(max-width: 640px) 100vw, 33vw" />
@@ -82,7 +103,7 @@ export default function PreshopPage() {
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-terracotta text-lg leading-none text-white">+</span>
               </div>
             </Link>
-          ))}
+            ))}
         </div>
 
         <Link href="/menu" className="mt-8 inline-flex rounded-full border border-terracotta/20 px-4 py-2 text-[10px] font-brand font-bold uppercase tracking-[.14em] text-terracotta sm:hidden">Vedi tutto il menu</Link>

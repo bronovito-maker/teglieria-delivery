@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect } from "react";
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
 
@@ -18,16 +19,30 @@ export default function CartDrawer({ open, onClose }: Props) {
   const deliveryFee = orderType === "DELIVERY" ? 2.5 : 0;
   const total = subtotal + deliveryFee;
 
+  useEffect(() => {
+    if (!open) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const previousOverscrollBehavior = document.body.style.overscrollBehavior;
+    document.body.style.overflow = "hidden";
+    document.body.style.overscrollBehavior = "none";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.body.style.overscrollBehavior = previousOverscrollBehavior;
+    };
+  }, [open]);
+
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] bg-warm-light" role="dialog" aria-modal="true" aria-label="Carrello" onClick={onClose}>
-      <div className="mx-auto flex h-full w-full max-w-xl flex-col" onClick={(event) => event.stopPropagation()}>
+    <div className="fixed inset-0 z-[60] h-[100dvh] overflow-hidden overscroll-contain bg-warm-light" role="dialog" aria-modal="true" aria-label="Carrello" onClick={onClose}>
+      <div className="mx-auto flex h-full min-h-0 w-full max-w-xl flex-col" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-end px-5 pb-3 pt-[5.35rem] sm:px-8 sm:pt-24">
           <button type="button" onClick={onClose} aria-label="Chiudi carrello" className="flex h-10 w-10 items-center justify-center rounded-full bg-charcoal/5 text-xl text-charcoal/60 transition-colors hover:bg-charcoal/10">×</button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 pb-8 sm:px-8">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-8 sm:px-8">
           {items.length === 0 ? (
             <div className="py-24 text-center">
               <p className="text-charcoal/45">Il carrello è vuoto.</p>

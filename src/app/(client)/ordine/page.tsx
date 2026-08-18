@@ -301,9 +301,14 @@ export default function OrdinePage() {
         </div>
 
         {/* ACCESSO RAPIDO */}
-        {authChecked && (
-          <div className="reveal">
-            {loggedUser ? (
+        <div className="reveal">
+          {!authChecked ? (
+            <div className="animate-pulse rounded-[2rem] border border-charcoal/8 bg-white/55 p-6 shadow-sm" aria-label="Verifica accesso in corso" aria-busy="true">
+              <div className="h-4 w-36 rounded-full bg-charcoal/10" />
+              <div className="mt-2 h-3 w-64 max-w-full rounded-full bg-charcoal/5" />
+              <div className="mt-4 h-[52px] w-full rounded-2xl bg-charcoal/10" />
+            </div>
+          ) : loggedUser ? (
               <div className="flex items-center gap-3 px-5 py-4 bg-green-50/80 border border-green-100 rounded-2xl">
                 <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
                   <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -319,7 +324,7 @@ export default function OrdinePage() {
                   </p>
                 </div>
               </div>
-            ) : (
+          ) : (
               <div className="bg-white/55 border border-charcoal/8 rounded-[2rem] p-6 space-y-4 backdrop-blur-sm shadow-sm">
                 <div>
                   <h2 className="text-sm font-brand font-semibold text-charcoal/70 mb-0.5">Hai già un account?</h2>
@@ -345,9 +350,8 @@ export default function OrdinePage() {
                   </Link>
                 </p>
               </div>
-            )}
-          </div>
-        )}
+          )}
+        </div>
 
         {!showDetails && (
           <div className="reveal space-y-3 pt-1">
