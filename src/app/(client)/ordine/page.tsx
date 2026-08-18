@@ -37,6 +37,7 @@ export default function OrdinePage() {
         setCustomerEmail(email);
         if (lastAddress) setAddress(lastAddress);
         setLoggedUser({ name, email });
+        setShowDetails(true);
       }
       setAuthChecked(true);
     });
