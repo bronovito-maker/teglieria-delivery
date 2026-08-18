@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
 
@@ -11,122 +13,85 @@ interface Props {
 
 export default function CartDrawer({ open, onClose }: Props) {
   const router = useRouter();
-  const { items, removeItem, updateQuantity, clearCart, getSubtotal, orderType, setOrderType } =
-    useCartStore();
+  const { items, removeItem, updateQuantity, clearCart, getSubtotal, orderType, setOrderType } = useCartStore();
   const subtotal = getSubtotal();
   const deliveryFee = orderType === "DELIVERY" ? 2.5 : 0;
   const total = subtotal + deliveryFee;
 
   if (!open) return null;
 
-  function handleCheckout() {
-    onClose();
-    router.push("/ordine");
-  }
-
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex justify-end" onClick={onClose}>
-      <div className="bg-warm-light w-full max-w-md h-full flex flex-col border-l border-charcoal/5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="p-6 border-b border-white/20 bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] text-white shadow-[0_8px_20px_rgba(197,86,26,0.2)] backdrop-blur-xl flex items-center justify-between">
-          <h2 className="text-xl font-brand uppercase tracking-wider">Il tuo ordine</h2>
-          <button onClick={onClose} className="text-white/80 hover:text-white text-2xl">&times;</button>
+    <div className="fixed inset-0 z-[60] bg-warm-light" role="dialog" aria-modal="true" aria-label="Carrello" onClick={onClose}>
+      <div className="mx-auto flex h-full w-full max-w-xl flex-col" onClick={(event) => event.stopPropagation()}>
+        <div className="flex items-center justify-end px-5 pb-3 pt-[5.35rem] sm:px-8 sm:pt-24">
+          <button type="button" onClick={onClose} aria-label="Chiudi carrello" className="flex h-10 w-10 items-center justify-center rounded-full bg-charcoal/5 text-xl text-charcoal/60 transition-colors hover:bg-charcoal/10">×</button>
         </div>
 
-        {/* Tipo ordine */}
-        <div className="p-4 border-b border-charcoal/5">
-          <div className="flex rounded-full border border-charcoal/10 overflow-hidden bg-charcoal/5 p-1">
-            <button
-              onClick={() => setOrderType("ASPORTO")}
-              className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-full transition-all ${
-                orderType === "ASPORTO"
-                  ? "bg-white text-charcoal shadow-sm scale-[1.02]"
-                  : "text-charcoal/40 hover:text-charcoal/60"
-              }`}
-            >
-              Asporto
-            </button>
-            <button
-              onClick={() => setOrderType("DELIVERY")}
-              className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-full transition-all ${
-                orderType === "DELIVERY"
-                  ? "bg-white text-charcoal shadow-sm scale-[1.02]"
-                  : "text-charcoal/40 hover:text-charcoal/60"
-              }`}
-            >
-              Delivery
-            </button>
-          </div>
-        </div>
+        <div className="flex-1 overflow-y-auto px-5 pb-8 sm:px-8">
+          {items.length === 0 ? (
+            <div className="py-24 text-center">
+              <p className="text-charcoal/45">Il carrello è vuoto.</p>
+              <button type="button" onClick={onClose} className="mt-5 rounded-full bg-terracotta px-6 py-3 text-sm font-brand font-semibold text-white">Torna al menu</button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {items.map((item) => (
+                <div key={item.id} className="rounded-[1.15rem] border border-charcoal/5 bg-white px-4 py-4 shadow-[0_8px_18px_rgba(26,26,26,0.03)]">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="font-brand text-sm font-semibold text-charcoal">{item.productName}</p>
+                      {(item.variant || item.additions.length > 0 || item.removals.length > 0) && (
+                        <p className="mt-1 truncate text-xs text-charcoal/45">
+                          {[item.variant, item.additions.length > 0 ? `+ ${item.additions.map((a) => a.name).join(", ")}` : "", item.removals.length > 0 ? `− ${item.removals.map((r) => r.name).join(", ")}` : ""].filter(Boolean).join(" · ")}
+                        </p>
+                      )}
+                    </div>
+                    <p className="shrink-0 font-brand text-sm font-semibold">{formatCurrency(item.totalPrice)}</p>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between">
+                    <div className="flex h-8 items-center overflow-hidden rounded-full border border-charcoal/10 text-xs font-bold">
+                      <button type="button" aria-label={`Diminuisci ${item.productName}`} onClick={() => updateQuantity(item.id, item.quantity - 1)} className="h-8 w-8 hover:bg-charcoal/5">−</button>
+                      <span className="flex h-8 min-w-8 items-center justify-center border-x border-charcoal/10">{item.quantity}</span>
+                      <button type="button" aria-label={`Aumenta ${item.productName}`} onClick={() => updateQuantity(item.id, item.quantity + 1)} className="h-8 w-8 hover:bg-charcoal/5">+</button>
+                    </div>
+                    <button type="button" onClick={() => removeItem(item.id)} className="text-[10px] font-brand font-bold uppercase tracking-wider text-terracotta hover:underline">Rimuovi</button>
+                  </div>
+                </div>
+              ))}
 
-        {/* Items */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {items.length === 0 && (
-            <div className="py-10 text-center">
-              <p className="text-gray-400 mb-4">Il carrello è vuoto</p>
-              <button
-                onClick={onClose}
-                className="inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold text-white tomato-glass border"
-              >
-                Torna a ordinare
-              </button>
+              <Link href="/preshop" className="group mt-8 block overflow-hidden rounded-[1.4rem] border border-charcoal/5 bg-white shadow-[0_10px_24px_rgba(26,26,26,0.04)]">
+                <div className="relative aspect-[1.8] w-full overflow-hidden">
+                  <Image src="/images/pizza-teglia-hero.png" alt="La Teglia Perfetta" fill className="object-cover transition-transform duration-700 group-hover:scale-105" sizes="(max-width: 640px) 100vw, 560px" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-charcoal/75 via-transparent to-transparent" />
+                  <div className="absolute bottom-4 left-4">
+                    <p className="text-[9px] font-brand font-bold uppercase tracking-[.25em] text-marigold">Il nostro orgoglio</p>
+                    <p className="mt-1 font-display text-2xl leading-none text-white">La Teglia Perfetta</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between px-4 py-3 text-xs font-brand font-semibold text-charcoal/60">
+                  Scopri la nostra pizza in teglia <span className="text-terracotta">→</span>
+                </div>
+              </Link>
             </div>
           )}
-          {items.map((item) => (
-            <div key={item.id} className="bg-white/40 border border-charcoal/5 rounded-2xl p-4 shadow-sm">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <p className="font-medium text-sm">{item.productName}</p>
-                  {item.variant && <p className="text-xs text-gray-500">Variante: {item.variant}</p>}
-                  {item.additions.length > 0 && (
-                    <p className="text-xs text-gray-500">+ {item.additions.map((a) => a.name).join(", ")}</p>
-                  )}
-                  {item.removals.length > 0 && (
-                    <p className="text-xs text-gray-500">- {item.removals.map((r) => r.name).join(", ")}</p>
-                  )}
-                </div>
-                <p className="font-semibold text-sm ml-2">{formatCurrency(item.totalPrice)}</p>
-              </div>
-              <div className="flex items-center justify-between mt-2">
-                <div className="flex items-center border border-charcoal/10 rounded-full text-xs font-bold overflow-hidden">
-                  <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="px-3 py-1 hover:bg-charcoal/5">-</button>
-                  <span className="px-3 border-x border-charcoal/10">{item.quantity}</span>
-                  <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="px-3 py-1 hover:bg-charcoal/5">+</button>
-                </div>
-                <button onClick={() => removeItem(item.id)} className="text-xs font-bold text-terracotta hover:underline uppercase tracking-tighter">Rimuovi</button>
-              </div>
-            </div>
-          ))}
         </div>
 
-        {/* Footer */}
         {items.length > 0 && (
-          <div className="border-t p-4 space-y-3">
-            <div className="space-y-1.5 text-sm">
-              <div className="flex justify-between text-charcoal/60 font-semibold">
-                <span>Subtotale</span>
-                <span>{formatCurrency(subtotal)}</span>
-              </div>
-              {orderType === "DELIVERY" && (
-                <div className="flex justify-between text-charcoal/60 font-semibold">
-                  <span>Consegna</span>
-                  <span>{formatCurrency(deliveryFee)}</span>
-                </div>
-              )}
+          <div className="border-t border-charcoal/8 bg-warm-light px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 shadow-[0_-10px_28px_rgba(26,26,26,0.04)] sm:px-8">
+            <div className="mb-4 flex rounded-full border border-charcoal/10 bg-charcoal/5 p-1">
+              {(["ASPORTO", "DELIVERY"] as const).map((type) => (
+                <button key={type} type="button" onClick={() => setOrderType(type)} className={`min-h-10 flex-1 rounded-full text-xs font-brand font-bold uppercase tracking-widest transition-all ${orderType === type ? "bg-white text-charcoal shadow-sm" : "text-charcoal/40"}`}>
+                  {type === "ASPORTO" ? "Asporto" : "Delivery"}
+                </button>
+              ))}
             </div>
-            <div className="flex justify-between font-bold text-2xl text-charcoal">
-              <span>Totale</span>
-              <span className="text-terracotta">{formatCurrency(total)}</span>
+            <div className="space-y-1 border-t border-charcoal/8 pt-3 text-sm">
+              <div className="flex justify-between text-charcoal/55"><span>Subtotale</span><span>{formatCurrency(subtotal)}</span></div>
+              {orderType === "DELIVERY" && <div className="flex justify-between text-charcoal/55"><span>Consegna</span><span>{formatCurrency(deliveryFee)}</span></div>}
+              <div className="flex justify-between pt-2 text-2xl font-brand font-semibold"><span>Totale</span><span className="text-terracotta">{formatCurrency(total)}</span></div>
             </div>
-            <button
-              onClick={clearCart}
-              className="w-full py-3 rounded-xl border border-charcoal/10 text-charcoal/60 font-bold uppercase text-xs tracking-widest hover:bg-charcoal/5 transition-colors"
-            >
-              Svuota carrello
-            </button>
-            <button
-              onClick={handleCheckout}
-              className="w-full py-4 text-white rounded-xl font-bold uppercase tracking-widest bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] border border-white/10 shadow-[0_12px_24px_rgba(197,86,26,0.25)] hover:brightness-110 active:scale-[0.98] transition-all"
-            >
+            <button type="button" onClick={clearCart} className="mt-4 min-h-11 w-full rounded-xl border border-charcoal/10 text-xs font-brand font-bold uppercase tracking-widest text-charcoal/55 hover:bg-white">Svuota carrello</button>
+            <button type="button" onClick={() => { onClose(); router.push("/ordine"); }} className="mt-3 min-h-12 w-full rounded-xl bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] text-sm font-brand font-bold uppercase tracking-[0.16em] text-white shadow-[0_12px_24px_rgba(197,86,26,0.22)] active:scale-[.99]">
               Vai al checkout · {formatCurrency(total)}
             </button>
           </div>

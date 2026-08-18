@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
@@ -11,19 +10,13 @@ import type { CategoryWithProducts, ProductWithRelations } from "@/types";
 import { SITE_CONFIG } from "@/lib/site-config";
 
 export default function MenuPage() {
-  const { setOrderType, getSubtotal, orderType } = useCartStore();
+  const { setOrderType } = useCartStore();
   const [categories, setCategories] = useState<CategoryWithProducts[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<ProductWithRelations | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
-  const itemCount = useCartStore((s) => s.getItemCount());
-  const prevItemCountRef = useRef(0);
-  const [cartPulse, setCartPulse] = useState(false);
-  const subtotal = getSubtotal();
-  const deliveryFee = orderType === "DELIVERY" ? 2.5 : 0;
-  const cartTotal = subtotal + deliveryFee;
   const menuSchema = {
     "@context": "https://schema.org",
     "@type": "Menu",
@@ -111,16 +104,6 @@ export default function MenuPage() {
     if (pill) pill.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
   }, [activeCategory]);
 
-  useEffect(() => {
-    if (itemCount > prevItemCountRef.current) {
-      setCartPulse(true);
-      const t = setTimeout(() => setCartPulse(false), 320);
-      prevItemCountRef.current = itemCount;
-      return () => clearTimeout(t);
-    }
-    prevItemCountRef.current = itemCount;
-  }, [itemCount]);
-
   const scrollToCategory = (catId: string) => {
     const el = document.getElementById(`cat-${catId}`);
     if (!el) return;
@@ -130,17 +113,17 @@ export default function MenuPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto pb-32 bg-warm-light min-h-screen">
+    <div className="mx-auto min-h-screen max-w-4xl bg-warm-light pb-32">
       {categories.length > 0 && (
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(menuSchema) }} />
       )}
       {/* HEADER SECTION */}
-      <div className="flex flex-col items-center text-center px-6 pt-12 pb-14 md:pb-16">
+      <div className="flex flex-col items-center px-6 pb-12 pt-10 text-center sm:pb-14 sm:pt-16">
         <div className="reveal active flex flex-col items-center gap-4">
           <span className="ds-micro-label text-terracotta/60">
             Artigianato Romano
           </span>
-          <h1 className="ds-heading-hero text-5xl md:text-7xl">
+          <h1 className="ds-heading-hero text-5xl tracking-[-0.055em] sm:text-7xl">
             I Nostri <span className="text-terracotta">Impasti.</span>
           </h1>
           <div className="w-12 h-1 bg-terracotta/20 rounded-full mt-2" />
@@ -152,10 +135,10 @@ export default function MenuPage() {
 
       {/* CATEGORY NAV */}
       {categories.length > 0 && (
-        <div className="sticky top-0 z-30 bg-warm-light/95 backdrop-blur-md border-b border-charcoal/5 shadow-[0_6px_18px_rgba(26,26,26,0.03)]">
+        <div className="sticky top-[4.1rem] z-30 border-y border-charcoal/5 bg-warm-light/95 shadow-[0_6px_18px_rgba(26,26,26,0.03)] backdrop-blur-md sm:top-[4.5rem]">
           <div
             ref={navRef}
-            className="flex gap-2 px-4 py-3 overflow-x-auto no-scrollbar"
+            className="flex justify-center gap-2 overflow-x-auto px-4 py-3 no-scrollbar"
             style={{ scrollbarWidth: "none" }}
           >
             {categories.map((cat) => {
@@ -179,10 +162,10 @@ export default function MenuPage() {
         </div>
       )}
 
-      {categories.map((cat, idx) => (
-        <div key={cat.id} id={`cat-${cat.id}`} className="mb-16">
+      {categories.map((cat) => (
+        <div key={cat.id} id={`cat-${cat.id}`} className="mb-14 sm:mb-16">
           {/* CATEGORY HEADER - Sticky Glass */}
-          <div className="sticky top-[49px] z-20 mb-5 flex min-h-[4.5rem] items-center justify-between border-b border-charcoal/5 bg-warm-light/90 px-6 py-4 backdrop-blur-md">
+          <div className="mb-4 flex min-h-[3.5rem] items-center justify-between border-b border-charcoal/5 px-6 py-4">
             <h2 className="relative top-[3px] flex items-center text-xs sm:text-sm leading-none font-brand font-semibold uppercase tracking-[0.24em] sm:tracking-[0.3em] text-charcoal/85">
               {cat.name}
             </h2>
@@ -191,20 +174,20 @@ export default function MenuPage() {
             </span>
           </div>
           
-          <div className="grid gap-6 px-6">
+          <div className="grid gap-4 px-5 sm:gap-5 sm:px-8">
             {cat.products.map((product, pIdx) => (
               <button
                 key={product.id}
                 onClick={() => setSelectedProduct(product)}
-                className="reveal group flex items-start justify-between bg-white/60 backdrop-blur-sm border border-charcoal/5 rounded-[1.6rem] sm:rounded-[2rem] px-4 sm:px-6 py-4 sm:py-6 hover:shadow-xl hover:shadow-terracotta/5 hover:border-terracotta/20 hover:bg-white transition-all text-left w-full relative overflow-hidden"
+                className="reveal group flex min-h-[7.5rem] items-center justify-between rounded-[1.5rem] border border-charcoal/5 bg-white px-5 py-5 text-left shadow-[0_8px_20px_rgba(26,26,26,0.025)] transition-all hover:border-terracotta/20 hover:shadow-lg sm:px-6 sm:py-6"
                 style={{ transitionDelay: `${pIdx * 50}ms` }}
               >
                 {/* Subtle Hover Gradient */}
                 <div className="absolute inset-0 bg-gradient-to-br from-terracotta/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                 
                 <div className="flex-1 relative z-10 pr-3">
-                  <div className="flex items-center gap-2.5 mb-1.5">
-                    <h3 className="text-[1.45rem] sm:text-[1.85rem] font-display tracking-tight text-charcoal group-hover:text-terracotta transition-colors leading-[0.96]">
+                  <div className="mb-1.5 flex items-center gap-2.5">
+                    <h3 className="font-display text-[1.45rem] leading-[.96] tracking-tight text-charcoal transition-colors group-hover:text-terracotta sm:text-[1.85rem]">
                       {product.name}
                     </h3>
                     {pIdx === 0 && (
@@ -226,29 +209,11 @@ export default function MenuPage() {
                   </div>
                 </div>
 
-                {/* Immagine o pulsante + */}
-                <div className="relative z-10 flex-shrink-0 flex flex-col items-end justify-between h-full gap-2.5">
-                  {(product as any).imageUrl ? (
-                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border border-charcoal/5 shadow-sm">
-                      <Image
-                        src={(product as any).imageUrl}
-                        alt={product.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        sizes="96px"
-                      />
-                      <div className="absolute bottom-1.5 right-1.5 w-7 h-7 rounded-full bg-terracotta flex items-center justify-center text-white shadow-md opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                        <span className="text-base font-light leading-none">+</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-charcoal/5 flex items-center justify-center text-charcoal/40 group-hover:bg-terracotta group-hover:text-white transition-all shadow-sm active:scale-90 mt-auto">
-                      <span className="text-xl font-light">+</span>
-                    </div>
-                  )}
-                  <span className="text-[10px] font-brand font-bold uppercase tracking-[0.16em] text-charcoal/30 hidden sm:block">
-                    Personalizza
-                  </span>
+                <div className="relative z-10 flex shrink-0 flex-col items-end justify-center gap-2.5 pl-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-charcoal/5 text-charcoal/40 shadow-sm transition-all group-hover:bg-terracotta group-hover:text-white active:scale-90 sm:h-10 sm:w-10">
+                    <span className="text-xl font-light">+</span>
+                  </div>
+                  <span className="hidden text-[9px] font-brand font-bold uppercase tracking-[0.16em] text-charcoal/30 sm:block">Personalizza</span>
                 </div>
               </button>
             ))}
@@ -297,20 +262,6 @@ export default function MenuPage() {
           onClose={() => setSelectedProduct(null)}
         />
       )}
-
-      {/* FLOATING CART BUTTON */}
-      <button
-        onClick={() => setCartOpen(true)}
-        className={`fixed bottom-8 right-6 md:right-10 z-40 group flex items-center gap-3 bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] text-white rounded-full px-7 py-4 font-brand font-semibold uppercase tracking-[0.22em] text-[11px] shadow-[0_15px_30px_rgba(185,85,33,0.22)] hover:scale-105 active:scale-95 transition-all border border-white/25 ${cartPulse ? "scale-110" : ""}`}
-      >
-        <span className="text-lg">🛒</span>
-        {itemCount > 0 ? `Carrello · ${formatCurrency(cartTotal)}` : "Carrello"}
-        {itemCount > 0 && (
-          <span className="flex items-center justify-center bg-white text-terracotta text-[10px] w-5 h-5 rounded-full font-bold shadow-sm animate-scale-in">
-            {itemCount}
-          </span>
-        )}
-      </button>
 
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </div>

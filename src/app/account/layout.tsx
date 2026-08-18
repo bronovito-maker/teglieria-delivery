@@ -26,7 +26,7 @@ export default async function AccountLayout({
     <div className="min-h-screen flex flex-col bg-warm-light">
       <MobileTopBar />
 
-      <div className="flex-1 flex flex-col pt-[60px]">
+      <div className="flex-1 flex flex-col pt-[4.1rem] sm:pt-[4.5rem]">
         {displayName && (
           <div className="max-w-5xl mx-auto w-full px-5 pt-3 pb-1">
             <p className="text-sm text-charcoal/40 font-medium">

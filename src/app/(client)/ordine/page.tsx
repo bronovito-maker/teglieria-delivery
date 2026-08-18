@@ -16,6 +16,7 @@ export default function OrdinePage() {
   const [error, setError] = useState("");
   const [loggedUser, setLoggedUser] = useState<{ name: string; email: string } | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -244,22 +245,22 @@ export default function OrdinePage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto pb-24 pt-8 px-4">
-      <header className="mb-12 rounded-[2.5rem] border border-charcoal/5 bg-white/55 backdrop-blur-sm px-6 py-8 md:px-8 shadow-sm">
+    <div className="mx-auto max-w-3xl px-1 pb-24 pt-2 sm:px-2 sm:pt-4">
+      <header className="mb-10 rounded-[2rem] border border-charcoal/5 bg-white px-6 py-7 shadow-[0_10px_24px_rgba(26,26,26,0.035)] sm:px-8 sm:py-8">
         <span className="ds-micro-label text-terracotta/60 mb-4 block">Checkout</span>
-        <h1 className="text-5xl md:text-6xl font-display tracking-tight text-charcoal mb-3 leading-none">
+        <h1 className="mb-3 font-display text-4xl leading-none tracking-[-0.055em] text-charcoal sm:text-6xl">
           Concludi l&apos;Ordine
         </h1>
-        <p className="text-charcoal/55 text-lg font-body italic">
+        <p className="font-body text-sm italic text-charcoal/55 sm:text-base">
           Compila i dettagli e preparati a gustare la nostra teglia.
         </p>
       </header>
 
-      <form onSubmit={handleSubmit} className="space-y-12">
+      <form onSubmit={handleSubmit} className="space-y-10 sm:space-y-12">
         {/* SECTION 1: RIEPILOGO */}
         <div className="reveal space-y-6">
           <h2 className="ds-micro-label text-charcoal/35">Riepilogo Ordine</h2>
-          <div className="bg-white/60 rounded-[2rem] p-8 border border-charcoal/5 shadow-sm">
+          <div className="rounded-[1.5rem] border border-charcoal/5 bg-white p-6 shadow-[0_10px_24px_rgba(26,26,26,0.03)] sm:rounded-[2rem] sm:p-8">
             <div className="space-y-4">
               {items.map((item) => (
                 <div key={item.id} className="flex justify-between items-start">
@@ -285,7 +286,7 @@ export default function OrdinePage() {
                   <span>{formatCurrency(deliveryCost)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-2xl font-brand font-semibold text-charcoal pt-4">
+              <div className="flex justify-between pt-4 font-brand text-2xl font-semibold text-charcoal">
                 <span>Totale</span>
                 <span className="text-terracotta">{formatCurrency(total)}</span>
               </div>
@@ -348,6 +349,25 @@ export default function OrdinePage() {
           </div>
         )}
 
+        {!showDetails && (
+          <div className="reveal space-y-3 pt-1">
+            <Link
+              href="/menu"
+              className="flex min-h-12 w-full items-center justify-center rounded-full bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] px-6 text-base font-brand font-semibold text-white shadow-[0_12px_24px_rgba(197,86,26,0.2)] transition-transform active:scale-[.99]"
+            >
+              Torna al menu
+            </Link>
+            <button
+              type="button"
+              onClick={() => setShowDetails(true)}
+              className="flex min-h-12 w-full items-center justify-center rounded-2xl border border-charcoal/15 bg-transparent px-6 text-base font-brand font-semibold text-charcoal transition-colors hover:bg-white"
+            >
+              Continua con i tuoi dati
+            </button>
+          </div>
+        )}
+
+        {showDetails && <>
         {/* SECTION 2: DATI CLIENTE */}
         <div className="reveal space-y-6">
           <div className="flex items-center justify-between">
@@ -607,6 +627,7 @@ export default function OrdinePage() {
             Pagherai direttamente {orderType === "ASPORTO" ? "al bancone" : "alla consegna"}
           </p>
         </div>
+        </>}
       </form>
     </div>
   );

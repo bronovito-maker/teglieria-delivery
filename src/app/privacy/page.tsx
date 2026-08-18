@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import MobileTopBar from "@/components/client/MobileTopBar";
 
 export const metadata: Metadata = {
   title: "Privacy Policy — La Teglieria",
@@ -9,7 +10,8 @@ export const metadata: Metadata = {
 export default function PrivacyPolicyPage() {
   return (
     <main className="min-h-screen bg-warm-light text-charcoal">
-      <div className="max-w-3xl mx-auto px-6 pt-16 pb-24">
+      <MobileTopBar />
+      <div className="max-w-3xl mx-auto px-6 pt-28 pb-24">
 
         {/* Back */}
         <Link href="/" className="inline-flex items-center gap-2 text-xs font-brand font-bold uppercase tracking-widest text-charcoal/40 hover:text-terracotta transition-colors mb-12">

@@ -18,6 +18,8 @@ const riderCredentials = {
   password: process.env.E2E_RIDER_PASSWORD,
 };
 
+const e2eOrigin = process.env.E2E_BASE_URL ?? "http://localhost:3000";
+
 async function createCustomerOrder(request: APIRequestContext) {
   const menuRes = await request.get("/api/menu");
   expect(menuRes.ok()).toBe(true);
@@ -28,6 +30,7 @@ async function createCustomerOrder(request: APIRequestContext) {
   const unitPrice = Number(product.price);
   const pickupTime = new Date(Date.now() + 90 * 60_000).toISOString();
   const orderRes = await request.post("/api/ordini", {
+    headers: { origin: e2eOrigin },
     data: {
       type: "ASPORTO",
       channel: "WEB",

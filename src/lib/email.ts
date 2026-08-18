@@ -32,10 +32,10 @@ function emailWrapper(content: string): string {
     <tr><td align="center">
       <table width="100%" style="max-width:560px;">
 
-        <tr><td style="background:#1d1d1f;border-radius:24px 24px 0 0;padding:28px 32px;text-align:center;">
-          <p style="margin:0;font-size:28px;">🍕</p>
-          <p style="margin:6px 0 0;font-size:20px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#ffffff;">La Teglieria</p>
-          <p style="margin:4px 0 0;font-size:10px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">Artisan Pizza</p>
+        <tr><td style="background:#1d1d1f;border-radius:24px 24px 0 0;padding:14px 32px;text-align:center;">
+          <div style="display:inline-block;background:#242426;padding:14px 15px;line-height:0;">
+            <img src="https://www.lateglieria.it/icons/LT_icon_tile.webp" width="78" height="78" alt="LT" style="display:block;border:2px solid #f5f0e8;" />
+          </div>
         </td></tr>
 
         <tr><td style="background:#ffffff;padding:36px 32px;">

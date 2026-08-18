@@ -92,12 +92,12 @@ export default function StatoOrdinePage() {
   const currentStepIndex = STATUS_STEPS.indexOf(order.status);
 
   return (
-    <div className="max-w-lg mx-auto py-12 px-6 bg-warm-light min-h-screen">
-      <div className="reveal active flex flex-col items-center text-center mb-10">
+    <div className="mx-auto min-h-screen max-w-xl bg-warm-light px-5 pb-16 pt-5 sm:px-8 sm:pt-8">
+      <div className="reveal active mb-8 flex flex-col items-center text-center sm:mb-10">
         <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-4 px-4 py-1.5 border border-terracotta/20 rounded-full bg-white/50">
           Tracking Online
         </span>
-        <h1 className="text-4xl md:text-5xl font-display tracking-tight text-charcoal">
+        <h1 className="font-display text-4xl tracking-[-0.055em] text-charcoal sm:text-5xl">
           Stato <span className="text-terracotta">Ordine.</span>
         </h1>
         <p className="text-sm font-body italic text-charcoal/40 mt-4 tracking-widest uppercase">Ordine #{formatOrderCode(order)}</p>
@@ -115,13 +115,13 @@ export default function StatoOrdinePage() {
       ) : (
         <>
           {/* Progress bar */}
-          <div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] border border-charcoal/5 p-8 mb-8 shadow-sm">
-            <div className="flex items-center justify-center mb-8">
+          <div className="mb-6 rounded-[1.8rem] border border-charcoal/5 bg-white p-6 shadow-[0_10px_24px_rgba(26,26,26,0.035)] sm:mb-8 sm:p-8">
+            <div className="mb-7 flex items-center justify-center">
               <span className={`px-6 py-2 rounded-full text-[10px] font-brand font-bold uppercase tracking-[0.2em] shadow-sm ${ORDER_STATUS_COLORS[order.status]}`}>
                 {ORDER_STATUS_LABELS[order.status]}
               </span>
             </div>
-            <div className="flex items-start gap-1 justify-between">
+            <div className="flex items-start justify-between gap-1">
               {STATUS_STEPS.map((step, i) => (
                 <div key={step} className="flex-1 flex flex-col items-center group">
                   <div className={`h-1.5 w-full rounded-full transition-all duration-700 ${i <= currentStepIndex ? "bg-terracotta" : "bg-charcoal/10"}`} />
@@ -134,7 +134,7 @@ export default function StatoOrdinePage() {
           </div>
 
           {order.status === "RECEIVED" && (
-            <div className="bg-marigold/10 border border-marigold/20 rounded-3xl p-6 mb-8 text-center">
+            <div className="mb-6 rounded-[1.4rem] border border-marigold/20 bg-marigold/10 p-5 text-center sm:mb-8">
               <p className="text-xs font-brand font-bold uppercase tracking-widest text-marigold">
                 In attesa di conferma...
               </p>
@@ -144,7 +144,7 @@ export default function StatoOrdinePage() {
             </div>
           )}
           {order.status === "OUT" && (
-            <div className="bg-terracotta/8 border border-terracotta/20 rounded-3xl p-6 mb-8 text-center">
+            <div className="mb-6 rounded-[1.4rem] border border-terracotta/20 bg-terracotta/8 p-5 text-center sm:mb-8">
               <p className="text-xs font-brand font-bold uppercase tracking-widest text-terracotta">
                 Il rider è in arrivo
               </p>
@@ -158,7 +158,7 @@ export default function StatoOrdinePage() {
 
       {/* Orario stimato */}
       {order.estimatedTime && order.status !== "CANCELLED" && order.status !== "DELIVERED" && (
-        <div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] border border-charcoal/5 p-8 mb-8 shadow-sm text-center">
+        <div className="mb-6 rounded-[1.8rem] border border-charcoal/5 bg-white p-7 text-center shadow-[0_10px_24px_rgba(26,26,26,0.035)] sm:mb-8">
           <p className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-charcoal/30 mb-2">
             {order.type === "DELIVERY" ? "Consegna prevista" : "Pronto per il ritiro"}
           </p>
@@ -172,7 +172,7 @@ export default function StatoOrdinePage() {
       )}
 
       {/* Dettagli ordine */}
-      <div className="bg-white/50 backdrop-blur-md rounded-[2.5rem] border border-charcoal/5 p-8 space-y-8 shadow-sm">
+      <div className="space-y-8 rounded-[1.8rem] border border-charcoal/5 bg-white p-6 shadow-[0_10px_24px_rgba(26,26,26,0.035)] sm:p-8">
         <header className="flex items-center justify-between border-b border-charcoal/5 pb-6">
           <h2 className="font-brand font-bold uppercase tracking-widest text-xs text-charcoal/30">Dettagli</h2>
           <span className="text-[10px] font-brand font-bold uppercase tracking-widest text-terracotta">
@@ -234,7 +234,7 @@ export default function StatoOrdinePage() {
 
       {/* Banner registrazione post-ordine */}
       {showRegisterBanner && (
-        <div className="mt-8 bg-white/70 backdrop-blur-xl rounded-[2rem] border border-terracotta/10 p-6 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className="mt-6 rounded-[1.6rem] border border-terracotta/10 bg-white p-6 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-500 sm:mt-8">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
               <p className="text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-terracotta mb-1">La prossima pizza in 10 secondi</p>

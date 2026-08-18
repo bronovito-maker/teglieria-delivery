@@ -18,9 +18,13 @@ export function enforceSameOrigin(request: Request) {
     return NextResponse.json({ error: "Origin mancante" }, { status: 403 });
   }
 
-  const expected =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    `${new URL(request.url).protocol}//${request.headers.get("host") || new URL(request.url).host}`;
+  const requestUrl = new URL(request.url);
+  const localHosts = new Set(["localhost", "127.0.0.1", "::1"]);
+  const isLocalRequest = localHosts.has(requestUrl.hostname);
+  const expected = isLocalRequest
+    ? requestUrl.origin
+    : process.env.NEXT_PUBLIC_SITE_URL ||
+      `${requestUrl.protocol}//${request.headers.get("host") || requestUrl.host}`;
 
   if (normalizeOrigin(requestOrigin) !== normalizeOrigin(expected)) {
     return NextResponse.json({ error: "Origin non autorizzato" }, { status: 403 });
