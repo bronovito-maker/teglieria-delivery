@@ -16,7 +16,7 @@ const securityHeaders = [
       "img-src 'self' data: https: https://*.zirel.org",
       "font-src 'self' data: https://fonts.gstatic.com",
       `connect-src 'self' https: wss: ${isProd ? "" : "http: ws:"} https://vitals.vercel-insights.com https://*.zirel.org https://*.up.railway.app`.replace(/\s+/g, " ").trim(),
-      "frame-src 'self' https://*.zirel.org",
+      "frame-src 'self' https://*.zirel.org https://www.google.com https://maps.google.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
