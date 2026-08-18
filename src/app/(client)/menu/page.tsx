@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
 import CartDrawer from "@/components/client/CartDrawer";
@@ -9,7 +10,9 @@ import ProductModal from "@/components/client/ProductModal";
 import type { CategoryWithProducts, ProductWithRelations } from "@/types";
 import { SITE_CONFIG } from "@/lib/site-config";
 
-export default function MenuPage() {
+function MenuContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { setOrderType } = useCartStore();
   const [categories, setCategories] = useState<CategoryWithProducts[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,11 +47,13 @@ export default function MenuPage() {
   };
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const type = params.get("type");
-    const openCartParam = params.get("openCart");
+    const type = searchParams.get("type");
+    const openCartParam = searchParams.get("openCart");
     if (type === "DELIVERY" || type === "ASPORTO") setOrderType(type);
-    if (openCartParam === "1") setCartOpen(true);
+    if (openCartParam === "1") {
+      setCartOpen(true);
+      router.replace("/menu", { scroll: false });
+    }
 
     const loadMenu = async () => {
       try {
@@ -61,7 +66,7 @@ export default function MenuPage() {
     };
 
     loadMenu();
-  }, [setOrderType]);
+  }, [router, searchParams, setOrderType]);
 
   // Scroll Reveal Logic
   useEffect(() => {
@@ -265,5 +270,13 @@ export default function MenuPage() {
 
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </div>
+  );
+}
+
+export default function MenuPage() {
+  return (
+    <Suspense fallback={null}>
+      <MenuContent />
+    </Suspense>
   );
 }
