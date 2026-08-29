@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -10,17 +10,29 @@ import CartDrawer from "@/components/client/CartDrawer";
 import ProductModal from "@/components/client/ProductModal";
 import type { CategoryWithProducts, ProductWithRelations } from "@/types";
 import { SITE_CONFIG } from "@/lib/site-config";
+import { createClient } from "@/lib/supabase/client";
 
 function MenuContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setOrderType } = useCartStore();
+  const supabase = useMemo(() => createClient(), []);
   const [categories, setCategories] = useState<CategoryWithProducts[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<ProductWithRelations | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      const role = typeof user?.user_metadata?.role === "string" ? user.user_metadata.role : null;
+      setIsLoggedIn(Boolean(user && role !== "rider"));
+      setAuthChecked(true);
+    });
+  }, [supabase]);
   const menuSchema = {
     "@context": "https://schema.org",
     "@type": "Menu",
@@ -137,11 +149,18 @@ function MenuContent() {
         <p className="reveal active text-charcoal/55 text-base md:text-lg mt-8 font-body italic max-w-md leading-relaxed">
           Scegli la tua teglia preferita, preparata con 48 ore di lenta maturazione.
         </p>
-        <div className="mt-7 max-w-md rounded-[1.25rem] border border-marigold/30 bg-marigold/10 px-5 py-4 text-left">
-          <p className="font-brand text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal/70">Prezzi Club online</p>
-          <p className="mt-1 text-sm leading-relaxed text-charcoal/65">Registrati o accedi: il tuo account attiva automaticamente i prezzi speciali sugli ordini effettuati dal sito.</p>
-          <Link href="/registrati" className="mt-2 inline-block text-xs font-bold text-terracotta underline underline-offset-2">Registrati e risparmia</Link>
-        </div>
+        {authChecked && (isLoggedIn ? (
+          <div data-testid="club-banner-active" className="mt-7 max-w-md rounded-[1.25rem] border border-green-200 bg-green-50 px-5 py-4 text-left">
+            <p className="font-brand text-[11px] font-bold uppercase tracking-[0.14em] text-green-700">Prezzi Club attivi</p>
+            <p className="mt-1 text-sm leading-relaxed text-green-700/75">Sei loggato: i prezzi Club vengono applicati automaticamente al tuo ordine.</p>
+          </div>
+        ) : (
+          <div data-testid="club-banner-login" className="mt-7 max-w-md rounded-[1.25rem] border border-marigold/30 bg-marigold/10 px-5 py-4 text-left">
+            <p className="font-brand text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal/70">Prezzi Club online</p>
+            <p className="mt-1 text-sm leading-relaxed text-charcoal/65">Registrati o accedi: il tuo account attiva automaticamente i prezzi speciali sugli ordini effettuati dal sito.</p>
+            <Link href="/registrati" className="mt-2 inline-block text-xs font-bold text-terracotta underline underline-offset-2">Registrati e risparmia</Link>
+          </div>
+        ))}
       </div>
 
       {/* CATEGORY NAV */}
