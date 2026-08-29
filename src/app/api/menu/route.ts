@@ -6,7 +6,7 @@ import { isOperatorUser } from "@/lib/rbac";
 export async function GET() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const role = user?.user_metadata?.role;
+  const role = typeof user?.user_metadata?.role === "string" ? user.user_metadata.role : null;
   const isClubMember = Boolean(user && role !== "rider" && !isOperatorUser(user));
   const categories = await prisma.category.findMany({
     where: { active: true },
