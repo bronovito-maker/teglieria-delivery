@@ -40,6 +40,9 @@ test.describe("customer authentication flow", () => {
       await login(page);
       await expect(page.getByTestId("club-banner-active")).toBeVisible();
       await expect(page.getByTestId("club-banner-login")).toHaveCount(0);
+      await expect(page.getByTestId("club-price").first()).toBeVisible();
+      await expect(page.getByText("Prezzo pieno", { exact: false })).toHaveCount(0);
+      await expect(page.getByText("A partire da", { exact: false })).toHaveCount(0);
 
       const menuResponse = await page.request.get("/api/menu");
       expect(menuResponse.ok()).toBe(true);
