@@ -32,6 +32,21 @@ function MenuContent() {
       setIsLoggedIn(Boolean(user && role !== "rider"));
       setAuthChecked(true);
     });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const role = typeof session?.user?.user_metadata?.role === "string" ? session.user.user_metadata.role : null;
+      setIsLoggedIn(Boolean(session?.user && role !== "rider"));
+      setAuthChecked(true);
+    });
+    const onAuthChanged = () => supabase.auth.getUser().then(({ data: { user } }) => {
+      const role = typeof user?.user_metadata?.role === "string" ? user.user_metadata.role : null;
+      setIsLoggedIn(Boolean(user && role !== "rider"));
+      setAuthChecked(true);
+    });
+    window.addEventListener("customer-auth-changed", onAuthChanged);
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("customer-auth-changed", onAuthChanged);
+    };
   }, [supabase]);
   const menuSchema = {
     "@context": "https://schema.org",
