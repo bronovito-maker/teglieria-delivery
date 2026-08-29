@@ -56,7 +56,22 @@ export async function syncStripeCatalogProduct(product: StripeCatalogProduct) {
       { idempotencyKey: `catalog-price-${product.id}-${amount}` },
     );
     stripePriceId = newPrice.id;
-    if (product.active && !newPrice.active) await stripe.prices.update(newPrice.id, { active: true });
+    if (product.active && !newPrice.active) {
+      // A previous interrupted sync may have left the idempotent Price archived.
+      // Reactivate it and verify the result before assigning it as default.
+      await stripe.prices.update(newPrice.id, { active: true });
+      const reactivatedPrice = await stripe.prices.retrieve(newPrice.id);
+      if (!reactivatedPrice.active) {
+        const replacementPrice = await stripe.prices.create({
+          product: stripeProduct.id,
+          currency: "eur",
+          unit_amount: amount,
+          active: true,
+          metadata: { catalogProductId: product.id },
+        });
+        stripePriceId = replacementPrice.id;
+      }
+    }
     if (currentPrice?.active) await stripe.prices.update(currentPrice.id, { active: false });
     if (product.active) await stripe.products.update(stripeProduct.id, { default_price: newPrice.id });
   } else if (!product.active && currentPrice?.active) {
