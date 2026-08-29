@@ -28,6 +28,7 @@ export async function GET(request: Request) {
         await supabase.auth.updateUser({ data: { role: "customer" } });
       }
 
+
       // Retroactive linking: collega ordini guest (authUserId null) all'account per email
       const isCustomer = type === "customer" || role === "customer" || (!role && type !== "admin");
       if (isCustomer && data.user?.email) {

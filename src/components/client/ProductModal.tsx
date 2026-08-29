@@ -23,6 +23,7 @@ export default function ProductModal({ product, onClose }: Props) {
   const [notes, setNotes] = useState("");
 
   const basePrice = Number(product.price);
+  const standardBasePrice = Number(product.standardPrice ?? product.price);
   const additionsTotal = selectedAdditions.reduce((s, a) => s + a.price, 0);
   const unitTotal = basePrice + variantDelta + additionsTotal;
   const total = unitTotal * quantity;
@@ -49,6 +50,7 @@ export default function ProductModal({ product, onClose }: Props) {
       productName: product.name,
       quantity,
       unitPrice: basePrice,
+      standardUnitPrice: standardBasePrice + variantDelta + additionsTotal,
       variant: selectedVariant || undefined,
       variantPriceDelta: variantDelta,
       additions: selectedAdditions,

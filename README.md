@@ -27,6 +27,7 @@ Realizzare un ecosistema unico per:
 - Icone UI: Lucide React dove usato
 - Mappe: Google Maps API
 - Email: Brevo / webhook notifiche stato ordine
+- Pagamenti: Stripe Checkout per pagamenti con carta
 - PWA: manifest + service worker
 
 ## Brand System
@@ -132,5 +133,27 @@ Variabili importanti:
 - `ADMIN_ALLOWLIST_EMAILS`
 - `OPERATOR_ALLOWLIST_EMAILS`
 - `ORDER_STATUS_WEBHOOK_URL`
+- `NEXT_PUBLIC_SITE_URL`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+
+Per attivare i pagamenti con carta, configura in Stripe un endpoint webhook su
+`/api/stripe/webhook` per gli eventi `checkout.session.completed`,
+`checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`,
+`checkout.session.expired`, `payment_intent.succeeded`, `payment_intent.payment_failed`
+e `charge.refunded`.
+Il webhook aggiorna lo stato del pagamento dell’ordine; il redirect del cliente non
+viene usato come prova di pagamento.
+
+Per importare o riallineare il catalogo esistente usa `npm run stripe:sync-catalog`.
+Per controllare gli importi e riallineare gli stati degli ordini usa `npm run stripe:reconcile`.
+Prima del deploy applica le migrazioni con `npx prisma migrate deploy`.
+
+Per il collaudo locale completo avvia `stripe listen --forward-to
+localhost:3000/api/stripe/webhook` e configura le chiavi test Stripe nell’ambiente
+del server. Il test Playwright della carta si attiva con `E2E_STRIPE=1`, ma solo
+quando il processo di test usa una chiave `sk_test_` e il secret del listener CLI.
+Il collaudo deve includere una carta riuscita (`4242 4242 4242 4242`),
+una carta rifiutata, un retry, un rimborso totale/parziale e una riconciliazione.
 
 Ultimo aggiornamento: 29 aprile 2026

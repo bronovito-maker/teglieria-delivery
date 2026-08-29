@@ -8,9 +8,11 @@ type ScannerState = "idle" | "requesting" | "scanning" | "error";
 
 interface Props {
   onClose: () => void;
+  onCode?: (data: string) => void;
+  title?: string;
 }
 
-export default function QRScanner({ onClose }: Props) {
+export default function QRScanner({ onClose, onCode, title = "Scansiona QR Ordine" }: Props) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -36,6 +38,13 @@ export default function QRScanner({ onClose }: Props) {
     (data: string) => {
       if (detected) return;
 
+      if (onCode) {
+        setDetected(true);
+        stopCamera();
+        onCode(data);
+        return;
+      }
+
       // Accept full URL or just the path /rider/ordine/:id
       try {
         let path = data;
@@ -54,7 +63,7 @@ export default function QRScanner({ onClose }: Props) {
         // Not a valid URL — ignore and keep scanning
       }
     },
-    [detected, router, stopCamera]
+    [detected, onCode, router, stopCamera]
   );
 
   // Frame decode loop using jsQR
@@ -152,7 +161,7 @@ export default function QRScanner({ onClose }: Props) {
       </button>
 
       <p className="text-white/50 text-[10px] font-brand font-bold uppercase tracking-[0.3em] mb-6">
-        Scansiona QR Ordine
+        {title}
       </p>
 
       <div className="relative w-72 h-72 rounded-[2rem] overflow-hidden shadow-2xl">

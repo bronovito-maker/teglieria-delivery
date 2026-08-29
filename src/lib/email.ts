@@ -82,7 +82,9 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmationInput):
 
   const isDelivery = order.type === "DELIVERY";
   const timeLabel = formatTime(isDelivery ? order.estimatedTime : order.pickupTime);
-  const paymentLabel = order.paymentMethod === "POS" ? "Carta / POS" : "Contanti";
+  const paymentLabel = order.paymentMethod === "STRIPE"
+    ? "Carta online (Stripe)"
+    : order.paymentMethod === "POS" ? "Carta / POS" : "Contanti";
 
   const itemsHtml = order.items.map((item) => `
     <tr>
@@ -448,6 +450,50 @@ export async function sendOrderDeliveredEmail(order: OrderDeliveredInput): Promi
     });
   } catch (err) {
     console.error("[EMAIL][ERROR] Ordine completato:", err);
+  }
+}
+
+// ─── EMAIL 8: Feedback post-ordine ──────────────────────────────────────────
+
+type OrderFeedbackInput = {
+  customerEmail: string;
+  customerName: string;
+  orderNumber: number;
+  feedbackUrl: string;
+};
+
+export async function sendOrderFeedbackEmail(order: OrderFeedbackInput): Promise<void> {
+  const client = getClient();
+  if (!client) return;
+
+  const content = `
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">Un minuto per noi</p>
+    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Com'è andata, ${order.customerName}?</h1>
+    <p style="margin:0 0 24px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">
+      Ora che hai avuto modo di gustare il tuo ordine <strong>#${order.orderNumber}</strong>, ci farebbe piacere sapere com'è andata. Bastano 30 secondi: il tuo feedback ci aiuta a migliorare ogni teglia.
+    </p>
+
+    <div style="text-align:center;margin:30px 0 28px;">
+      <a href="${order.feedbackUrl}" style="display:inline-block;padding:16px 34px;background:#D96A2B;color:#ffffff;text-decoration:none;border-radius:99px;font-size:13px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;">
+        Valuta il tuo ordine →
+      </a>
+    </div>
+
+    <p style="margin:0;font-size:12px;color:#1d1d1f;opacity:0.4;text-align:center;line-height:1.6;">
+      La valutazione viene usata per le nostre statistiche interne. Se ti sei trovato bene, potrai anche lasciarci una recensione su Google.
+    </p>
+  `;
+
+  try {
+    await client.transactionalEmails.sendTransacEmail({
+      sender: { name: FROM_NAME, email: FROM_EMAIL },
+      to: [{ email: order.customerEmail, name: order.customerName }],
+      subject: `Com'è andato il tuo ordine #${order.orderNumber}? — La Teglieria`,
+      htmlContent: emailWrapper(content),
+    });
+  } catch (err) {
+    console.error("[EMAIL][ERROR] Feedback ordine:", err);
+    throw err;
   }
 }
 

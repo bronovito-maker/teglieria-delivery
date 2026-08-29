@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AddressAutocomplete from "@/components/client/AddressAutocomplete";
@@ -92,12 +92,23 @@ export default function OrdinePage() {
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [pickupTime, setPickupTime] = useState("");
   const [notes, setNotes] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"CONTANTI" | "POS">("CONTANTI");
+  const [paymentMethod, setPaymentMethod] = useState<"CONTANTI" | "STRIPE">("CONTANTI");
+  const [deliveryFee, setDeliveryFee] = useState(2.5);
   const [slots, setSlots] = useState<{ time: string, available: boolean, remaining: number }[]>([]);
   const [dayClosed, setDayClosed] = useState(false);
   const [closedDays, setClosedDays] = useState<Set<string>>(new Set());
   const [slotsCache, setSlotsCache] = useState<Record<string, { slots: { time: string, available: boolean, remaining: number }[]; closed: boolean }>>({});
   const [slotsLoading, setSlotsLoading] = useState(false);
+  const orderRequestKey = useRef(crypto.randomUUID());
+
+  useEffect(() => {
+    fetch("/api/config", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((config) => {
+        if (typeof config?.deliveryFee === "number" && Number.isFinite(config.deliveryFee)) setDeliveryFee(config.deliveryFee);
+      })
+      .catch(() => { /* Mantieni il fallback visuale; il server ricalcola sempre il costo. */ });
+  }, []);
 
   // Pre-check availability for all 7 days shown
   useEffect(() => {
@@ -174,7 +185,7 @@ export default function OrdinePage() {
   }, [slots]);
 
   const subtotal = getSubtotal();
-  const deliveryCost = orderType === "DELIVERY" ? 2.5 : 0;
+  const deliveryCost = orderType === "DELIVERY" ? deliveryFee : 0;
   const total = subtotal + deliveryCost;
 
   if (items.length === 0) {
@@ -204,7 +215,7 @@ export default function OrdinePage() {
     try {
       const res = await fetch("/api/ordini", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Idempotency-Key": orderRequestKey.current },
         body: JSON.stringify({
           type: orderType,
           channel: "WEB",
@@ -247,6 +258,11 @@ export default function OrdinePage() {
 
       const order = await res.json();
       clearCart();
+
+      if (paymentMethod === "STRIPE" && order.checkoutUrl) {
+        window.location.assign(order.checkoutUrl);
+        return;
+      }
 
       if (loggedUser) {
         // Aggiorna profilo utente con telefono e ultimo indirizzo (fire-and-forget)
@@ -617,14 +633,14 @@ export default function OrdinePage() {
             </button>
             <button
               type="button"
-              onClick={() => setPaymentMethod("POS")}
-              className={`flex-1 py-4 px-6 rounded-[1.6rem] transition-all flex items-center justify-center gap-3 font-bold ${paymentMethod === "POS"
+              onClick={() => setPaymentMethod("STRIPE")}
+                className={`flex-1 py-4 px-6 rounded-[1.6rem] transition-all flex items-center justify-center gap-3 font-bold ${paymentMethod === "STRIPE"
                   ? "bg-white shadow-xl text-charcoal scale-[1.02]"
                   : "text-charcoal/40 hover:text-charcoal/60"
                 }`}
             >
               <span className="text-xl">💳</span>
-              POS / Carta
+              Carta online
             </button>
           </div>
         </div>
@@ -649,7 +665,7 @@ export default function OrdinePage() {
               disabled={loading}
               className="w-full py-4 bg-terracotta text-white rounded-full font-bold text-lg shadow-2xl hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
             >
-              {loading ? "Elaborazione..." : `Conferma Ordine · ${formatCurrency(total)}`}
+            {loading ? "Elaborazione..." : paymentMethod === "STRIPE" ? `Paga con carta · ${formatCurrency(total)}` : `Conferma Ordine · ${formatCurrency(total)}`}
             </button>
           </div>
           <div className="hidden md:block">
@@ -658,11 +674,13 @@ export default function OrdinePage() {
               disabled={loading}
               className="w-full py-5 bg-terracotta text-white rounded-full font-bold text-xl shadow-2xl hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
             >
-              {loading ? "Elaborazione..." : "Conferma e Invia Ordine"}
+            {loading ? "Elaborazione..." : paymentMethod === "STRIPE" ? "Vai al pagamento sicuro" : "Conferma e Invia Ordine"}
             </button>
           </div>
           <p className="text-center text-gray-400 text-sm mt-6">
-            Pagherai direttamente {orderType === "ASPORTO" ? "al bancone" : "alla consegna"}
+            {paymentMethod === "STRIPE"
+              ? "Pagamento sicuro con Stripe · carta, Apple Pay o Google Pay"
+              : `Pagherai direttamente ${orderType === "ASPORTO" ? "al bancone" : "alla consegna"}`}
           </p>
         </div>
         </>}

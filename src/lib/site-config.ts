@@ -20,6 +20,9 @@ export const SITE_CONFIG = {
     instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL ?? "",
     facebook: process.env.NEXT_PUBLIC_FACEBOOK_URL ?? "",
   },
+  googleReviewUrl:
+    process.env.NEXT_PUBLIC_GOOGLE_REVIEW_URL ??
+    "https://g.page/r/CW1blgo1a4szECE/review",
 } as const;
 
 export function toPhoneHref(phone: string) {

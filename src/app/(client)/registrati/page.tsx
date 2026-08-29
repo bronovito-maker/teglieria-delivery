@@ -65,6 +65,7 @@ function RegisterForm() {
       return;
     }
 
+
     // Send branded welcome email
     fetch("/api/customer/welcome", {
       method: "POST",
@@ -110,7 +111,7 @@ function RegisterForm() {
             Registrati<span className="text-terracotta">.</span>
           </h1>
           <p className="font-body italic text-charcoal/40 mt-2 text-sm">
-            Ordina più velocemente con i dati salvati.
+            Registrati per attivare automaticamente i prezzi Club sugli ordini effettuati dal sito.
           </p>
         </div>
 

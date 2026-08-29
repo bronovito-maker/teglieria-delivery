@@ -1,0 +1,11 @@
+<svg width="900" height="700" viewBox="0 0 900 700" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="900" height="700" fill="#F2E9DC"/>
+  <circle cx="450" cy="350" r="220" fill="#E7D5BE"/>
+  <circle cx="450" cy="350" r="176" stroke="#D96A2B" stroke-opacity=".28" stroke-width="3"/>
+  <path d="M332 394C363 306 423 254 500 254C559 254 602 283 616 331C636 398 579 449 483 462C397 474 326 451 332 394Z" fill="#D96A2B" fill-opacity=".13"/>
+  <path d="M368 379C407 354 453 349 506 365C540 375 565 371 587 354" stroke="#B95521" stroke-opacity=".55" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="416" cy="333" r="12" fill="#D96A2B" fill-opacity=".55"/>
+  <circle cx="522" cy="408" r="10" fill="#D96A2B" fill-opacity=".42"/>
+  <path d="M450 210V490M310 350H590" stroke="#D96A2B" stroke-opacity=".12" stroke-width="2"/>
+  <text x="450" y="585" text-anchor="middle" fill="#292522" fill-opacity=".52" font-family="Arial, sans-serif" font-size="24" font-weight="700" letter-spacing="5">PRESTO IN FOTO</text>
+</svg>

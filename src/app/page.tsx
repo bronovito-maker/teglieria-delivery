@@ -83,8 +83,20 @@ export default function LandingPage() {
         </div>
         <div className="my-8 flex justify-center">
           <span className="rounded-full border border-marigold/25 bg-white/80 px-5 py-3 text-sm font-brand font-semibold text-charcoal/65 shadow-sm">
-            <span className="mr-2 text-marigold">★★★★★</span> 4.8 · 500+ recensioni
+            <span className="mr-2 text-marigold">★★★★★</span> 4.8 · 30+ recensioni
           </span>
+        </div>
+        <div className="mb-8 rounded-[1.4rem] border border-terracotta/10 bg-white/70 px-5 py-5 text-center shadow-sm sm:px-8">
+          <p className="font-body text-sm leading-relaxed text-charcoal/60">Siamo appena partiti e stiamo costruendo la nostra community, una teglia alla volta.</p>
+          {SITE_CONFIG.googleReviewUrl ? (
+            <a href={SITE_CONFIG.googleReviewUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex min-h-10 items-center justify-center rounded-full bg-charcoal px-5 py-2.5 text-xs font-brand font-bold uppercase tracking-widest text-white transition-colors hover:bg-terracotta">
+              Lascia una recensione su Google ↗
+            </a>
+          ) : (
+            <span className="mt-4 inline-flex min-h-10 items-center justify-center rounded-full border border-charcoal/10 px-5 py-2.5 text-xs font-brand font-bold uppercase tracking-widest text-charcoal/35">
+              Recensioni Google in arrivo
+            </span>
+          )}
         </div>
         <div className="space-y-4">
           {reviews.map((review) => (

@@ -4,109 +4,32 @@ const prisma = new PrismaClient();
 
 async function main() {
   // Categorie
-  const pizze = await prisma.category.create({
-    data: { name: "Pizze", sortOrder: 0 },
-  });
-  const teglie = await prisma.category.create({
-    data: { name: "Teglie", sortOrder: 1 },
-  });
-  const bibite = await prisma.category.create({
-    data: { name: "Bibite", sortOrder: 2 },
-  });
-  const dolci = await prisma.category.create({
-    data: { name: "Dolci", sortOrder: 3 },
-  });
+  const intere = await prisma.category.create({ data: { name: "Teglie intere", sortOrder: 0 } });
+  const mezze = await prisma.category.create({ data: { name: "Mezze teglie", sortOrder: 1 } });
+  const tranci = await prisma.category.create({ data: { name: "Tranci", sortOrder: 2 } });
+  const dolci = await prisma.category.create({ data: { name: "La dolce", sortOrder: 3 } });
 
-  // Pizze
-  await prisma.product.create({
-    data: {
-      name: "Margherita",
-      description: "Pomodoro, mozzarella, basilico",
-      price: 7.0,
-      categoryId: pizze.id,
-      variants: {
-        createMany: {
-          data: [
-            { name: "Piccola", priceDelta: -1.5 },
-            { name: "Grande", priceDelta: 2.0 },
-          ],
-        },
-      },
-      additions: {
-        createMany: {
-          data: [
-            { name: "Mozzarella extra", price: 1.5 },
-            { name: "Prosciutto", price: 2.0 },
-          ],
-        },
-      },
-      removals: {
-        createMany: {
-          data: [{ name: "Senza basilico" }],
-        },
-      },
-    },
-  });
+  const pizzas = [
+    ["La Regina", "Pomodoro San Marzano DOP, fiordilatte e basilico fresco.", 29, 24, 16, 14, 3, null],
+    ["La Partenopea", "Pomodoro San Marzano DOP, fiordilatte, acciughe e capperi.", 34, 29, 19, 17, 3.5, "pizza_teglia_la_partenopea.jpg"],
+    ["La Contadina", "Pomodoro San Marzano DOP, fiordilatte, prosciutto cotto e funghi.", 36, 30, 20, 18, 3.5, null],
+    ["La Diavola", "Pomodoro San Marzano DOP, fiordilatte e salamino piccante.", 34, 29, 19, 17, 3.5, "pizza_teglia_la_diavola.jpg"],
+    ["L'Ortolana", "Pomodoro San Marzano DOP, fiordilatte e verdure di stagione.", 34, 28, 19, 16, 3.5, "pizza_teglia_ortolana.jpg"],
+    ["La Pistacchio", "Fiordilatte, scamorza affumicata, prosciutto cotto arrosto, crema di burrata, pesto e granella di pistacchio.", 45, 42, 25, 25, 4.5, "pizza_teglia_la_pistacchio.jpg"],
+    ["La Nordica", "Fiordilatte, salmone affumicato, burrata pugliese, rucola e pomodorino giallo.", 49, 45, 27, 27, 5, null],
+    ["La Parma", "Fiordilatte, prosciutto crudo stagionato, rucola fresca, scaglie di Grana Padano DOP e olio extravergine d'oliva.", 44, 39, 24, 23, 4.5, "pizza_teglia_la_parma_closeup.jpg"],
+    ["La Burrata", "Pomodoro San Marzano DOP, burrata pugliese, pomodorini confit, basilico fresco e olio extravergine d'oliva.", 42, 39, 23, 23, 4.5, null],
+    ["La Carbonara", "Fiordilatte, crema di pecorino romano, guanciale croccante e pepe nero.", 42, 36, 23, 21, 4.5, null],
+  ] as const;
 
-  await prisma.product.create({
-    data: {
-      name: "Diavola",
-      description: "Pomodoro, mozzarella, salame piccante",
-      price: 8.5,
-      categoryId: pizze.id,
-      variants: {
-        createMany: {
-          data: [
-            { name: "Piccola", priceDelta: -1.5 },
-            { name: "Grande", priceDelta: 2.0 },
-          ],
-        },
-      },
-    },
-  });
+  for (const [name, description, standard, club, halfStandard, halfClub, slice, image] of pizzas) {
+    const imageUrl = image ? `/menu/${image}` : null;
+    await prisma.product.create({ data: { name, description, price: standard, clubPrice: club, categoryId: intere.id, imageUrl } });
+    await prisma.product.create({ data: { name, description, price: halfStandard, clubPrice: halfClub, categoryId: mezze.id, imageUrl } });
+    await prisma.product.create({ data: { name, description, price: slice, categoryId: tranci.id, imageUrl } });
+  }
 
-  await prisma.product.create({
-    data: {
-      name: "Capricciosa",
-      description: "Pomodoro, mozzarella, prosciutto, funghi, carciofi, olive",
-      price: 9.0,
-      categoryId: pizze.id,
-    },
-  });
-
-  // Teglie
-  await prisma.product.create({
-    data: {
-      name: "Teglia Margherita",
-      description: "Teglia classica con pomodoro e mozzarella",
-      price: 12.0,
-      categoryId: teglie.id,
-    },
-  });
-
-  await prisma.product.create({
-    data: {
-      name: "Teglia Patate e Rosmarino",
-      price: 10.0,
-      categoryId: teglie.id,
-    },
-  });
-
-  // Bibite
-  await prisma.product.create({
-    data: { name: "Coca Cola 33cl", price: 2.5, categoryId: bibite.id },
-  });
-  await prisma.product.create({
-    data: { name: "Acqua naturale 50cl", price: 1.0, categoryId: bibite.id },
-  });
-  await prisma.product.create({
-    data: { name: "Birra Moretti 33cl", price: 3.0, categoryId: bibite.id },
-  });
-
-  // Dolci
-  await prisma.product.create({
-    data: { name: "Tiramisù", price: 4.0, categoryId: dolci.id },
-  });
+  await prisma.product.create({ data: { name: "La Golosa", description: "Crema di nocciole, granella di nocciole e zucchero a velo.", price: 6, categoryId: dolci.id, imageUrl: "/menu/5e5_closeup.jpg" } });
 
   // Orari — tutti i giorni aperti a cena (default operativo)
   const schedule = [

@@ -14,6 +14,8 @@ export default function OrderDetailPage() {
   const [deletePassword, setDeletePassword] = useState("");
   const [deleteError, setDeleteError] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [refunding, setRefunding] = useState(false);
+  const [refundError, setRefundError] = useState("");
 
   const fetchOrder = useCallback(async () => {
     const res = await fetch(`/api/ordini/${id}`);
@@ -85,6 +87,21 @@ export default function OrderDetailPage() {
     router.refresh();
   }
 
+  async function handleRefund() {
+    if (!order || !window.confirm(`Rimborsare l'intero importo di ${formatCurrency(Number(order.total))}?`)) return;
+    setRefunding(true);
+    setRefundError("");
+    const res = await fetch(`/api/admin/ordini/${id}/refund`, { method: "POST" });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setRefundError(data.error || "Rimborso non riuscito");
+      setRefunding(false);
+      return;
+    }
+    await fetchOrder();
+    setRefunding(false);
+  }
+
   if (!order) return <p className="text-gray-400">Caricamento...</p>;
 
   const nextStatuses = getStatusTransitions(order.type, order.status);
@@ -108,6 +125,15 @@ export default function OrderDetailPage() {
           >
             Elimina ordine
           </button>
+          {order.paymentMethod === "STRIPE" && ["PAID", "PARTIALLY_REFUNDED"].includes(order.paymentStatus) && (
+            <button
+              onClick={handleRefund}
+              disabled={refunding}
+              className="px-4 py-2 rounded-lg text-sm font-brand font-semibold border border-violet-200 text-violet-700 hover:bg-violet-50 disabled:opacity-50 transition-colors"
+            >
+              {refunding ? "Rimborso..." : "Rimborsa"}
+            </button>
+          )}
           {nextStatuses.map((status) => (
             <button key={status} onClick={() => updateStatus(status)}
               className={`px-4 py-2 rounded-lg text-sm font-brand font-semibold transition-colors ${
@@ -173,14 +199,28 @@ export default function OrderDetailPage() {
             <div className="mt-2 pt-2 border-t col-span-2 flex items-center gap-2">
               <p className="text-gray-500 italic font-body">Pagamento:</p>
               <span className={`font-bold px-2 py-0.5 rounded text-xs ${
-                order.paymentMethod === "POS" 
-                  ? "bg-blue-600 text-white" 
+                order.paymentMethod === "STRIPE"
+                  ? "bg-violet-600 text-white"
+                  : order.paymentMethod === "POS"
+                  ? "bg-blue-600 text-white"
                   : "bg-green-600 text-white"
               }`}>
-                {order.paymentMethod === "POS" ? "💳 POS / CARTA" : "💵 CONTANTI"}
+                {order.paymentMethod === "STRIPE" ? "💳 CARTA ONLINE (STRIPE)" : order.paymentMethod === "POS" ? "💳 POS / CARTA" : "💵 CONTANTI"}
               </span>
+              {order.paymentMethod === "STRIPE" && (
+                <span className="text-xs font-brand font-semibold text-gray-500">
+                  {order.paymentStatus === "PAID" ? "Pagato" : order.paymentStatus === "REFUNDED" ? "Rimborsato" : order.paymentStatus === "PARTIALLY_REFUNDED" ? "Rimborso parziale" : "In attesa"}
+                </span>
+              )}
             </div>
           </div>
+
+          {refundError && <p className="mt-3 text-sm text-red-600 font-body">{refundError}</p>}
+          {order.refunds && order.refunds.length > 0 && (
+            <div className="mt-3 text-xs text-gray-500 font-body">
+              Rimborsi: {order.refunds.map((refund) => `${formatCurrency(refund.amountCents / 100)} (${refund.status.toLowerCase()})`).join(" · ")}
+            </div>
+          )}
 
           {order.notes && (
             <div className="mt-4 p-3 bg-yellow-50 rounded-lg text-sm">

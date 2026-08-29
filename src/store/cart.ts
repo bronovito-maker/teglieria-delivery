@@ -15,6 +15,7 @@ interface CartStore {
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
   getSubtotal: () => number;
+  getClubSavings: () => number;
   getItemCount: () => number;
 }
 
@@ -44,6 +45,7 @@ function sameCartConfiguration(
 ): boolean {
   return (
     existing.productId === incoming.productId &&
+    existing.unitPrice === incoming.unitPrice &&
     (existing.variant ?? "") === (incoming.variant ?? "") &&
     existing.variantPriceDelta === incoming.variantPriceDelta &&
     normalizeText(existing.notes) === normalizeText(incoming.notes) &&
@@ -129,6 +131,12 @@ export const useCartStore = create<CartStore>()(
 
       getSubtotal: () =>
         get().items.reduce((sum, item) => sum + item.totalPrice, 0),
+
+      getClubSavings: () =>
+        get().items.reduce((sum, item) => {
+          const standardPrice = item.standardUnitPrice ?? item.unitPrice;
+          return sum + Math.max(0, standardPrice - item.unitPrice) * item.quantity;
+        }, 0),
 
       getItemCount: () =>
         get().items.reduce((sum, item) => sum + item.quantity, 0),

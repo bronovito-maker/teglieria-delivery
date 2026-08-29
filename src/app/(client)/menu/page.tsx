@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCartStore } from "@/store/cart";
@@ -136,6 +137,11 @@ function MenuContent() {
         <p className="reveal active text-charcoal/55 text-base md:text-lg mt-8 font-body italic max-w-md leading-relaxed">
           Scegli la tua teglia preferita, preparata con 48 ore di lenta maturazione.
         </p>
+        <div className="mt-7 max-w-md rounded-[1.25rem] border border-marigold/30 bg-marigold/10 px-5 py-4 text-left">
+          <p className="font-brand text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal/70">Prezzi Club online</p>
+          <p className="mt-1 text-sm leading-relaxed text-charcoal/65">Registrati o accedi: il tuo account attiva automaticamente i prezzi speciali sugli ordini effettuati dal sito.</p>
+          <Link href="/registrati" className="mt-2 inline-block text-xs font-bold text-terracotta underline underline-offset-2">Registrati e risparmia</Link>
+        </div>
       </div>
 
       {/* CATEGORY NAV */}
@@ -189,7 +195,11 @@ function MenuContent() {
               >
                 {/* Subtle Hover Gradient */}
                 <div className="absolute inset-0 bg-gradient-to-br from-terracotta/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                
+                {product.imageUrl && (
+                  <div className="relative mr-4 h-24 w-24 shrink-0 overflow-hidden rounded-2xl sm:h-28 sm:w-28">
+                    <Image src={product.imageUrl} alt="" fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="112px" />
+                  </div>
+                )}
                 <div className="flex-1 relative z-10 pr-3">
                   <div className="mb-1.5 flex items-center gap-2.5">
                     <h3 className="font-display text-[1.45rem] leading-[.96] tracking-tight text-charcoal transition-colors group-hover:text-terracotta sm:text-[1.85rem]">
@@ -210,8 +220,22 @@ function MenuContent() {
                     <span className="inline-block font-brand font-semibold text-base sm:text-lg text-charcoal">
                       {formatCurrency(Number(product.price))}
                     </span>
+                    {product.isClubPrice && product.standardPrice != null && Number(product.standardPrice) !== Number(product.price) && (
+                      <span className="text-xs text-charcoal/35 line-through">{formatCurrency(Number(product.standardPrice))}</span>
+                    )}
+                    {product.isClubPrice && (
+                      <span className="rounded-full bg-marigold/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-charcoal/60">Club</span>
+                    )}
+                    {product.promoPrice != null && (
+                      <span className="rounded-full bg-terracotta/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-terracotta/75">Promo {formatCurrency(Number(product.promoPrice))}</span>
+                    )}
                     <span className="text-[10px] uppercase tracking-[0.16em] font-brand font-bold text-charcoal/30">a partire da</span>
                   </div>
+                  {!product.isClubPrice && product.clubPrice != null && (
+                    <p className="mt-1 text-[10px] leading-relaxed text-terracotta/75">
+                      Registrati: Club Card attiva automaticamente e prezzo speciale subito.
+                    </p>
+                  )}
                 </div>
 
                 <div className="relative z-10 flex shrink-0 flex-col items-end justify-center gap-2.5 pl-3">

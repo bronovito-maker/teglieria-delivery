@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 import { productCreateSchema } from "@/lib/validation/catalog";
 import { enforceSameOrigin } from "@/lib/request-security";
+import { syncStripeCatalogProduct } from "@/lib/stripe-catalog";
 
 export async function GET() {
   const products = await prisma.product.findMany({
@@ -60,5 +61,12 @@ export async function POST(request: Request) {
       removals: true,
     },
   });
+  if (process.env.STRIPE_SECRET_KEY) {
+    try {
+      await syncStripeCatalogProduct(product);
+    } catch (error) {
+      console.error("[STRIPE CATALOG] Sync nuovo prodotto fallita", error);
+    }
+  }
   return NextResponse.json(product, { status: 201 });
 }

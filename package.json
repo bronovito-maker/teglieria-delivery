@@ -9,7 +9,10 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "seed": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts"
+    "seed": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts && npm run sync-catalog",
+    "sync-catalog": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/sync-catalog.ts",
+    "stripe:sync-catalog": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' scripts/sync-stripe-catalog.ts",
+    "stripe:reconcile": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' scripts/reconcile-stripe-payments.ts"
   },
   "prisma": {
     "seed": "npx ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
@@ -30,6 +33,7 @@
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "sonner": "^2.0.7",
+    "stripe": "^22.6.0",
     "tailwind-merge": "^3.5.0",
     "zod": "^4.3.6",
     "zustand": "^5.0.12"

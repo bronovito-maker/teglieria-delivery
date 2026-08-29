@@ -51,6 +51,22 @@ describe("createOrderSchema", () => {
 
     expect(result.success).toBe(false);
   });
+
+  it("accepts Stripe as an online payment method", () => {
+    const result = createOrderSchema.safeParse({
+      type: "DELIVERY",
+      channel: "WEB",
+      customerName: "Mario Rossi",
+      customerPhone: "3331234567",
+      address: "Via Roma 1",
+      paymentMethod: "STRIPE",
+      subtotal: 16,
+      total: 18.5,
+      items: [validItem],
+    });
+
+    expect(result.success).toBe(true);
+  });
 });
 
 describe("orderPatchSchema", () => {

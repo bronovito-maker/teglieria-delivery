@@ -9,6 +9,7 @@ import type {
   Rider,
   DeliveryZone,
   OrderStatusLog,
+  PaymentRefund,
 } from "@prisma/client";
 
 export type {
@@ -30,6 +31,8 @@ export type ProductWithRelations = Product & {
   variants: ProductVariant[];
   additions: ProductAddition[];
   removals: ProductRemoval[];
+  standardPrice?: Product["price"];
+  isClubPrice?: boolean;
 };
 
 // Category with products
@@ -40,6 +43,7 @@ export type CategoryWithProducts = Category & {
 // Order with relations
 export type OrderWithItems = Order & {
   items: OrderItem[];
+  refunds?: PaymentRefund[];
   rider?: Rider | null;
   statusHistory: OrderStatusLog[];
 };
@@ -60,6 +64,7 @@ export type CartItem = {
   productName: string;
   quantity: number;
   unitPrice: number;
+  standardUnitPrice?: number;
   variant?: string;
   variantPriceDelta: number;
   additions: CartItemAddition[];

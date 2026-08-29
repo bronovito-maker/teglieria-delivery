@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 import { productPatchSchema } from "@/lib/validation/catalog";
 import { enforceSameOrigin } from "@/lib/request-security";
+import { syncStripeCatalogProduct } from "@/lib/stripe-catalog";
 
 export async function GET(
   _request: Request,
@@ -86,6 +87,13 @@ export async function PATCH(
       removals: true,
     },
   });
+  if (process.env.STRIPE_SECRET_KEY) {
+    try {
+      await syncStripeCatalogProduct(product);
+    } catch (error) {
+      console.error("[STRIPE CATALOG] Sync prodotto fallita", error);
+    }
+  }
   return NextResponse.json(product);
 }
 
@@ -102,6 +110,19 @@ export async function DELETE(
   if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
   if (isAdminRbacStrictEnabled() && !isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
 
+  const product = await prisma.product.findUnique({
+    where: { id },
+    select: { id: true, name: true, description: true, price: true, active: true, stripeProductId: true, stripePriceId: true },
+  });
+  if (!product) return NextResponse.json({ error: "Prodotto non trovato" }, { status: 404 });
+  if (process.env.STRIPE_SECRET_KEY && product.stripeProductId) {
+    try {
+      await syncStripeCatalogProduct({ ...product, active: false });
+    } catch (error) {
+      console.error("[STRIPE CATALOG] Archiviazione prodotto fallita", error);
+      return NextResponse.json({ error: "Impossibile archiviare il prodotto su Stripe" }, { status: 502 });
+    }
+  }
   await prisma.product.delete({ where: { id } });
   return NextResponse.json({ ok: true });
 }

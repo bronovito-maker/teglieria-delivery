@@ -399,7 +399,7 @@ export default function NewOrderAlert() {
               <div className="flex items-center justify-between">
                 <span className="font-brand font-bold text-charcoal text-lg">{formatCurrency(Number(confirmingOrder.total))}</span>
                 <span className="px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-brand font-bold uppercase tracking-wider border border-green-100">
-                  {String(confirmingOrder.paymentMethod) === "CARTA" ? "Carta" : "Contanti"}
+                  {String(confirmingOrder.paymentMethod) === "STRIPE" || String(confirmingOrder.paymentMethod) === "CARTA" ? "Carta online" : "Contanti"}
                 </span>
               </div>
 

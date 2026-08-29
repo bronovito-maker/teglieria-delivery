@@ -757,7 +757,7 @@ export default function LogisticaPage() {
               .reduce((sum, o) => sum + Number(o.total), 0);
 
             const posCollected = deliveredRiderOrders
-              .filter((o) => String(o.paymentMethod) === "CARTA")
+              .filter((o) => String(o.paymentMethod) === "STRIPE" || String(o.paymentMethod) === "CARTA")
               .reduce((sum, o) => sum + Number(o.total), 0);
 
             // Tempo medio calcolato sulle consegne di oggi (OUT → actualTime)

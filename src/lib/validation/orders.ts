@@ -18,7 +18,7 @@ export const deliveryStatusSchema = z.enum([
   "EN_ROUTE",
   "DELIVERED",
 ]);
-export const paymentMethodSchema = z.enum(["CONTANTI", "POS"]);
+export const paymentMethodSchema = z.enum(["CONTANTI", "POS", "STRIPE"]);
 
 const optionalTextSchema = z.string().trim().max(1000).nullable().optional();
 const optionalDateSchema = z.string().datetime().nullable().optional();

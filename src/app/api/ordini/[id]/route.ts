@@ -9,6 +9,7 @@ import { orderPatchSchema, type DeliveryStatusInput, type OrderPatchBody, type O
 import { verifyOrderStatusToken } from "@/lib/order-status-token";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { enforceSameOrigin, safeEqual } from "@/lib/request-security";
+import { randomBytes } from "node:crypto";
 
 function isRiderSafePatch(body: OrderPatchBody, riderId: string): boolean {
   const allowedStatuses = new Set(["OUT", "DELIVERED"]);
@@ -27,6 +28,8 @@ type TrackingOrder = {
   orderNumber: number;
   type: string;
   status: string;
+  paymentMethod: string | null;
+  paymentStatus: string;
   address: string | null;
   estimatedTime: Date | null;
   actualTime: Date | null;
@@ -46,6 +49,8 @@ function toPublicTrackingOrder(order: TrackingOrder | null) {
     orderNumber: order.orderNumber,
     type: order.type,
     status: order.status,
+    paymentMethod: order.paymentMethod,
+    paymentStatus: order.paymentStatus,
     address: order.address,
     estimatedTime: order.estimatedTime,
     actualTime: order.actualTime,
@@ -106,6 +111,7 @@ export async function GET(
       items: true,
       rider: true,
       statusHistory: { orderBy: { createdAt: "asc" } },
+      refunds: { orderBy: { createdAt: "asc" } },
     },
   });
   if (!order)
@@ -178,11 +184,20 @@ export async function PATCH(
   const body = parsed.data;
   const existingOrder = await prisma.order.findUnique({
     where: { id },
-    select: { id: true, riderId: true },
+    select: { id: true, riderId: true, paymentMethod: true, paymentStatus: true },
   });
 
   if (!existingOrder) {
     return NextResponse.json({ error: "Ordine non trovato" }, { status: 404 });
+  }
+
+  if (
+    body.status &&
+    existingOrder.paymentMethod === "STRIPE" &&
+    !["PAID", "PARTIALLY_REFUNDED"].includes(existingOrder.paymentStatus) &&
+    body.status !== "CANCELLED"
+  ) {
+    return NextResponse.json({ error: "Ordine non pagato: impossibile avviarlo" }, { status: 409 });
   }
 
   const isOperator = !isAdminRbacStrictEnabled() || isOperatorUser(user);
@@ -289,6 +304,22 @@ export async function PATCH(
         orderNumber: order.orderNumber,
         type: order.type,
       }).catch((err) => console.error("[EMAIL] Ordine completato fallita:", err));
+
+      const now = new Date();
+      const scheduledAt = new Date(now.getTime() + 90 * 60 * 1000);
+      const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      await prisma.feedbackRequest.upsert({
+        where: { orderId: order.id },
+        update: {},
+        create: {
+          orderId: order.id,
+          token: randomBytes(24).toString("hex"),
+          scheduledAt,
+          expiresAt,
+        },
+      });
+      // L'invio è ritardato: il cliente riceve la richiesta dopo aver avuto
+      // il tempo di consumare l'ordine.
     }
   }
 

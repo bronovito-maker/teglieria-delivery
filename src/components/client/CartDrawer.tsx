@@ -14,8 +14,9 @@ interface Props {
 
 export default function CartDrawer({ open, onClose }: Props) {
   const router = useRouter();
-  const { items, removeItem, updateQuantity, clearCart, getSubtotal, orderType, setOrderType } = useCartStore();
+  const { items, removeItem, updateQuantity, clearCart, getSubtotal, getClubSavings, orderType, setOrderType } = useCartStore();
   const subtotal = getSubtotal();
+  const clubSavings = getClubSavings();
   const deliveryFee = orderType === "DELIVERY" ? 2.5 : 0;
   const total = subtotal + deliveryFee;
 
@@ -63,6 +64,11 @@ export default function CartDrawer({ open, onClose }: Props) {
                     </div>
                     <p className="shrink-0 font-brand text-sm font-semibold">{formatCurrency(item.totalPrice)}</p>
                   </div>
+                  {(item.standardUnitPrice ?? item.unitPrice) > item.unitPrice && (
+                    <p className="mt-1 text-right text-[10px] font-brand font-semibold text-green-700">
+                      Risparmi {formatCurrency(((item.standardUnitPrice ?? item.unitPrice) - item.unitPrice) * item.quantity)} con Club
+                    </p>
+                  )}
                   <div className="mt-3 flex items-center justify-between">
                     <div className="flex h-8 items-center overflow-hidden rounded-full border border-charcoal/10 text-xs font-bold">
                       <button type="button" aria-label={`Diminuisci ${item.productName}`} onClick={() => updateQuantity(item.id, item.quantity - 1)} className="h-8 w-8 hover:bg-charcoal/5">−</button>
@@ -101,6 +107,11 @@ export default function CartDrawer({ open, onClose }: Props) {
               ))}
             </div>
             <div className="space-y-1 border-t border-charcoal/8 pt-3 text-sm">
+              {clubSavings > 0 && (
+                <div className="mb-3 flex items-center justify-between rounded-xl bg-green-50 px-3 py-2 text-xs font-brand font-semibold text-green-700">
+                  <span>Risparmio Club</span><span>-{formatCurrency(clubSavings)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-charcoal/55"><span>Subtotale</span><span>{formatCurrency(subtotal)}</span></div>
               {orderType === "DELIVERY" && <div className="flex justify-between text-charcoal/55"><span>Consegna</span><span>{formatCurrency(deliveryFee)}</span></div>}
               <div className="flex justify-between pt-2 text-2xl font-brand font-semibold"><span>Totale</span><span className="text-terracotta">{formatCurrency(total)}</span></div>

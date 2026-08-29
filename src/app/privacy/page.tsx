@@ -45,6 +45,7 @@ export default function PrivacyPolicyPage() {
               <li><strong className="text-charcoal">Dati di consegna</strong>: indirizzo di spedizione, note aggiuntive.</li>
               <li><strong className="text-charcoal">Dati di navigazione</strong>: indirizzo IP, tipo di browser, pagine visitate, raccolti automaticamente attraverso i log del server.</li>
               <li><strong className="text-charcoal">Dati dell&apos;account</strong>: in caso di registrazione, password in forma cifrata, preferenze salvate (ultimo indirizzo, numero di telefono).</li>
+              <li><strong className="text-charcoal">Feedback sul servizio</strong>: valutazioni e commenti inviati dopo un ordine, utilizzati per migliorare il servizio e produrre statistiche aggregate.</li>
             </ul>
           </section>
 

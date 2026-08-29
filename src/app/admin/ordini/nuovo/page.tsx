@@ -68,6 +68,10 @@ export default function NuovoOrdinePage() {
     setSearch("");
   }
 
+  function priceFor(product: ProductWithRelations) {
+    return Number(product.price);
+  }
+
   function removeLine(index: number) {
     setLines(lines.filter((_, i) => i !== index));
   }
@@ -77,7 +81,7 @@ export default function NuovoOrdinePage() {
   }
 
   const subtotal = lines.reduce((sum, l) => {
-    const unitPrice = Number(l.product.price) + l.variantDelta + l.additions.reduce((s, a) => s + a.price, 0);
+    const unitPrice = priceFor(l.product) + l.variantDelta + l.additions.reduce((s, a) => s + a.price, 0);
     return sum + unitPrice * l.quantity;
   }, 0);
 
@@ -87,7 +91,7 @@ export default function NuovoOrdinePage() {
     setLoading(true);
 
     const items = lines.map((l) => {
-      const unitPrice = Number(l.product.price) + l.variantDelta + l.additions.reduce((s, a) => s + a.price, 0);
+      const unitPrice = priceFor(l.product) + l.variantDelta + l.additions.reduce((s, a) => s + a.price, 0);
       return {
         productId: l.product.id,
         productName: l.product.name,

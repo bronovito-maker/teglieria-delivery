@@ -19,22 +19,26 @@ model Category {
 }
 
 model Product {
-  id           String             @id @default(cuid())
-  name         String
-  description  String?
-  price        Decimal            @db.Decimal(8, 2)
-  imageUrl     String?
-  categoryId   String
-  category     Category           @relation(fields: [categoryId], references: [id])
-  active       Boolean            @default(true)
-  sortOrder    Int                @default(0)
-  kitchenNotes String?
-  variants     ProductVariant[]
-  additions    ProductAddition[]
-  removals     ProductRemoval[]
-  orderItems   OrderItem[]
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
+  id              String            @id @default(cuid())
+  name            String
+  description     String?
+  price           Decimal           @db.Decimal(8, 2)
+  clubPrice       Decimal?          @db.Decimal(8, 2)
+  promoPrice      Decimal?          @db.Decimal(8, 2)
+  stripeProductId String?           @unique
+  stripePriceId   String?           @unique
+  imageUrl        String?
+  categoryId      String
+  category        Category          @relation(fields: [categoryId], references: [id])
+  active          Boolean           @default(true)
+  sortOrder       Int               @default(0)
+  kitchenNotes    String?
+  variants        ProductVariant[]
+  additions       ProductAddition[]
+  removals        ProductRemoval[]
+  orderItems      OrderItem[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 }
 
 model ProductVariant {
@@ -64,38 +68,62 @@ model ProductRemoval {
 }
 
 model Order {
-  id             String          @id @default(cuid())
-  orderNumber    Int             @default(autoincrement())
-  orderCode      String?         @unique  // e.g. "A001", "D042"
-  authUserId     String?                  // Supabase auth user ID (null per ordini guest)
-  type           OrderType
-  channel        OrderChannel
-  status         OrderStatus     @default(RECEIVED)
-  customerName   String
-  customerPhone  String
-  customerEmail  String?
-  address        String?
-  addressDetail  String?
-  deliveryZone   String?
-  deliveryKm     Decimal?        @db.Decimal(5, 1)
-  deliveryCost   Decimal?        @db.Decimal(8, 2)
-  riderId        String?
-  rider          Rider?          @relation(fields: [riderId], references: [id])
-  estimatedTime  DateTime?
-  actualTime     DateTime?
-  deliveryStatus DeliveryStatus?
-  pickupTime     DateTime?
-  subtotal       Decimal         @db.Decimal(10, 2)
-  total          Decimal         @db.Decimal(10, 2)
-  notes          String?
-  paymentMethod  PaymentMethod?  @default(CONTANTI)
-  timeSlot       String?
-  items          OrderItem[]
-  statusHistory  OrderStatusLog[]
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id                    String           @id @default(cuid())
+  orderNumber           Int              @default(autoincrement())
+  orderCode             String?          @unique // e.g. "A001", "D042"
+  authUserId            String? // Supabase auth user ID (null per ordini guest)
+  clubCardId            String?
+  clubCard              ClubCard?        @relation(fields: [clubCardId], references: [id], onDelete: SetNull)
+  type                  OrderType
+  channel               OrderChannel
+  status                OrderStatus      @default(RECEIVED)
+  customerName          String
+  customerPhone         String
+  customerEmail         String?
+  address               String?
+  addressDetail         String?
+  deliveryZone          String?
+  deliveryKm            Decimal?         @db.Decimal(5, 1)
+  deliveryCost          Decimal?         @db.Decimal(8, 2)
+  riderId               String?
+  rider                 Rider?           @relation(fields: [riderId], references: [id])
+  estimatedTime         DateTime?
+  actualTime            DateTime?
+  deliveryStatus        DeliveryStatus?
+  pickupTime            DateTime?
+  subtotal              Decimal          @db.Decimal(10, 2)
+  total                 Decimal          @db.Decimal(10, 2)
+  notes                 String?
+  paymentMethod         PaymentMethod?   @default(CONTANTI)
+  paymentStatus         PaymentStatus    @default(PENDING)
+  idempotencyKey        String?          @unique
+  stripeSessionId       String?          @unique
+  stripePaymentIntentId String?
+  stripeRefundId        String?
+  refundedAmountCents   Int              @default(0)
+  timeSlot              String?
+  items                 OrderItem[]
+  statusHistory         OrderStatusLog[]
+  refunds               PaymentRefund[]
+  feedbackRequest       FeedbackRequest?
+  feedback              OrderFeedback?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
 
   @@index([pickupTime, status, timeSlot])
+  @@index([clubCardId])
+}
+
+model ClubCard {
+  id          String   @id @default(cuid())
+  cardNumber  String   @unique
+  authUserId  String   @unique
+  memberName  String?
+  memberEmail String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  orders      Order[]
 }
 
 model GlobalConfig {
@@ -149,6 +177,50 @@ model OrderStatusLog {
   status    OrderStatus
   note      String?
   createdAt DateTime    @default(now())
+}
+
+model PaymentRefund {
+  id             String       @id @default(cuid())
+  orderId        String
+  order          Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  stripeRefundId String       @unique
+  idempotencyKey String       @unique
+  amountCents    Int
+  status         RefundStatus
+  reason         String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([orderId, createdAt])
+}
+
+model FeedbackRequest {
+  id          String         @id @default(cuid())
+  orderId     String         @unique
+  order       Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  token       String         @unique
+  scheduledAt DateTime
+  claimedAt   DateTime?
+  sentAt      DateTime?
+  expiresAt   DateTime
+  createdAt   DateTime       @default(now())
+  feedback    OrderFeedback?
+
+  @@index([sentAt, scheduledAt])
+}
+
+model OrderFeedback {
+  id             String          @id @default(cuid())
+  requestId      String          @unique
+  request        FeedbackRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  orderId        String          @unique
+  order          Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  overallRating  Int
+  foodRating     Int?
+  serviceRating  Int?
+  deliveryRating Int?
+  comment        String?
+  createdAt      DateTime        @default(now())
 }
 
 model Rider {
@@ -208,4 +280,20 @@ enum DeliveryStatus {
 enum PaymentMethod {
   CONTANTI
   POS
+  STRIPE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  PARTIALLY_REFUNDED
+  REFUNDED
+  FAILED
+}
+
+enum RefundStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELED
 }

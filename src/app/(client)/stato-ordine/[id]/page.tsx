@@ -19,6 +19,8 @@ export default function StatoOrdinePage() {
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [showRegisterBanner, setShowRegisterBanner] = useState(false);
   const [guestData, setGuestData] = useState<{ name: string; email: string; phone: string } | null>(null);
+  const [retryingPayment, setRetryingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
 
   useEffect(() => {
     const supabase = createClient();
@@ -78,6 +80,21 @@ export default function StatoOrdinePage() {
       clearTimeout(timeout);
     };
   }, [id, searchParams]);
+
+  async function retryPayment() {
+    setRetryingPayment(true);
+    setPaymentError("");
+    const token = searchParams.get("token");
+    const query = token ? `?token=${encodeURIComponent(token)}` : "";
+    const response = await fetch(`/api/ordini/${id}/checkout${query}`, { method: "POST" });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.checkoutUrl) {
+      setPaymentError(data.error || "Impossibile riavviare il pagamento");
+      setRetryingPayment(false);
+      return;
+    }
+    window.location.assign(data.checkoutUrl);
+  }
 
   if (error && !order) {
     return (
@@ -141,6 +158,25 @@ export default function StatoOrdinePage() {
               <p className="text-xs text-charcoal/40 font-body italic mt-2">
                 Il tuo ordine è stato ricevuto ed è in attesa di conferma dallo staff.
               </p>
+            </div>
+          )}
+          {order.paymentMethod === "STRIPE" && !["PAID", "REFUNDED"].includes(order.paymentStatus) && (
+            <div className="mb-6 rounded-[1.4rem] border border-terracotta/20 bg-terracotta/10 p-5 text-center sm:mb-8">
+              <p className="text-xs font-brand font-bold uppercase tracking-widest text-terracotta">
+                Pagamento in attesa
+              </p>
+              <p className="text-xs text-charcoal/45 font-body italic mt-2">
+                Completa il pagamento con carta per confermare l&apos;ordine.
+              </p>
+              <button
+                type="button"
+                onClick={retryPayment}
+                disabled={retryingPayment}
+                className="mt-4 rounded-full bg-terracotta px-5 py-2.5 text-xs font-brand font-bold uppercase tracking-widest text-white disabled:opacity-50"
+              >
+                {retryingPayment ? "Apertura pagamento..." : "Riprova pagamento"}
+              </button>
+              {paymentError && <p className="mt-3 text-xs font-body text-red-600">{paymentError}</p>}
             </div>
           )}
           {order.status === "OUT" && (
