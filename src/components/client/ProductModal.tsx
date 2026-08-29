@@ -79,7 +79,6 @@ export default function ProductModal({ product, onClose }: Props) {
               sizes="(max-width: 448px) 100vw, 448px"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-warm-light/60 to-transparent" />
             <button
               onClick={onClose}
               className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-sm text-charcoal/60 hover:text-terracotta transition-colors text-xl shadow-sm"
@@ -96,6 +95,9 @@ export default function ProductModal({ product, onClose }: Props) {
               {product.description && (
                 <p className="text-base text-charcoal/60 font-body leading-relaxed">{product.description}</p>
               )}
+              <p className="mt-2 text-xs font-brand font-bold uppercase tracking-[0.14em] text-charcoal/45">
+                Taglio: {product.category?.name || "a scelta"}
+              </p>
               <div className="mt-4 flex items-center gap-3">
                 <span className="text-2xl font-bold text-terracotta">{formatCurrency(unitTotal)}</span>
                 {quantity > 1 && (
@@ -222,7 +224,7 @@ export default function ProductModal({ product, onClose }: Props) {
             </div>
 
             {/* Azioni finali mobile sticky */}
-            <div className="sm:hidden sticky bottom-0 -mx-8 px-4 pt-3 pb-[max(0.9rem,env(safe-area-inset-bottom))] bg-[linear-gradient(180deg,rgba(250,246,240,0)_0%,rgba(250,246,240,0.92)_24%,rgba(250,246,240,0.99)_100%)] border-t border-charcoal/8 backdrop-blur-sm">
+            <div className="sm:hidden -mx-8 px-4 pt-3 pb-[max(0.9rem,env(safe-area-inset-bottom))] bg-warm-light border-t border-charcoal/8">
               <div className="flex items-center gap-3">
                 <div className="flex items-center bg-charcoal/5 rounded-full p-1 border border-charcoal/5 shrink-0">
                   <button

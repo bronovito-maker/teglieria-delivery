@@ -149,7 +149,7 @@ function MenuContent() {
         <div className="sticky top-[4.1rem] z-30 border-y border-charcoal/5 bg-warm-light/95 shadow-[0_6px_18px_rgba(26,26,26,0.03)] backdrop-blur-md sm:top-[4.5rem]">
           <div
             ref={navRef}
-            className="flex justify-center gap-2 overflow-x-auto px-4 py-3 no-scrollbar"
+            className="flex justify-start gap-2 overflow-x-auto px-4 py-3 no-scrollbar snap-x snap-mandatory"
             style={{ scrollbarWidth: "none" }}
           >
             {categories.map((cat) => {
@@ -159,7 +159,7 @@ function MenuContent() {
                   key={cat.id}
                   data-cat={`cat-${cat.id}`}
                   onClick={() => scrollToCategory(String(cat.id))}
-                  className={`shrink-0 px-4 py-2 rounded-full text-[10px] font-brand font-bold uppercase tracking-widest transition-all ${
+                  className={`shrink-0 snap-start px-4 py-2 rounded-full text-[10px] font-brand font-bold uppercase tracking-widest transition-all ${
                     isActive
                       ? "bg-terracotta text-white shadow-sm shadow-terracotta/15"
                       : "bg-white/70 text-charcoal border border-charcoal/10 hover:bg-white"
@@ -190,7 +190,7 @@ function MenuContent() {
               <button
                 key={product.id}
                 onClick={() => setSelectedProduct(product)}
-                className="reveal group flex min-h-[7.5rem] items-center justify-between rounded-[1.5rem] border border-charcoal/5 bg-white px-5 py-5 text-left shadow-[0_8px_20px_rgba(26,26,26,0.025)] transition-all hover:border-terracotta/20 hover:shadow-lg sm:px-6 sm:py-6"
+                className="reveal group relative flex min-h-[7.5rem] items-center justify-between rounded-[1.5rem] border border-charcoal/5 bg-white px-5 py-5 text-left shadow-[0_8px_20px_rgba(26,26,26,0.025)] transition-all hover:border-terracotta/20 hover:shadow-lg sm:px-6 sm:py-6"
                 style={{ transitionDelay: `${pIdx * 50}ms` }}
               >
                 {/* Subtle Hover Gradient */}
@@ -217,25 +217,10 @@ function MenuContent() {
                     </p>
                   )}
                   <div className="mt-3 flex items-center gap-2">
-                    <span className="inline-block font-brand font-semibold text-base sm:text-lg text-charcoal">
-                      {formatCurrency(Number(product.price))}
-                    </span>
-                    {product.isClubPrice && product.standardPrice != null && Number(product.standardPrice) !== Number(product.price) && (
-                      <span className="text-xs text-charcoal/35 line-through">{formatCurrency(Number(product.standardPrice))}</span>
-                    )}
-                    {product.isClubPrice && (
-                      <span className="rounded-full bg-marigold/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-charcoal/60">Club</span>
-                    )}
-                    {product.promoPrice != null && (
-                      <span className="rounded-full bg-terracotta/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-terracotta/75">Promo {formatCurrency(Number(product.promoPrice))}</span>
-                    )}
-                    <span className="text-[10px] uppercase tracking-[0.16em] font-brand font-bold text-charcoal/30">a partire da</span>
+                    <span className="text-[10px] font-brand font-bold uppercase tracking-[0.12em] text-charcoal/40">A partire da&nbsp; {formatCurrency(Number(product.promoPrice ?? product.price))}</span>
+                    <span className="text-[10px] font-brand font-bold uppercase tracking-[0.12em] text-terracotta">Club&nbsp; {formatCurrency(Number(product.clubPrice ?? product.promoPrice ?? product.price))}</span>
+                    <span className="text-[10px] font-brand font-bold uppercase tracking-[0.12em] text-charcoal/40">Prezzo pieno&nbsp; {formatCurrency(Number(product.standardPrice ?? product.price))}</span>
                   </div>
-                  {!product.isClubPrice && product.clubPrice != null && (
-                    <p className="mt-1 text-[10px] leading-relaxed text-terracotta/75">
-                      Registrati: Club Card attiva automaticamente e prezzo speciale subito.
-                    </p>
-                  )}
                 </div>
 
                 <div className="relative z-10 flex shrink-0 flex-col items-end justify-center gap-2.5 pl-3">

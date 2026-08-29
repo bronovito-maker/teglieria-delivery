@@ -33,6 +33,7 @@ export type ProductWithRelations = Product & {
   removals: ProductRemoval[];
   standardPrice?: Product["price"];
   isClubPrice?: boolean;
+  promoPrice?: Product["promoPrice"];
 };
 
 // Category with products

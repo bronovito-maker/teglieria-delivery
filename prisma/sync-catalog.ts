@@ -33,23 +33,25 @@ async function upsertProduct(data: ProductData) {
 }
 
 async function main() {
-  const categoryNames = ["Pizze classiche", "Pizze gourmet", "Schiacciatine", "Torta di ceci e 5e5", "Fritti", "Bevande analcoliche", "Birre"];
+  const categoryNames = ["Teglie", "Mezze teglie", "Tranci", "Schiacciatine", "Torta di ceci e 5e5", "Fritti", "Bevande analcoliche", "Birre"];
   const categories = await Promise.all(categoryNames.map((name, index) => getCategory(name, index)));
   await prisma.category.updateMany({ where: { id: { notIn: categories.map((c) => c.id) } }, data: { active: false } });
   await prisma.product.updateMany({ where: { category: { active: false } }, data: { active: false } });
 
   for (const [index, [name, description, whole, wholeClub, wholePromo, half, halfClub, halfPromo, slice, image]] of pizzas.entries()) {
-    const categoryId = index < 5 ? categories[0].id : categories[1].id;
+    const wholeCategoryId = categories[0].id;
+    const halfCategoryId = categories[1].id;
+    const sliceCategoryId = categories[2].id;
     const imageUrl = image ? `/menu/${image}` : null;
-    await upsertProduct({ categoryId, name: `${name} - Teglia intera`, description, price: whole, clubPrice: wholeClub, promoPrice: wholePromo, imageUrl, sortOrder: index * 3 });
-    await upsertProduct({ categoryId, name: `${name} - Mezza teglia`, description, price: half, clubPrice: halfClub, promoPrice: halfPromo, imageUrl, sortOrder: index * 3 + 1 });
-    await upsertProduct({ categoryId, name: `${name} - Trancio`, description: `${description} Trancio 1/12.`, price: slice, imageUrl, sortOrder: index * 3 + 2 });
+    await upsertProduct({ categoryId: wholeCategoryId, name, description, price: whole, clubPrice: wholeClub, promoPrice: wholePromo, imageUrl, sortOrder: index });
+    await upsertProduct({ categoryId: halfCategoryId, name, description, price: half, clubPrice: halfClub, promoPrice: halfPromo, imageUrl, sortOrder: index });
+    await upsertProduct({ categoryId: sliceCategoryId, name, description: `${description} Taglio trancio 1/12.`, price: slice, imageUrl, sortOrder: index });
   }
-  for (const [index, [name, description, price]] of schiacciatine.entries()) await upsertProduct({ categoryId: categories[2].id, name, description, price, imageUrl: "/menu/placeholder-food.svg", sortOrder: index });
-  for (const [index, [name, description, price, image]] of ceci.entries()) await upsertProduct({ categoryId: categories[3].id, name, description, price, imageUrl: `/menu/${image}`, sortOrder: index });
-  for (const [index, [name, description, price]] of fritti.entries()) await upsertProduct({ categoryId: categories[4].id, name, description, price, imageUrl: "/menu/placeholder-food.svg", sortOrder: index });
-  for (const [index, [name, description, price, image]] of analcoliche.entries()) await upsertProduct({ categoryId: categories[5].id, name, description, price, imageUrl: `/menu/${image}`, sortOrder: index });
-  for (const [index, [name, description, price, image]] of birre.entries()) await upsertProduct({ categoryId: categories[6].id, name, description, price, imageUrl: image ? `/menu/${image}` : null, sortOrder: index });
+  for (const [index, [name, description, price]] of schiacciatine.entries()) await upsertProduct({ categoryId: categories[3].id, name, description, price, imageUrl: "/menu/placeholder-food.svg", sortOrder: index });
+  for (const [index, [name, description, price, image]] of ceci.entries()) await upsertProduct({ categoryId: categories[4].id, name, description, price, imageUrl: `/menu/${image}`, sortOrder: index });
+  for (const [index, [name, description, price]] of fritti.entries()) await upsertProduct({ categoryId: categories[5].id, name, description, price, imageUrl: "/menu/placeholder-food.svg", sortOrder: index });
+  for (const [index, [name, description, price, image]] of analcoliche.entries()) await upsertProduct({ categoryId: categories[6].id, name, description, price, imageUrl: `/menu/${image}`, sortOrder: index });
+  for (const [index, [name, description, price, image]] of birre.entries()) await upsertProduct({ categoryId: categories[7].id, name, description, price, imageUrl: image ? `/menu/${image}` : null, sortOrder: index });
   console.log("Catalogo completo sincronizzato.");
 }
 

@@ -129,7 +129,7 @@ model ClubCard {
 model GlobalConfig {
   id               String   @id @default("default")
   maxOrdersPerSlot Int      @default(5)
-  deliveryFee      Decimal  @default(2.50) @db.Decimal(8, 2)
+  deliveryFee      Decimal  @default(2.00) @db.Decimal(8, 2)
   updatedAt        DateTime @updatedAt
 }
 

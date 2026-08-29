@@ -10,6 +10,7 @@ import { createOrderStatusToken } from "@/lib/order-status-token";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { enforceSameOrigin } from "@/lib/request-security";
 import { getStripe, getStripeSiteUrl } from "@/lib/stripe";
+import { MIN_ORDER_SUBTOTAL } from "@/lib/constants";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -86,7 +87,7 @@ export async function POST(request: Request) {
     ? await prisma.globalConfig.findUnique({ where: { id: "default" } })
     : null;
   const authoritativeDeliveryCost = body.type === "DELIVERY"
-    ? channel === "WEB" ? Number(deliveryConfig?.deliveryFee ?? 2.5) : body.deliveryCost ?? 0
+    ? channel === "WEB" ? Math.max(2, Number(deliveryConfig?.deliveryFee ?? 2)) : body.deliveryCost ?? 0
     : 0;
 
   // Leggi sessione opzionale — gli ordini guest hanno authUserId null
@@ -151,6 +152,7 @@ export async function POST(request: Request) {
         return { ...item, productName: product.name, unitPrice: expectedUnitPrice, totalPrice: expectedUnitPrice * item.quantity, additions: authoritativeAdditions };
       });
       const authoritativeSubtotal = authoritativeItems.reduce((sum, item) => sum + item.totalPrice, 0);
+      if (authoritativeSubtotal < MIN_ORDER_SUBTOTAL) throw new Error("MIN_ORDER_NOT_REACHED");
       const authoritativeTotal = authoritativeSubtotal + authoritativeDeliveryCost;
 
       const createdOrder = await tx.order.create({
@@ -224,6 +226,9 @@ export async function POST(request: Request) {
       }
     }
     if (!order) {
+    if (err instanceof Error && err.message === "MIN_ORDER_NOT_REACHED") {
+      return NextResponse.json({ error: `Il minimo ordine è ${MIN_ORDER_SUBTOTAL.toFixed(2)} euro, esclusa la consegna.` }, { status: 400 });
+    }
     if (err instanceof Error && (err.message === "STALE_CART" || err.message === "INVALID_CART_PRICE")) {
       return NextResponse.json({ error: "Il menu è cambiato. Ricarica la pagina e riprova." }, { status: 409 });
     }

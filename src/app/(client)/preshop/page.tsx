@@ -11,6 +11,8 @@ type Highlight = {
   name: string;
   description?: string | null;
   price: number | string;
+  imageUrl?: string | null;
+  promoPrice?: number | string | null;
 };
 
 /**
@@ -29,9 +31,9 @@ export default function PreshopPage() {
         if (!response.ok) throw new Error("Menu non disponibile");
         return response.json();
       })
-      .then((categories) => {
+      .then((categories: { products: Highlight[] }[]) => {
         const products = categories.flatMap((category: { products: Highlight[] }) => category.products);
-        setHighlights(products.slice(0, 3));
+        setHighlights(products.filter((product) => product.imageUrl).slice(0, 3));
       })
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === "AbortError") return;
@@ -92,8 +94,8 @@ export default function PreshopPage() {
             : highlights.map((product) => (
             <Link key={product.id} href="/menu" className="group block">
               <div className="relative aspect-[1.12] overflow-hidden rounded-[1.25rem] bg-charcoal/5 shadow-sm">
-                <Image src="/images/pizza-teglia-slices.png" alt={product.name} fill className="object-cover transition-transform duration-700 group-hover:scale-105" sizes="(max-width: 640px) 100vw, 33vw" />
-                <span className="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-brand font-bold text-charcoal">{formatCurrency(Number(product.price))}</span>
+                <Image src={product.imageUrl || "/menu/placeholder-food.svg"} alt={product.name} fill className="object-cover transition-transform duration-700 group-hover:scale-105" sizes="(max-width: 640px) 100vw, 33vw" priority />
+                <span className="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-brand font-bold text-charcoal">Da {formatCurrency(Number(product.promoPrice ?? product.price))}</span>
               </div>
               <div className="mt-3 flex items-start justify-between gap-3">
                 <div>

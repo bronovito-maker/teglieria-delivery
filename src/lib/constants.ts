@@ -7,6 +7,8 @@ export const ORDER_STATUS_LABELS: Record<string, string> = {
   CANCELLED: "Annullato",
 };
 
+export const MIN_ORDER_SUBTOTAL = 12;
+
 export const ORDER_STATUS_COLORS: Record<string, string> = {
   RECEIVED: "bg-marigold/20 text-marigold border border-marigold/20",
   CONFIRMED: "bg-terracotta/20 text-terracotta border border-terracotta/20",

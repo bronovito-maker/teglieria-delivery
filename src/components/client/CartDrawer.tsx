@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useEffect } from "react";
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
+import { MIN_ORDER_SUBTOTAL } from "@/lib/constants";
 
 interface Props {
   open: boolean;
@@ -17,7 +18,8 @@ export default function CartDrawer({ open, onClose }: Props) {
   const { items, removeItem, updateQuantity, clearCart, getSubtotal, getClubSavings, orderType, setOrderType } = useCartStore();
   const subtotal = getSubtotal();
   const clubSavings = getClubSavings();
-  const deliveryFee = orderType === "DELIVERY" ? 2.5 : 0;
+  const deliveryFee = orderType === "DELIVERY" ? 2 : 0;
+  const minimumOrderReached = subtotal >= MIN_ORDER_SUBTOTAL;
   const total = subtotal + deliveryFee;
 
   useEffect(() => {
@@ -115,9 +117,10 @@ export default function CartDrawer({ open, onClose }: Props) {
               <div className="flex justify-between text-charcoal/55"><span>Subtotale</span><span>{formatCurrency(subtotal)}</span></div>
               {orderType === "DELIVERY" && <div className="flex justify-between text-charcoal/55"><span>Consegna</span><span>{formatCurrency(deliveryFee)}</span></div>}
               <div className="flex justify-between pt-2 text-2xl font-brand font-semibold"><span>Totale</span><span className="text-terracotta">{formatCurrency(total)}</span></div>
+              {!minimumOrderReached && <p className="pt-2 text-xs font-brand font-semibold text-terracotta">Aggiungi {formatCurrency(MIN_ORDER_SUBTOTAL - subtotal)} per raggiungere il minimo ordine di {formatCurrency(MIN_ORDER_SUBTOTAL)} (consegna esclusa).</p>}
             </div>
             <button type="button" onClick={clearCart} className="mt-4 min-h-11 w-full rounded-xl border border-charcoal/10 text-xs font-brand font-bold uppercase tracking-widest text-charcoal/55 hover:bg-white">Svuota carrello</button>
-            <button type="button" onClick={() => { onClose(); router.push("/ordine"); }} className="mt-3 min-h-12 w-full rounded-xl bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] text-sm font-brand font-bold uppercase tracking-[0.16em] text-white shadow-[0_12px_24px_rgba(197,86,26,0.22)] active:scale-[.99]">
+            <button type="button" disabled={!minimumOrderReached} onClick={() => { onClose(); router.push("/ordine"); }} className="mt-3 min-h-12 w-full rounded-xl bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] text-sm font-brand font-bold uppercase tracking-[0.16em] text-white shadow-[0_12px_24px_rgba(197,86,26,0.22)] active:scale-[.99] disabled:cursor-not-allowed disabled:opacity-45">
               Vai al checkout · {formatCurrency(total)}
             </button>
           </div>

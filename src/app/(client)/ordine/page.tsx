@@ -7,6 +7,7 @@ import AddressAutocomplete from "@/components/client/AddressAutocomplete";
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import { MIN_ORDER_SUBTOTAL } from "@/lib/constants";
 
 export default function OrdinePage() {
   const router = useRouter();
@@ -93,7 +94,7 @@ export default function OrdinePage() {
   const [pickupTime, setPickupTime] = useState("");
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"CONTANTI" | "STRIPE">("CONTANTI");
-  const [deliveryFee, setDeliveryFee] = useState(2.5);
+  const [deliveryFee, setDeliveryFee] = useState(2);
   const [slots, setSlots] = useState<{ time: string, available: boolean, remaining: number }[]>([]);
   const [dayClosed, setDayClosed] = useState(false);
   const [closedDays, setClosedDays] = useState<Set<string>>(new Set());
@@ -105,7 +106,7 @@ export default function OrdinePage() {
     fetch("/api/config", { cache: "no-store" })
       .then((response) => response.ok ? response.json() : null)
       .then((config) => {
-        if (typeof config?.deliveryFee === "number" && Number.isFinite(config.deliveryFee)) setDeliveryFee(config.deliveryFee);
+        if (typeof config?.deliveryFee === "number" && Number.isFinite(config.deliveryFee)) setDeliveryFee(Math.max(2, config.deliveryFee));
       })
       .catch(() => { /* Mantieni il fallback visuale; il server ricalcola sempre il costo. */ });
   }, []);
@@ -205,6 +206,10 @@ export default function OrdinePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (subtotal < MIN_ORDER_SUBTOTAL) {
+      setError(`Il minimo ordine è ${formatCurrency(MIN_ORDER_SUBTOTAL)}, esclusa la consegna.`);
+      return;
+    }
     if (!pickupTime) {
       setError("Per favore seleziona un orario.");
       return;
