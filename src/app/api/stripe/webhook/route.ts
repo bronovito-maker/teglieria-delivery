@@ -9,6 +9,14 @@ export async function POST(request: Request) {
   const signature = request.headers.get("stripe-signature");
   const webhookSecret = getStripeWebhookSecret();
   if (!signature || !webhookSecret) {
+    if (!webhookSecret) {
+      console.error("[STRIPE WEBHOOK] Secret mancante nell'ambiente runtime", {
+        stripeKeyConfigured: Boolean(process.env.STRIPE_SECRET_KEY),
+        stripeMode: process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_") ? "test" : process.env.STRIPE_SECRET_KEY?.startsWith("sk_live_") ? "live" : "unknown",
+        liveWebhookSecretConfigured: Boolean(process.env.STRIPE_WEBHOOK_SECRET),
+        testWebhookSecretConfigured: Boolean(process.env.STRIPE_TEST_WEBHOOK_SECRET),
+      });
+    }
     return NextResponse.json({ error: "Webhook Stripe non configurato" }, { status: 400 });
   }
 
