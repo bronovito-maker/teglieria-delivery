@@ -150,14 +150,22 @@ function buildInfoWindowContent(
 }
 
 function loadGoogleMaps(apiKey: string): Promise<any> {
-  if (window.google?.maps) return Promise.resolve(window.google.maps);
+  const importLibraries = async (): Promise<any> => {
+    const maps = window.google?.maps;
+    if (!maps) throw new Error("Lo script Google Maps è stato caricato, ma google.maps non è disponibile. Controlla la restrizione del referrer e le API abilitate.");
+    if (typeof maps.importLibrary !== "function") return maps;
+    const [mapsLibrary, markerLibrary] = await Promise.all([
+      maps.importLibrary("maps"),
+      maps.importLibrary("marker"),
+    ]);
+    Object.assign(maps, mapsLibrary, { marker: markerLibrary });
+    return maps;
+  };
+
+  if (window.google?.maps) return importLibraries();
 
   const resolveMaps = (resolve: (maps: any) => void, reject: (error: Error) => void) => {
-    if (window.google?.maps) {
-      resolve(window.google.maps);
-    } else {
-      reject(new Error("Lo script Google Maps è stato caricato, ma google.maps non è disponibile. Controlla la restrizione del referrer e le API abilitate."));
-    }
+    importLibraries().then(resolve).catch(reject);
   };
 
   const existing = document.getElementById(MAP_SCRIPT_ID) as HTMLScriptElement | null;
