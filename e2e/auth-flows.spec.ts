@@ -54,6 +54,19 @@ test.describe("customer authentication flow", () => {
       await expect(page.getByTestId("club-banner-login")).toHaveCount(0);
     });
 
+    test("logout rimuove sessione, banner Club e prezzi Club", async ({ page }) => {
+      await login(page);
+      await expect(page.getByTestId("club-banner-active")).toBeVisible();
+      await page.getByRole("button", { name: "Esci" }).click();
+      await expect(page.getByRole("button", { name: "Esci" })).toHaveCount(0);
+      await expect(page.getByTestId("club-banner-login")).toBeVisible();
+      const menuResponse = await page.request.get("/api/menu");
+      expect(menuResponse.ok()).toBe(true);
+      const categories = await menuResponse.json();
+      const firstProduct = categories.flatMap((category: { products: unknown[] }) => category.products)[0] as { isClubPrice?: boolean };
+      expect(firstProduct?.isClubPrice).not.toBe(true);
+    });
+
     test("sessione autenticata viene riconosciuta dal checkout", async ({ page }) => {
       await login(page);
       const menuResponse = await page.request.get("/api/menu");
