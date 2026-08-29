@@ -41,14 +41,17 @@ export async function POST(
     const statusToken = createOrderStatusToken(order.id, order.createdAt);
     const session = await getStripe().checkout.sessions.create({
       mode: "payment",
+      managed_payments: { enabled: false },
       customer_email: order.customerEmail || undefined,
       line_items: order.items.map((item) => ({
         quantity: item.quantity,
         price_data: {
           currency: "eur",
           unit_amount: Math.round(Number(item.unitPrice) * 100),
-          product_data: { name: item.productName },
-          metadata: { catalogProductId: item.productId },
+          product_data: {
+            name: item.productName,
+            metadata: { catalogProductId: item.productId },
+          },
         },
       })),
       ...(order.deliveryCost && Number(order.deliveryCost) > 0

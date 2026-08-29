@@ -52,12 +52,30 @@ test.describe("Stripe payment flow", () => {
     expect(order.checkoutUrl).toMatch(/^https:\/\/checkout\.stripe\.com\//);
 
     await page.goto(order.checkoutUrl);
-    await page.locator('input[name="cardNumber"]').fill("4242 4242 4242 4242");
-    await page.locator('input[name="cardExpiry"]').fill("12/34");
-    await page.locator('input[name="cardCvc"]').fill("123");
+    const cardButton = page.getByRole("button", { name: /pay with card/i });
+    await cardButton.evaluate((element) => (element as HTMLElement).click());
+    const findCardFrame = async () => {
+      for (const frame of page.frames()) {
+        if (await frame.locator('input[name="cardNumber"], input[name="cardnumber"], input[autocomplete="cc-number"]').count()) {
+          return frame;
+        }
+      }
+      return undefined;
+    };
+    await expect.poll(findCardFrame, { timeout: 15_000, intervals: [250, 500, 1_000] }).toBeTruthy();
+    const cardFrame = await findCardFrame();
+    expect(cardFrame, "Stripe card iframe non trovato").toBeTruthy();
+    const numberInput = cardFrame!.locator('input[name="cardNumber"], input[name="cardnumber"], input[autocomplete="cc-number"]');
+    const expiryInput = cardFrame!.locator('input[name="cardExpiry"], input[name="exp-date"], input[autocomplete="cc-exp"]');
+    const cvcInput = cardFrame!.locator('input[name="cardCvc"], input[name="cvc"], input[autocomplete="cc-csc"]');
+    await numberInput.fill("4242 4242 4242 4242");
+    await expiryInput.fill("12/34");
+    await cvcInput.fill("123");
+    const billingNameInput = cardFrame!.locator('input[name="billingName"], input[autocomplete="cc-name"]');
+    if (await billingNameInput.count()) await billingNameInput.fill("E2E Stripe");
     const emailInput = page.locator('input[type="email"]');
     if (await emailInput.count()) await emailInput.first().fill("e2e-stripe@example.com");
-    await page.getByRole("button", { name: /paga|pay/i }).click();
+    await page.getByTestId("hosted-payment-submit-button").click();
     await expect(page).toHaveURL(/\/stato-ordine\//, { timeout: 30_000 });
     await expect.poll(async () => {
       const trackingResponse = await page.request.get(`/api/ordini/${order.id}?token=${encodeURIComponent(order.statusAccessToken)}`);
