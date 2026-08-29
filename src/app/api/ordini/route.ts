@@ -10,7 +10,7 @@ import { createOrderStatusToken } from "@/lib/order-status-token";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { enforceSameOrigin } from "@/lib/request-security";
 import { getStripe, getStripeSiteUrl } from "@/lib/stripe";
-import { MIN_ORDER_SUBTOTAL } from "@/lib/constants";
+import { calculateDeliveryFee, MIN_ORDER_SUBTOTAL } from "@/lib/constants";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -83,11 +83,8 @@ export async function POST(request: Request) {
   }
 
   const channel = body.channel || "WEB";
-  const deliveryConfig = body.type === "DELIVERY" && channel === "WEB"
-    ? await prisma.globalConfig.findUnique({ where: { id: "default" } })
-    : null;
   const authoritativeDeliveryCost = body.type === "DELIVERY"
-    ? channel === "WEB" ? Math.max(2, Number(deliveryConfig?.deliveryFee ?? 2)) : body.deliveryCost ?? 0
+    ? channel === "WEB" ? calculateDeliveryFee(body.deliveryKm) : body.deliveryCost ?? 0
     : 0;
 
   // Leggi sessione opzionale — gli ordini guest hanno authUserId null

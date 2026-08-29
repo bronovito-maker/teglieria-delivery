@@ -9,6 +9,15 @@ export const ORDER_STATUS_LABELS: Record<string, string> = {
 
 export const MIN_ORDER_SUBTOTAL = 12;
 
+export const BASE_DELIVERY_FEE = 2;
+
+/** 2 € entro il primo km; oltre, 0,33 €/km arrotondato per eccesso al decimo. */
+export function calculateDeliveryFee(deliveryKm?: number | null): number {
+  if (!Number.isFinite(deliveryKm) || (deliveryKm ?? 0) <= 1) return BASE_DELIVERY_FEE;
+  const extra = Math.ceil(((deliveryKm as number) - 1) * 0.33 * 10 - 1e-9) / 10;
+  return Number((BASE_DELIVERY_FEE + extra).toFixed(2));
+}
+
 export const ORDER_STATUS_COLORS: Record<string, string> = {
   RECEIVED: "bg-marigold/20 text-marigold border border-marigold/20",
   CONFIRMED: "bg-terracotta/20 text-terracotta border border-terracotta/20",

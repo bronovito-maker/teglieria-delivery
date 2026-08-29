@@ -7,7 +7,7 @@ import AddressAutocomplete from "@/components/client/AddressAutocomplete";
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
-import { MIN_ORDER_SUBTOTAL } from "@/lib/constants";
+import { calculateDeliveryFee, MIN_ORDER_SUBTOTAL } from "@/lib/constants";
 
 export default function OrdinePage() {
   const router = useRouter();
@@ -94,22 +94,14 @@ export default function OrdinePage() {
   const [pickupTime, setPickupTime] = useState("");
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"CONTANTI" | "STRIPE">("CONTANTI");
-  const [deliveryFee, setDeliveryFee] = useState(2);
+  const [deliveryKm, setDeliveryKm] = useState<number | null>(null);
+  const [distanceLoading, setDistanceLoading] = useState(false);
   const [slots, setSlots] = useState<{ time: string, available: boolean, remaining: number }[]>([]);
   const [dayClosed, setDayClosed] = useState(false);
   const [closedDays, setClosedDays] = useState<Set<string>>(new Set());
   const [slotsCache, setSlotsCache] = useState<Record<string, { slots: { time: string, available: boolean, remaining: number }[]; closed: boolean }>>({});
   const [slotsLoading, setSlotsLoading] = useState(false);
   const orderRequestKey = useRef(crypto.randomUUID());
-
-  useEffect(() => {
-    fetch("/api/config", { cache: "no-store" })
-      .then((response) => response.ok ? response.json() : null)
-      .then((config) => {
-        if (typeof config?.deliveryFee === "number" && Number.isFinite(config.deliveryFee)) setDeliveryFee(Math.max(2, config.deliveryFee));
-      })
-      .catch(() => { /* Mantieni il fallback visuale; il server ricalcola sempre il costo. */ });
-  }, []);
 
   // Pre-check availability for all 7 days shown
   useEffect(() => {
@@ -186,8 +178,37 @@ export default function OrdinePage() {
   }, [slots]);
 
   const subtotal = getSubtotal();
-  const deliveryCost = orderType === "DELIVERY" ? deliveryFee : 0;
+  const deliveryCost = orderType === "DELIVERY" ? calculateDeliveryFee(deliveryKm) : 0;
   const total = subtotal + deliveryCost;
+
+  async function handleDeliveryCoordinates(coordinates: { lat: number; lng: number } | null) {
+    if (!coordinates) {
+      setDeliveryKm(null);
+      return;
+    }
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) return;
+    setDistanceLoading(true);
+    try {
+      const response = await fetch("https://routes.googleapis.com/directions/v2:computeRoutes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Goog-Api-Key": apiKey, "X-Goog-FieldMask": "routes.distanceMeters" },
+        body: JSON.stringify({
+          origin: { location: { latLng: { latitude: 43.5485, longitude: 10.3106 } } },
+          destination: { location: { latLng: coordinates } },
+          travelMode: "DRIVE",
+          routingPreference: "TRAFFIC_UNAWARE",
+        }),
+      });
+      const data = await response.json();
+      const meters = data?.routes?.[0]?.distanceMeters;
+      setDeliveryKm(typeof meters === "number" ? meters / 1000 : null);
+    } catch {
+      setDeliveryKm(null);
+    } finally {
+      setDistanceLoading(false);
+    }
+  }
 
   if (items.length === 0) {
     return (
@@ -230,6 +251,7 @@ export default function OrdinePage() {
           address: orderType === "DELIVERY" ? address : null,
           addressDetail: orderType === "DELIVERY" ? addressDetail : null,
           deliveryZone: orderType === "DELIVERY" ? deliveryZone : null,
+          deliveryKm: orderType === "DELIVERY" ? deliveryKm : null,
           deliveryCost: orderType === "DELIVERY" ? deliveryCost : null,
           pickupTime: new Date(`${selectedDate}T${pickupTime}`).toISOString(),
           timeSlot: pickupTime,
@@ -479,10 +501,13 @@ export default function OrdinePage() {
                 <label className="text-xs font-bold text-gray-500 ml-4">INDIRIZZO</label>
                 <AddressAutocomplete
                   value={address}
-                  onChange={setAddress}
+                  onChange={(value) => { setAddress(value); setDeliveryKm(null); }}
+                  onCoordinatesChange={handleDeliveryCoordinates}
                   required
                   placeholder="Via, Piazza, Numero civico"
                 />
+                {distanceLoading && <p className="ml-4 text-xs text-charcoal/45">Calcolo della tariffa di consegna…</p>}
+                {deliveryKm != null && <p className="ml-4 text-xs text-charcoal/45">Distanza stradale: {deliveryKm.toFixed(1)} km · Consegna: {formatCurrency(deliveryCost)}</p>}
               </div>
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">

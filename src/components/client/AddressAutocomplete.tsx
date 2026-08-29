@@ -34,7 +34,7 @@ function loadMapsPlaces(apiKey: string, onReady: () => void): void {
   document.head.appendChild(script);
 }
 
-function setupAutocomplete(input: HTMLInputElement, onChange: (value: string) => void): void {
+function setupAutocomplete(input: HTMLInputElement, onChange: (value: string) => void, onCoordinatesChange?: (coordinates: { lat: number; lng: number } | null) => void): void {
   if (!window.google?.maps?.places?.Autocomplete) return;
 
   // Bounding box centrato su Livorno (~15km raggio)
@@ -48,7 +48,7 @@ function setupAutocomplete(input: HTMLInputElement, onChange: (value: string) =>
     componentRestrictions: { country: "it" },
     bounds: livornoBounds,
     strictBounds: true,
-    fields: ["formatted_address"],
+    fields: ["formatted_address", "geometry"],
     types: ["address"],
   });
 
@@ -56,6 +56,8 @@ function setupAutocomplete(input: HTMLInputElement, onChange: (value: string) =>
     const place = autocomplete.getPlace();
     if (place?.formatted_address) {
       onChange(place.formatted_address);
+      const location = place.geometry?.location;
+      onCoordinatesChange?.(location ? { lat: location.lat(), lng: location.lng() } : null);
     }
   });
 }
@@ -63,11 +65,12 @@ function setupAutocomplete(input: HTMLInputElement, onChange: (value: string) =>
 interface Props {
   value: string;
   onChange: (value: string) => void;
+  onCoordinatesChange?: (coordinates: { lat: number; lng: number } | null) => void;
   required?: boolean;
   placeholder?: string;
 }
 
-export default function AddressAutocomplete({ value, onChange, required, placeholder }: Props) {
+export default function AddressAutocomplete({ value, onChange, onCoordinatesChange, required, placeholder }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteInitialized = useRef(false);
   const [locating, setLocating] = useState(false);
@@ -80,7 +83,7 @@ export default function AddressAutocomplete({ value, onChange, required, placeho
     autocompleteInitialized.current = true;
 
     const input = inputRef.current;
-    loadMapsPlaces(apiKey, () => setupAutocomplete(input, onChange));
+    loadMapsPlaces(apiKey, () => setupAutocomplete(input, onChange, onCoordinatesChange));
   }
 
   async function handleGeolocate() {
@@ -101,6 +104,7 @@ export default function AddressAutocomplete({ value, onChange, required, placeho
           const address = data.results?.[0]?.formatted_address;
           if (address) {
             onChange(address);
+            onCoordinatesChange?.({ lat: coords.latitude, lng: coords.longitude });
           } else {
             setGeoError("Indirizzo non trovato");
           }

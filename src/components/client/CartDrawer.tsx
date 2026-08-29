@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useEffect } from "react";
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
-import { MIN_ORDER_SUBTOTAL } from "@/lib/constants";
+import { BASE_DELIVERY_FEE, MIN_ORDER_SUBTOTAL } from "@/lib/constants";
 
 interface Props {
   open: boolean;
@@ -18,7 +18,7 @@ export default function CartDrawer({ open, onClose }: Props) {
   const { items, removeItem, updateQuantity, clearCart, getSubtotal, getClubSavings, orderType, setOrderType } = useCartStore();
   const subtotal = getSubtotal();
   const clubSavings = getClubSavings();
-  const deliveryFee = orderType === "DELIVERY" ? 2 : 0;
+  const deliveryFee = orderType === "DELIVERY" ? BASE_DELIVERY_FEE : 0;
   const minimumOrderReached = subtotal >= MIN_ORDER_SUBTOTAL;
   const total = subtotal + deliveryFee;
 
