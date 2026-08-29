@@ -5,7 +5,9 @@ let stripeClient: Stripe | null = null;
 export function getStripe(): Stripe {
   const secretKey = process.env.STRIPE_SECRET_KEY;
   if (!secretKey) throw new Error("STRIPE_SECRET_KEY non configurata");
-  stripeClient ??= new Stripe(secretKey);
+  // Never let a catalog sync or a checkout request hang indefinitely on an
+  // upstream network call. Stripe retries transient failures internally.
+  stripeClient ??= new Stripe(secretKey, { timeout: 20_000, maxNetworkRetries: 2 });
   return stripeClient;
 }
 
