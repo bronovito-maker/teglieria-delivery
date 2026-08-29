@@ -115,11 +115,10 @@ Modelli principali:
 
 ## Deploy
 
-Configurazione Render consigliata:
-
-- Language: Node
-- Build Command: `npm ci && npm run build`
-- Start Command: `npm run start`
+Il progetto è predisposto per Vercel. Il deploy di produzione deve includere il
+commit che contiene le route API, le migrazioni Prisma e `vercel.json`; dopo aver
+configurato o modificato le variabili d’ambiente è necessario eseguire un nuovo
+deploy.
 
 Variabili importanti:
 
@@ -136,6 +135,14 @@ Variabili importanti:
 - `NEXT_PUBLIC_SITE_URL`
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_TEST_WEBHOOK_SECRET` (solo Preview/Development)
+
+Non committare mai `.env`, chiavi Stripe o signing secret. In Production usa una
+chiave `sk_live_` e il relativo secret `whsec_`; in Preview/Development usa una
+chiave `sk_test_` e il relativo secret test `whsec_`. `sk_test_` è una API key, non
+un webhook signing secret.
+
+### Pagamenti Stripe
 
 Per attivare i pagamenti con carta, configura in Stripe un endpoint webhook su
 `/api/stripe/webhook` per gli eventi `checkout.session.completed`,
@@ -146,14 +153,39 @@ Il webhook aggiorna lo stato del pagamento dell’ordine; il redirect del client
 viene usato come prova di pagamento.
 
 Per importare o riallineare il catalogo esistente usa `npm run stripe:sync-catalog`.
-Per controllare gli importi e riallineare gli stati degli ordini usa `npm run stripe:reconcile`.
+Il comando crea e aggiorna automaticamente Products e Prices Stripe a partire dal
+catalogo database, senza inserimento manuale. I prezzi dinamici di varianti,
+aggiunte e prezzi Club vengono comunque calcolati server-side nel Checkout.
+Per controllare gli importi e riallineare gli stati degli ordini usa
+`npm run stripe:reconcile`.
 Prima del deploy applica le migrazioni con `npx prisma migrate deploy`.
 
-Per il collaudo locale completo avvia `stripe listen --forward-to
-localhost:3000/api/stripe/webhook` e configura le chiavi test Stripe nell’ambiente
-del server. Il test Playwright della carta si attiva con `E2E_STRIPE=1`, ma solo
-quando il processo di test usa una chiave `sk_test_` e il secret del listener CLI.
-Il collaudo deve includere una carta riuscita (`4242 4242 4242 4242`),
-una carta rifiutata, un retry, un rimborso totale/parziale e una riconciliazione.
+Per il collaudo locale avvia il listener usando esplicitamente la chiave test:
 
-Ultimo aggiornamento: 29 aprile 2026
+```bash
+set -a; source .env; set +a
+stripe listen --api-key "$STRIPE_SECRET_KEY" \
+  --forward-to localhost:3000/api/stripe/webhook
+```
+
+Copia il `whsec_...` mostrato dal listener in `STRIPE_TEST_WEBHOOK_SECRET` per
+quella sessione, poi esegui `E2E_STRIPE=1 npm run test:e2e`. Il test automatizzato
+verifica una carta riuscita (`4242 4242 4242 4242`), il redirect al tracking e la
+transizione dell’ordine a `PAID` tramite webhook.
+
+Checklist di rilascio pagamenti:
+
+- endpoint live `https://www.lateglieria.it/api/stripe/webhook` raggiungibile e
+  configurato con gli eventi documentati sopra;
+- migrazioni applicate con `npx prisma migrate deploy`;
+- catalogo riallineato con `npm run stripe:sync-catalog`;
+- carta riuscita e carta rifiutata verificate in Test mode;
+- retry di una sessione fallita verificato;
+- rimborso totale e parziale verificati dal back-office;
+- riconciliazione verificata con `npm run stripe:reconcile`;
+- chiave live ruotata se è stata esposta o condivisa.
+
+Lo stato `PAID` viene assegnato dal webhook firmato e validato per importo e
+valuta; il redirect del cliente non è una prova di pagamento.
+
+Ultimo aggiornamento: 29 agosto 2026
