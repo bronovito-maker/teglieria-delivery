@@ -12,7 +12,7 @@ import { calculateDeliveryFee, MIN_ORDER_SUBTOTAL } from "@/lib/constants";
 export default function OrdinePage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
-  const { items, orderType, getSubtotal, clearCart } = useCartStore();
+  const { items, orderType, getSubtotal, getClubSavings, clearCart } = useCartStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [loggedUser, setLoggedUser] = useState<{ name: string; email: string } | null>(null);
@@ -178,6 +178,7 @@ export default function OrdinePage() {
   }, [slots]);
 
   const subtotal = getSubtotal();
+  const clubSavings = getClubSavings();
   const deliveryCost = orderType === "DELIVERY" ? calculateDeliveryFee(deliveryKm) : 0;
   const total = subtotal + deliveryCost;
 
@@ -357,6 +358,12 @@ export default function OrdinePage() {
                 <span>Subtotale</span>
                 <span>{formatCurrency(subtotal)}</span>
               </div>
+              {clubSavings > 0 && (
+                <div className="flex justify-between font-brand font-semibold text-green-700">
+                  <span>Hai risparmiato essendo membro Club</span>
+                  <span>-{formatCurrency(clubSavings)}</span>
+                </div>
+              )}
               {orderType === "DELIVERY" && (
                 <div className="flex justify-between text-charcoal/50 font-body">
                   <span>Consegna</span>

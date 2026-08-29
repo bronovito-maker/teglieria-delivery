@@ -17,6 +17,7 @@ interface CartStore {
   getSubtotal: () => number;
   getClubSavings: () => number;
   getItemCount: () => number;
+  syncPrices: (products: Array<{ id: string; price: number | string; standardPrice?: number | string | null }>) => void;
 }
 
 function normalizeText(value?: string): string {
@@ -140,6 +141,26 @@ export const useCartStore = create<CartStore>()(
 
       getItemCount: () =>
         get().items.reduce((sum, item) => sum + item.quantity, 0),
+
+      syncPrices: (products) =>
+        set((state) => {
+          const prices = new Map(products.map((product) => [product.id, product]));
+          return {
+            items: state.items.map((item) => {
+              const product = prices.get(item.productId);
+              if (!product) return item;
+              const additionsTotal = item.additions.reduce((sum, addition) => sum + addition.price, 0);
+              const unitPrice = Number(product.price);
+              const standardUnitPrice = Number(product.standardPrice ?? product.price) + item.variantPriceDelta + additionsTotal;
+              return {
+                ...item,
+                unitPrice,
+                standardUnitPrice,
+                totalPrice: (unitPrice + item.variantPriceDelta + additionsTotal) * item.quantity,
+              };
+            }),
+          };
+        }),
     }),
     { name: "teglieria-cart" }
   )

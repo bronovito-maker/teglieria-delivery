@@ -111,7 +111,7 @@ export default function CartDrawer({ open, onClose }: Props) {
             <div className="space-y-1 border-t border-charcoal/8 pt-3 text-sm">
               {clubSavings > 0 && (
                 <div className="mb-3 flex items-center justify-between rounded-xl bg-green-50 px-3 py-2 text-xs font-brand font-semibold text-green-700">
-                  <span>Risparmio Club</span><span>-{formatCurrency(clubSavings)}</span>
+                  <span>Hai risparmiato essendo membro Club</span><span>-{formatCurrency(clubSavings)}</span>
                 </div>
               )}
               <div className="flex justify-between text-charcoal/55"><span>Subtotale</span><span>{formatCurrency(subtotal)}</span></div>

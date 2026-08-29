@@ -15,7 +15,7 @@ import { createClient } from "@/lib/supabase/client";
 function MenuContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setOrderType } = useCartStore();
+  const { setOrderType, syncPrices } = useCartStore();
   const supabase = useMemo(() => createClient(), []);
   const [categories, setCategories] = useState<CategoryWithProducts[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -88,13 +88,18 @@ function MenuContent() {
         const response = await fetch("/api/menu");
         const data = await response.json();
         setCategories(data);
+        syncPrices(data.flatMap((category: CategoryWithProducts) => category.products).map((product: ProductWithRelations) => ({
+          id: product.id,
+          price: product.price,
+          standardPrice: product.standardPrice,
+        })));
       } finally {
         setIsLoading(false);
       }
     };
 
     loadMenu();
-  }, [router, searchParams, setOrderType]);
+  }, [router, searchParams, setOrderType, syncPrices]);
 
   // Scroll Reveal Logic
   useEffect(() => {
@@ -250,10 +255,16 @@ function MenuContent() {
                       {product.description}
                     </p>
                   )}
-                  <div className="mt-3 flex items-center gap-2">
-                    <span className="text-[10px] font-brand font-bold uppercase tracking-[0.12em] text-charcoal/40">A partire da&nbsp; {formatCurrency(Number(product.promoPrice ?? product.price))}</span>
-                    <span className="text-[10px] font-brand font-bold uppercase tracking-[0.12em] text-terracotta">Club&nbsp; {formatCurrency(Number(product.clubPrice ?? product.promoPrice ?? product.price))}</span>
-                    <span className="text-[10px] font-brand font-bold uppercase tracking-[0.12em] text-charcoal/40">Prezzo pieno&nbsp; {formatCurrency(Number(product.standardPrice ?? product.price))}</span>
+                  <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+                    {isLoggedIn ? (
+                      <span data-testid="club-price" className="text-[10px] font-brand font-bold uppercase tracking-[0.12em] text-terracotta">Club&nbsp; {formatCurrency(Number(product.price))}</span>
+                    ) : (
+                      <>
+                        <span className="text-[10px] font-brand font-bold uppercase tracking-[0.12em] text-charcoal/40">A partire da&nbsp; {formatCurrency(Number(product.promoPrice ?? product.price))}</span>
+                        <span className="text-[10px] font-brand font-bold uppercase tracking-[0.12em] text-terracotta">Club&nbsp; {formatCurrency(Number(product.clubPrice ?? product.promoPrice ?? product.price))}</span>
+                        <span className="text-[10px] font-brand font-bold uppercase tracking-[0.12em] text-charcoal/40">Prezzo pieno&nbsp; {formatCurrency(Number(product.standardPrice ?? product.price))}</span>
+                      </>
+                    )}
                   </div>
                 </div>
 
