@@ -52,7 +52,8 @@ test.describe("customer authentication flow", () => {
 
       const menuResponse = await page.request.get("/api/menu");
       expect(menuResponse.ok()).toBe(true);
-      const categories = await menuResponse.json();
+      const payload = await menuResponse.json();
+      const categories = Array.isArray(payload) ? payload : payload.categories;
       const clubProduct = categories.flatMap((category: { products: unknown[] }) => category.products).find(
         (product: { isClubPrice?: boolean }) => product.isClubPrice,
       );
@@ -71,7 +72,8 @@ test.describe("customer authentication flow", () => {
       await expect(page.getByTestId("club-banner-login")).toBeVisible();
       const menuResponse = await page.request.get("/api/menu");
       expect(menuResponse.ok()).toBe(true);
-      const categories = await menuResponse.json();
+      const payload = await menuResponse.json();
+      const categories = Array.isArray(payload) ? payload : payload.categories;
       const firstProduct = categories.flatMap((category: { products: unknown[] }) => category.products)[0] as { isClubPrice?: boolean };
       expect(firstProduct?.isClubPrice).not.toBe(true);
     });
@@ -79,7 +81,8 @@ test.describe("customer authentication flow", () => {
     test("sessione autenticata viene riconosciuta dal checkout", async ({ page }) => {
       await login(page);
       const menuResponse = await page.request.get("/api/menu");
-      const categories = await menuResponse.json();
+      const payload = await menuResponse.json();
+      const categories = Array.isArray(payload) ? payload : payload.categories;
       const product = categories.flatMap((category: { products: unknown[] }) => category.products)[0] as {
         id: string; name: string; price: number | string;
       };

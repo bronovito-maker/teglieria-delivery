@@ -13,6 +13,7 @@ const navItems = [
   { href: "/admin/logistica", label: "Logistica", icon: "🛵" },
   { href: "/admin/prodotti", label: "Prodotti", icon: "🍕" },
   { href: "/admin/categorie", label: "Categorie", icon: "📁" },
+  { href: "/admin/promo-club", label: "Promo Club", icon: "⭐" },
   { href: "/admin/report", label: "Report", icon: "📈" },
   { href: "/admin/orari", label: "Orari", icon: "🗓️" },
 ];

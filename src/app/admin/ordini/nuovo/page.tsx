@@ -46,7 +46,7 @@ export default function NuovoOrdinePage() {
   }
 
   useEffect(() => {
-    fetch("/api/menu").then((r) => r.json()).then(setCategories);
+    fetch("/api/menu").then((r) => r.json()).then((data) => setCategories(Array.isArray(data) ? data : data.categories));
   }, []);
 
   const allProducts = categories.flatMap((c) => c.products);

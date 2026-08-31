@@ -12,6 +12,19 @@ import type {
   PaymentRefund,
 } from "@prisma/client";
 
+export type ClubPromotionWithItems = {
+  id: string;
+  title: string;
+  description: string | null;
+  price: number | string;
+  imageUrl: string | null;
+  startsAt: string | Date;
+  endsAt: string | Date;
+  active: boolean;
+  sortOrder: number;
+  items: Array<{ quantity: number; product: { id: string; name: string } }>;
+};
+
 export type {
   Order,
   OrderItem,

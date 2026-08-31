@@ -31,7 +31,8 @@ export default function PreshopPage() {
         if (!response.ok) throw new Error("Menu non disponibile");
         return response.json();
       })
-      .then((categories: { products: Highlight[] }[]) => {
+      .then((payload: { categories: { products: Highlight[] }[] } | { products: Highlight[] }[]) => {
+        const categories = Array.isArray(payload) ? payload : payload.categories;
         const products = categories.flatMap((category: { products: Highlight[] }) => category.products);
         setHighlights(products.filter((product) => product.imageUrl).slice(0, 3));
       })

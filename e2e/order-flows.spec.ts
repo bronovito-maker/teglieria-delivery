@@ -23,7 +23,8 @@ const e2eOrigin = process.env.E2E_BASE_URL ?? "http://localhost:3000";
 async function createCustomerOrder(request: APIRequestContext) {
   const menuRes = await request.get("/api/menu");
   expect(menuRes.ok()).toBe(true);
-  const categories = (await menuRes.json()) as MenuCategory[];
+  const payload = await menuRes.json();
+  const categories = (Array.isArray(payload) ? payload : payload.categories) as MenuCategory[];
   const product = categories.flatMap((category) => category.products)[0];
   test.skip(!product, "Serve almeno un prodotto attivo nel menu per creare un ordine e2e.");
 

@@ -9,6 +9,7 @@ import { formatCurrency } from "@/lib/utils";
 import CartDrawer from "@/components/client/CartDrawer";
 import ProductModal from "@/components/client/ProductModal";
 import type { CategoryWithProducts, ProductWithRelations } from "@/types";
+import type { ClubPromotionWithItems } from "@/types";
 import { SITE_CONFIG } from "@/lib/site-config";
 import { createClient } from "@/lib/supabase/client";
 
@@ -18,6 +19,7 @@ function MenuContent() {
   const { setOrderType, syncPrices } = useCartStore();
   const supabase = useMemo(() => createClient(), []);
   const [categories, setCategories] = useState<CategoryWithProducts[]>([]);
+  const [promotions, setPromotions] = useState<ClubPromotionWithItems[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<ProductWithRelations | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
@@ -87,8 +89,10 @@ function MenuContent() {
       try {
         const response = await fetch("/api/menu");
         const data = await response.json();
-        setCategories(data);
-        syncPrices(data.flatMap((category: CategoryWithProducts) => category.products).map((product: ProductWithRelations) => ({
+        const menuCategories = Array.isArray(data) ? data : data.categories;
+        setCategories(menuCategories);
+        setPromotions(Array.isArray(data) ? [] : data.promotions ?? []);
+        syncPrices(menuCategories.flatMap((category: CategoryWithProducts) => category.products).map((product: ProductWithRelations) => ({
           id: product.id,
           price: product.price,
           standardPrice: product.standardPrice,
@@ -290,6 +294,32 @@ function MenuContent() {
             ))}
           </div>
         </div>
+      )}
+
+      {isLoggedIn && promotions.length > 0 && (
+        <section className="mb-14 px-5 sm:px-8" data-testid="club-promotions">
+          <div className="mb-4 flex items-end justify-between border-b border-charcoal/5 pb-4">
+            <div>
+              <p className="ds-micro-label text-terracotta/70">Solo per il Club</p>
+              <h2 className="mt-2 font-display text-3xl leading-none text-terracotta sm:text-4xl">Promo Club</h2>
+            </div>
+            <span className="text-[10px] font-brand font-bold uppercase tracking-[0.16em] text-charcoal/35">Questa settimana</span>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {promotions.map((promotion) => (
+              <article key={promotion.id} className="overflow-hidden rounded-[1.5rem] border border-terracotta/15 bg-white shadow-[0_8px_20px_rgba(26,26,26,0.04)]">
+                {promotion.imageUrl && <div className="relative aspect-[2.2]"><Image src={promotion.imageUrl} alt="" fill className="object-cover" sizes="(max-width: 640px) 100vw, 50vw" /></div>}
+                <div className="p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div><h3 className="font-display text-2xl leading-none text-charcoal">{promotion.title}</h3><p className="mt-2 text-sm text-charcoal/55">{promotion.description}</p></div>
+                    <span className="shrink-0 text-xl font-brand font-bold text-terracotta">{formatCurrency(Number(promotion.price))}</span>
+                  </div>
+                  <p className="mt-4 text-xs font-brand font-semibold text-charcoal/50">{promotion.items.map((item) => `${item.quantity > 1 ? `${item.quantity}× ` : ""}${item.product.name}`).join(" + ")}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
       )}
 
       {!isLoading && categories.length === 0 && (

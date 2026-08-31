@@ -23,7 +23,15 @@ export async function GET() {
       },
     },
   });
-  return NextResponse.json(categories.map((category) => ({
+  const promotions = isClubMember
+    ? await prisma.clubPromotion.findMany({
+        where: { active: true, startsAt: { lte: new Date() }, endsAt: { gt: new Date() } },
+        orderBy: [{ sortOrder: "asc" }, { startsAt: "asc" }],
+        take: 2,
+        include: { items: { include: { product: { select: { id: true, name: true } } } } },
+      })
+    : [];
+  return NextResponse.json({ categories: categories.map((category) => ({
     ...category,
     products: category.products.map((product) => ({
       ...product,
@@ -31,5 +39,5 @@ export async function GET() {
       isClubPrice: isClubMember && product.clubPrice != null,
       price: isClubMember && product.clubPrice != null ? product.clubPrice : product.price,
     })),
-  })));
+  })), promotions });
 }

@@ -54,6 +54,23 @@ export const productCreateSchema = z
 
 export const productPatchSchema = productCreateSchema.partial().strict();
 
+const promotionItemSchema = z.object({ productId: z.string().min(1), quantity: z.number().int().positive().max(20) }).strict();
+const clubPromotionFields = z.object({
+  title: z.string().trim().min(1).max(120),
+  description: nullableText(),
+  price: z.number().nonnegative(),
+  imageUrl: z.string().trim().url().nullable().optional(),
+  startsAt: z.string().datetime(),
+  endsAt: z.string().datetime(),
+  active: z.boolean().optional(),
+  sortOrder: z.number().int().optional(),
+  items: z.array(promotionItemSchema).min(1).max(10),
+}).strict();
+export const clubPromotionCreateSchema = clubPromotionFields.superRefine((data, ctx) => {
+  if (new Date(data.endsAt) <= new Date(data.startsAt)) ctx.addIssue({ code: "custom", path: ["endsAt"], message: "La fine deve essere successiva all'inizio" });
+});
+export const clubPromotionPatchSchema = clubPromotionFields.partial().extend({ id: z.string().min(1) }).strict();
+
 export const closureUpsertSchema = z
   .object({
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),

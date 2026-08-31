@@ -18,7 +18,8 @@ test.describe("Stripe payment flow", () => {
   test("cliente completa un pagamento con carta", async ({ page }) => {
     const menuResponse = await page.request.get("/api/menu");
     expect(menuResponse.ok()).toBe(true);
-    const categories = await menuResponse.json();
+    const payload = await menuResponse.json();
+    const categories = Array.isArray(payload) ? payload : payload.categories;
     const product = categories.flatMap((category: { products: unknown[] }) => category.products)[0] as {
       id: string;
       name: string;
