@@ -5,16 +5,16 @@ const prisma = new PrismaClient();
 type ProductData = { categoryId: string; name: string; description: string; price: number; clubPrice?: number; promoPrice?: number; imageUrl?: string | null; sortOrder: number; configuration?: unknown };
 
 const pizzas = [
-  ["La Regina", "Pomodoro San Marzano DOP, fiordilatte e basilico fresco.", 29, 24, 19, 16, 14, 12, 3, "Pizza_teglia_margherita.jpg"],
-  ["La Partenopea", "Pomodoro San Marzano DOP, fiordilatte, acciughe e capperi.", 34, 29, 24, 19, 17, 15, 3.5, "pizza_teglia_la_partenopea.jpg"],
-  ["La Contadina", "Pomodoro San Marzano DOP, fiordilatte, prosciutto cotto e funghi.", 36, 30, 25, 20, 18, 16, 3.5, "pizza_teglia_la_contadina.jpg"],
-  ["La Diavola", "Pomodoro San Marzano DOP, fiordilatte e salamino piccante.", 34, 29, 24, 19, 17, 15, 3.5, "pizza_teglia_la_diavola.jpg"],
-  ["L'Ortolana", "Pomodoro San Marzano DOP, fiordilatte e verdure di stagione.", 34, 28, 23, 19, 16, 15, 3.5, "pizza_teglia_ortolana.jpg"],
-  ["La Pistacchio", "Fiordilatte, scamorza affumicata, prosciutto cotto arrosto, crema di burrata, pesto e granella di pistacchio.", 45, 42, 37, 25, 25, 23, 4.5, "pizza_teglia_la_pistacchio.jpg"],
-  ["La Nordica", "Fiordilatte, salmone affumicato, burrata pugliese, rucola e pomodorino giallo.", 49, 45, 40, 27, 27, 25, 5, "pizza_teglia_la_nordica.jpg"],
-  ["La Parma", "Fiordilatte, prosciutto crudo stagionato, rucola fresca, scaglie di Grana Padano DOP e olio extravergine d'oliva.", 44, 39, 34, 24, 23, 21, 4.5, "pizza_teglia_la_parma_closeup.jpg"],
+  ["La Regina", "Pomodoro San Marzano DOP, fiordilatte e basilico fresco.", 29, 24, 19, 16, 14, 12, 3, "pizza_laregina.jpg"],
+  ["La Partenopea", "Pomodoro San Marzano DOP, fiordilatte, acciughe e capperi.", 34, 29, 24, 19, 17, 15, 3.5, "pizza_lapartenopea.jpg"],
+  ["La Contadina", "Pomodoro San Marzano DOP, fiordilatte, prosciutto cotto e funghi.", 36, 30, 25, 20, 18, 16, 3.5, "pizza_lacontadina.jpg"],
+  ["La Diavola", "Pomodoro San Marzano DOP, fiordilatte e salamino piccante.", 34, 29, 24, 19, 17, 15, 3.5, "pizza_ladiavola.jpg"],
+  ["L'Ortolana", "Pomodoro San Marzano DOP, fiordilatte e verdure di stagione.", 34, 28, 23, 19, 16, 15, 3.5, "pizza_lortolana.jpg"],
+  ["La Pistacchio", "Fiordilatte, scamorza affumicata, prosciutto cotto arrosto, crema di burrata, pesto e granella di pistacchio.", 45, 42, 37, 25, 25, 23, 4.5, "pizza_lapistacchio.jpg"],
+  ["La Nordica", "Fiordilatte, salmone affumicato, burrata pugliese, rucola e pomodorino giallo.", 49, 45, 40, 27, 27, 25, 5, "pizza_lanordica.jpg"],
+  ["La Parma", "Fiordilatte, prosciutto crudo stagionato, rucola fresca, scaglie di Grana Padano DOP e olio extravergine d'oliva.", 44, 39, 34, 24, 23, 21, 4.5, "pizza_laparma.jpg"],
   ["La Burrata", "Pomodoro San Marzano DOP, burrata pugliese, pomodorini confit, basilico fresco e olio extravergine d'oliva.", 42, 39, 33, 23, 23, 21, 4.5, "pizza_teglia_la_burrata.jpg"],
-  ["La Carbonara", "Fiordilatte, crema di pecorino romano, guanciale croccante e pepe nero.", 42, 36, 31, 23, 21, 19, 4.5, "pizza_teglia_la_carbonara.jpg"],
+  ["La Carbonara", "Fiordilatte, crema di pecorino romano, guanciale croccante e pepe nero.", 42, 36, 31, 23, 21, 19, 4.5, "pizza_lacarbonara.jpg"],
 ] as const;
 const schiacciatine = [["La Semplice", "Base intera da 400 g", 2.5, null], ["La Classica", "Base intera da 400 g", 8, null], ["La Rustica", "Base intera da 400 g", 10, null], ["La Cruda", "Base intera da 400 g", 10.5, null], ["La Pistacchio", "Base intera da 400 g", 12, "pizza_teglia_la_pistacchio.jpg"], ["La Parma", "Base intera da 400 g", 12.5, "pizza_teglia_la_parma_closeup.jpg"], ["La Golosa", "Base intera da 400 g", 7, null]] as const;
 const ceci = [["Torta di Ceci", "Vendita a peso - € 1,90 / 100 g", 1.9, "torta_di_ceci_dettaglio.jpg"], ["Giga 5e5", "Base intera da 400 g", 4, "5e5_closeup.jpg"], ["Giga 5e5 con Melanzane", "Base intera da 400 g", 5.5, "5e5_melanzane.jpg"], ["5e5 Piccolo", "Mezza base", 2.5, "5e5_closeup.jpg"], ["5e5 Piccolo con Melanzane", "Mezza base", 3.5, "5e5_melanzane.jpg"]] as const;

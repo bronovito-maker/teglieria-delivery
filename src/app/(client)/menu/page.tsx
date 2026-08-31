@@ -29,6 +29,15 @@ function MenuContent() {
   const navRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const previousScrollRestoration = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    return () => {
+      window.history.scrollRestoration = previousScrollRestoration;
+    };
+  }, []);
+
+  useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       const role = typeof user?.user_metadata?.role === "string" ? user.user_metadata.role : null;
       setIsLoggedIn(Boolean(user && role !== "rider"));
@@ -144,7 +153,12 @@ function MenuContent() {
   useEffect(() => {
     if (!activeCategory || !navRef.current) return;
     const pill = navRef.current.querySelector(`[data-cat="${activeCategory}"]`) as HTMLElement;
-    if (pill) pill.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    if (pill) {
+      navRef.current.scrollTo({
+        left: Math.max(0, pill.offsetLeft - (navRef.current.clientWidth - pill.offsetWidth) / 2),
+        behavior: "smooth",
+      });
+    }
   }, [activeCategory]);
 
   const scrollToCategory = (catId: string) => {

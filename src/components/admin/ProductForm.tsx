@@ -7,6 +7,24 @@ import { createClient } from "@/lib/supabase/client";
 import type { ProductWithRelations } from "@/types";
 
 const BUCKET = "product-images";
+const MAX_IMAGE_SIZE = 3 * 1024 * 1024;
+
+async function optimizeImage(file: File): Promise<File> {
+  if (file.size <= MAX_IMAGE_SIZE) return file;
+  const bitmap = await createImageBitmap(file);
+  const maxDimension = 1600;
+  const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("Impossibile preparare l'immagine");
+  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.8));
+  if (!blob) throw new Error("Impossibile comprimere l'immagine");
+  return new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg", lastModified: Date.now() });
+}
 
 type Category = { id: string; name: string };
 type SubItem = { name: string; priceDelta?: number; price?: number };
@@ -63,23 +81,26 @@ export default function ProductForm({ productId }: ProductFormProps) {
 
   async function handleImageUpload(file: File) {
     if (!file) return;
-    if (file.size > 3 * 1024 * 1024) {
-      alert("Immagine troppo grande. Massimo 3MB.");
+    setUploadingImage(true);
+    const supabase = createClient();
+    let uploadFile: File;
+    try {
+      uploadFile = await optimizeImage(file);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Impossibile ottimizzare l'immagine.");
+      setUploadingImage(false);
+      return;
+    }
+    if (uploadFile.size > MAX_IMAGE_SIZE) {
+      alert("Immagine ancora troppo grande dopo la compressione. Scegli una foto più piccola.");
+      setUploadingImage(false);
       return;
     }
 
-    setUploadingImage(true);
-    const supabase = createClient();
-
-    // Delete old image if present
-    if (imagePath) {
-      await supabase.storage.from(BUCKET).remove([imagePath]);
-    }
-
-    const ext = file.name.split(".").pop();
+    const ext = uploadFile.name.split(".").pop();
     const newPath = `products/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-    const { error } = await supabase.storage.from(BUCKET).upload(newPath, file, {
+    const { error } = await supabase.storage.from(BUCKET).upload(newPath, uploadFile, {
       cacheControl: "3600",
       upsert: false,
     });
@@ -88,6 +109,11 @@ export default function ProductForm({ productId }: ProductFormProps) {
       alert(`Errore upload: ${error.message}`);
       setUploadingImage(false);
       return;
+    }
+
+    // Elimina la foto precedente solo dopo che la nuova è stata caricata.
+    if (imagePath) {
+      await supabase.storage.from(BUCKET).remove([imagePath]);
     }
 
     const { data } = supabase.storage.from(BUCKET).getPublicUrl(newPath);
