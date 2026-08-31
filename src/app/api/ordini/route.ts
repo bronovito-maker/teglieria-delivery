@@ -11,6 +11,7 @@ import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { enforceSameOrigin } from "@/lib/request-security";
 import { getStripe, getStripeSiteUrl } from "@/lib/stripe";
 import { calculateDeliveryFee, MIN_ORDER_SUBTOTAL } from "@/lib/constants";
+import { calculatePizzaConfiguration, type PizzaBuilderSelection } from "@/lib/pizza-builder";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -121,7 +122,7 @@ export async function POST(request: Request) {
       const productIds = body.items.map((i) => i.productId).filter(Boolean);
       const existingProducts = await tx.product.findMany({
         where: { id: { in: productIds } },
-        include: { variants: { where: { active: true } }, additions: { where: { active: true } } },
+        include: { variants: { where: { active: true } }, additions: { where: { active: true } }, removals: { where: { active: true } } },
       });
       const validIds = new Set(existingProducts.map((p) => p.id));
       const stale = productIds.filter((id) => !validIds.has(id));
@@ -132,6 +133,15 @@ export async function POST(request: Request) {
       const productsById = new Map(existingProducts.map((product) => [product.id, product]));
       const authoritativeItems = body.items.map((item) => {
         const product = productsById.get(item.productId)!;
+        if (product.configuration) {
+          let selection: PizzaBuilderSelection;
+          try { selection = JSON.parse(item.variant || "") as PizzaBuilderSelection; } catch { throw new Error("INVALID_CART_PRICE"); }
+          let calculated: ReturnType<typeof calculatePizzaConfiguration>;
+          try { calculated = calculatePizzaConfiguration(selection); } catch { throw new Error("INVALID_CART_PRICE"); }
+          const priceMismatch = Math.abs(item.unitPrice - calculated.total) > 0.01 || Math.abs(item.totalPrice - calculated.total * item.quantity) > 0.01;
+          if (priceMismatch) throw new Error("INVALID_CART_PRICE");
+          return { ...item, productName: product.name, unitPrice: calculated.total, totalPrice: calculated.total * item.quantity, additions: calculated.additions, variant: JSON.stringify(selection) };
+        }
         const basePrice = pricingAuthUserId && product.clubPrice != null ? Number(product.clubPrice) : Number(product.price);
         const variant = item.variant ? product.variants.find((candidate) => candidate.name === item.variant) : null;
         if (item.variant && !variant) throw new Error("INVALID_CART_PRICE");

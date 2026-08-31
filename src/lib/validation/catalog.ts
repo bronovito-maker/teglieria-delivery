@@ -46,6 +46,7 @@ export const productCreateSchema = z
     active: z.boolean().optional(),
     sortOrder: z.number().int().optional(),
     kitchenNotes: nullableText(),
+    configuration: z.unknown().nullable().optional(),
     variants: z.array(productVariantInputSchema).optional(),
     additions: z.array(productAdditionInputSchema).optional(),
     removals: z.array(productRemovalInputSchema).optional(),

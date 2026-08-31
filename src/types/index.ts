@@ -66,6 +66,9 @@ export type OrderWithItems = Order & {
 export type CartItemAddition = {
   name: string;
   price: number;
+  grams?: number;
+  available?: boolean;
+  allergens?: string[];
 };
 
 export type CartItemRemoval = {

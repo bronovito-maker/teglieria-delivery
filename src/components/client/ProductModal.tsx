@@ -7,13 +7,19 @@ import { formatCurrency } from "@/lib/utils";
 import type { ProductWithRelations } from "@/types";
 import type { CartItemAddition, CartItemRemoval } from "@/types";
 import { toast } from "sonner";
+import PizzaBuilderModal from "./PizzaBuilderModal";
 
 interface Props {
   product: ProductWithRelations;
   onClose: () => void;
 }
 
-export default function ProductModal({ product, onClose }: Props) {
+export default function ProductModal(props: Props) {
+  if (props.product.configuration) return <PizzaBuilderModal {...props} />;
+  return <ProductModalContent {...props} />;
+}
+
+function ProductModalContent({ product, onClose }: Props) {
   const addItem = useCartStore((s) => s.addItem);
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);

@@ -1,7 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
+import { PIZZA_BUILDER_CONFIG } from "../src/lib/pizza-builder";
 
 const prisma = new PrismaClient();
-type ProductData = { categoryId: string; name: string; description: string; price: number; clubPrice?: number; promoPrice?: number; imageUrl?: string | null; sortOrder: number };
+type ProductData = { categoryId: string; name: string; description: string; price: number; clubPrice?: number; promoPrice?: number; imageUrl?: string | null; sortOrder: number; configuration?: unknown };
 
 const pizzas = [
   ["La Regina", "Pomodoro San Marzano DOP, fiordilatte e basilico fresco.", 29, 24, 19, 16, 14, 12, 3, "Pizza_teglia_margherita.jpg"],
@@ -28,30 +29,31 @@ async function getCategory(name: string, sortOrder: number) {
 
 async function upsertProduct(data: ProductData) {
   const existing = await prisma.product.findFirst({ where: { categoryId: data.categoryId, name: data.name } });
-  const payload = { ...data, clubPrice: data.clubPrice ?? null, promoPrice: data.promoPrice ?? null, imageUrl: data.imageUrl ?? null, active: true };
+  const payload = { ...data, configuration: data.configuration === undefined ? undefined : data.configuration as Prisma.InputJsonValue, clubPrice: data.clubPrice ?? null, promoPrice: data.promoPrice ?? null, imageUrl: data.imageUrl ?? null, active: true };
   return existing ? prisma.product.update({ where: { id: existing.id }, data: payload }) : prisma.product.create({ data: payload });
 }
 
 async function main() {
-  const categoryNames = ["Teglie", "Mezze teglie", "Tranci", "Schiacciatine", "Torta di ceci e 5e5", "Fritti", "Bevande analcoliche", "Birre"];
+  const categoryNames = ["Crea la tua pizza", "Teglie", "Mezze teglie", "Tranci", "Schiacciatine", "Torta di ceci e 5e5", "Fritti", "Bevande analcoliche", "Birre"];
   const categories = await Promise.all(categoryNames.map((name, index) => getCategory(name, index)));
   await prisma.category.updateMany({ where: { id: { notIn: categories.map((c) => c.id) } }, data: { active: false } });
   await prisma.product.updateMany({ where: { category: { active: false } }, data: { active: false } });
 
   for (const [index, [name, description, whole, wholeClub, wholePromo, half, halfClub, halfPromo, slice, image]] of pizzas.entries()) {
-    const wholeCategoryId = categories[0].id;
-    const halfCategoryId = categories[1].id;
-    const sliceCategoryId = categories[2].id;
+    const wholeCategoryId = categories[1].id;
+    const halfCategoryId = categories[2].id;
+    const sliceCategoryId = categories[3].id;
     const imageUrl = image ? `/menu/${image}` : null;
     await upsertProduct({ categoryId: wholeCategoryId, name, description, price: whole, clubPrice: wholeClub, promoPrice: wholePromo, imageUrl, sortOrder: index });
     await upsertProduct({ categoryId: halfCategoryId, name, description, price: half, clubPrice: halfClub, promoPrice: halfPromo, imageUrl, sortOrder: index });
     await upsertProduct({ categoryId: sliceCategoryId, name, description: `${description} Taglio trancio 1/12.`, price: slice, imageUrl, sortOrder: index });
   }
-  for (const [index, [name, description, price]] of schiacciatine.entries()) await upsertProduct({ categoryId: categories[3].id, name, description, price, imageUrl: "/menu/placeholder-food.svg", sortOrder: index });
-  for (const [index, [name, description, price, image]] of ceci.entries()) await upsertProduct({ categoryId: categories[4].id, name, description, price, imageUrl: `/menu/${image}`, sortOrder: index });
-  for (const [index, [name, description, price]] of fritti.entries()) await upsertProduct({ categoryId: categories[5].id, name, description, price, imageUrl: "/menu/placeholder-food.svg", sortOrder: index });
-  for (const [index, [name, description, price, image]] of analcoliche.entries()) await upsertProduct({ categoryId: categories[6].id, name, description, price, imageUrl: `/menu/${image}`, sortOrder: index });
-  for (const [index, [name, description, price, image]] of birre.entries()) await upsertProduct({ categoryId: categories[7].id, name, description, price, imageUrl: image ? `/menu/${image}` : null, sortOrder: index });
+  await upsertProduct({ categoryId: categories[0].id, name: "Crea la tua pizza", description: "Componi ogni gusto scegliendo base e ingredienti. Mezza teglia 30x40 o teglia intera 60x40.", price: 0, imageUrl: "/menu/placeholder-food.svg", sortOrder: 0, configuration: PIZZA_BUILDER_CONFIG });
+  for (const [index, [name, description, price]] of schiacciatine.entries()) await upsertProduct({ categoryId: categories[4].id, name, description, price, imageUrl: "/menu/placeholder-food.svg", sortOrder: index });
+  for (const [index, [name, description, price, image]] of ceci.entries()) await upsertProduct({ categoryId: categories[5].id, name, description, price, imageUrl: `/menu/${image}`, sortOrder: index });
+  for (const [index, [name, description, price]] of fritti.entries()) await upsertProduct({ categoryId: categories[6].id, name, description, price, imageUrl: "/menu/placeholder-food.svg", sortOrder: index });
+  for (const [index, [name, description, price, image]] of analcoliche.entries()) await upsertProduct({ categoryId: categories[7].id, name, description, price, imageUrl: `/menu/${image}`, sortOrder: index });
+  for (const [index, [name, description, price, image]] of birre.entries()) await upsertProduct({ categoryId: categories[8].id, name, description, price, imageUrl: image ? `/menu/${image}` : null, sortOrder: index });
   console.log("Catalogo completo sincronizzato.");
 }
 

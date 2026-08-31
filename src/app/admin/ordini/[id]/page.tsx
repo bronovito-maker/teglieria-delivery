@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, getStatusTransitions } from "@/lib/constants";
 import { formatCurrency, formatDateTime, formatTime, formatOrderCode } from "@/lib/utils";
+import { formatPizzaVariant } from "@/lib/pizza-builder";
 import type { OrderWithItems } from "@/types";
 
 export default function OrderDetailPage() {
@@ -237,7 +238,7 @@ export default function OrderDetailPage() {
               <div key={item.id} className="flex justify-between">
                 <div>
                   <span className="font-brand font-semibold">{item.quantity}x {item.productName}</span>
-                  {item.variant && <span className="text-gray-500 font-body"> ({item.variant})</span>}
+                  {item.variant && <span className="text-gray-500 font-body"> ({formatPizzaVariant(item.variant)})</span>}
                   {item.additions && (
                     <p className="text-xs text-gray-500 font-body">
                       + {(item.additions as any[]).map((a: any) => a.name).join(", ")}

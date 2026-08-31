@@ -260,8 +260,8 @@ function MenuContent() {
                     </p>
                   )}
                   <div className="mt-3 flex items-center">
-                    <span data-testid={isLoggedIn ? "club-price" : "full-price"} className={`text-base font-brand font-bold ${isLoggedIn ? "text-terracotta" : "text-charcoal"}`}>
-                      {formatCurrency(Number(isLoggedIn ? product.price : product.standardPrice ?? product.price))}
+                    <span data-testid={product.configuration ? "configurable-price" : isLoggedIn ? "club-price" : "full-price"} className={`text-base font-brand font-bold ${isLoggedIn ? "text-terracotta" : "text-charcoal"}`}>
+                      {product.configuration ? "Scegli formato e gusti" : formatCurrency(Number(isLoggedIn ? product.price : product.standardPrice ?? product.price))}
                     </span>
                   </div>
                 </div>

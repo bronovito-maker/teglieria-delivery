@@ -5,6 +5,7 @@ import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 import { productCreateSchema } from "@/lib/validation/catalog";
 import { enforceSameOrigin } from "@/lib/request-security";
 import { syncStripeCatalogProduct } from "@/lib/stripe-catalog";
+import { Prisma } from "@prisma/client";
 
 export async function GET() {
   const products = await prisma.product.findMany({
@@ -44,6 +45,7 @@ export async function POST(request: Request) {
       active: body.active ?? true,
       sortOrder: body.sortOrder ?? 0,
       kitchenNotes: body.kitchenNotes,
+      configuration: body.configuration == null ? Prisma.JsonNull : body.configuration as Prisma.InputJsonValue,
       variants: body.variants?.length
         ? { createMany: { data: body.variants } }
         : undefined,

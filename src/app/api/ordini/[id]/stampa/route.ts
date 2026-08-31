@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import QRCode from "qrcode";
+import { formatPizzaVariant } from "@/lib/pizza-builder";
 
 export async function GET(
   request: Request,
@@ -23,7 +24,7 @@ export async function GET(
   const itemsHtml = order.items
     .map((item) => {
       let line = `<tr><td>${item.quantity}x ${item.productName}`;
-      if (item.variant) line += ` <small>(${item.variant})</small>`;
+      if (item.variant) line += ` <small>(${formatPizzaVariant(item.variant)})</small>`;
       line += `</td><td class="r">${fmt(Number(item.totalPrice))}</td></tr>`;
 
       const extras: string[] = [];

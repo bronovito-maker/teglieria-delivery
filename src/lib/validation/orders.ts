@@ -30,7 +30,7 @@ export const orderItemSchema = z
     quantity: z.number().int().positive().max(99),
     unitPrice: z.number().nonnegative(),
     totalPrice: z.number().nonnegative(),
-    variant: z.string().trim().max(120).nullable().optional(),
+    variant: z.string().trim().max(4000).nullable().optional(),
     additions: z.array(z.object({ name: z.string(), price: z.number() }).passthrough()).nullable().optional(),
     removals: z.array(z.object({ name: z.string() }).passthrough()).nullable().optional(),
     notes: optionalTextSchema,
