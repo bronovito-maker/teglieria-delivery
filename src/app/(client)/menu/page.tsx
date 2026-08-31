@@ -26,6 +26,7 @@ function MenuContent() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authVersion, setAuthVersion] = useState(0);
   const navRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,16 +43,19 @@ function MenuContent() {
       const role = typeof user?.user_metadata?.role === "string" ? user.user_metadata.role : null;
       setIsLoggedIn(Boolean(user && role !== "rider"));
       setAuthChecked(true);
+      setAuthVersion((version) => version + 1);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const role = typeof session?.user?.user_metadata?.role === "string" ? session.user.user_metadata.role : null;
       setIsLoggedIn(Boolean(session?.user && role !== "rider"));
       setAuthChecked(true);
+      setAuthVersion((version) => version + 1);
     });
     const onAuthChanged = () => supabase.auth.getUser().then(({ data: { user } }) => {
       const role = typeof user?.user_metadata?.role === "string" ? user.user_metadata.role : null;
       setIsLoggedIn(Boolean(user && role !== "rider"));
       setAuthChecked(true);
+      setAuthVersion((version) => version + 1);
     });
     window.addEventListener("customer-auth-changed", onAuthChanged);
     return () => {
@@ -100,7 +104,6 @@ function MenuContent() {
         const data = await response.json();
         const menuCategories = Array.isArray(data) ? data : data.categories;
         setCategories(menuCategories);
-        if (!Array.isArray(data) && typeof data.isClubMember === "boolean") setIsLoggedIn(data.isClubMember);
         setPromotions(Array.isArray(data) ? [] : data.promotions ?? []);
         syncPrices(menuCategories.flatMap((category: CategoryWithProducts) => category.products).map((product: ProductWithRelations) => ({
           id: product.id,
@@ -113,7 +116,7 @@ function MenuContent() {
     };
 
     loadMenu();
-  }, [router, searchParams, setOrderType, syncPrices]);
+  }, [authVersion, router, searchParams, setOrderType, syncPrices]);
 
   // Scroll Reveal Logic
   useEffect(() => {
