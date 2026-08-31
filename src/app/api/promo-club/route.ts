@@ -13,8 +13,15 @@ async function operator(request: Request) {
   return user && (!isAdminRbacStrictEnabled() || isOperatorUser(user)) ? user : null;
 }
 
+async function customer(request: Request) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  return user && !isOperatorUser(user) ? user : null;
+}
+
 export async function GET(request: Request) {
   const user = await operator(request);
+  if (!user && !await customer(request)) return NextResponse.json([]);
   const now = new Date();
   const promotions = await prisma.clubPromotion.findMany({
     where: user ? undefined : { active: true, startsAt: { lte: now }, endsAt: { gt: now } },
