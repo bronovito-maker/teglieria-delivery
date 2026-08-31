@@ -101,9 +101,16 @@ function ProductModalContent({ product, onClose }: Props) {
               {product.description && (
                 <p className="text-base text-charcoal/60 font-body leading-relaxed">{product.description}</p>
               )}
-              <p className="mt-2 text-xs font-brand font-bold uppercase tracking-[0.14em] text-charcoal/45">
-                Taglio: {product.category?.name || "a scelta"}
-              </p>
+              {product.category?.name === "Teglie" && (
+                <p className="mt-2 text-xs font-brand font-bold uppercase tracking-[0.14em] text-charcoal/45">
+                  Formato: 60×40 cm
+                </p>
+              )}
+              {product.category?.name === "Mezze teglie" && (
+                <p className="mt-2 text-xs font-brand font-bold uppercase tracking-[0.14em] text-charcoal/45">
+                  Formato: 30×40 cm
+                </p>
+              )}
               <div className="mt-4 flex items-center gap-3">
                 <span className="text-2xl font-bold text-terracotta">{formatCurrency(unitTotal)}</span>
                 {quantity > 1 && (

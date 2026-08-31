@@ -1,5 +1,6 @@
 import MobileTopBar from "@/components/client/MobileTopBar";
 import ClientToaster from "@/components/client/ClientToaster";
+import ClientFooter from "@/components/client/ClientFooter";
 
 export default function ClientLayout({
   children,
@@ -14,9 +15,7 @@ export default function ClientLayout({
         {children}
       </main>
       <ClientToaster />
-      <footer className="border-t border-charcoal/8 bg-white/60 backdrop-blur-sm text-center text-sm text-charcoal/55 py-4 font-subtitle">
-        La Teglieria &copy; {new Date().getFullYear()}
-      </footer>
+      <ClientFooter />
     </div>
   );
 }

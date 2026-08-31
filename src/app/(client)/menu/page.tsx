@@ -220,9 +220,13 @@ function MenuContent() {
         <div key={cat.id} id={`cat-${cat.id}`} className="mb-14 sm:mb-16">
           {/* CATEGORY HEADER - Sticky Glass */}
           <div className="mb-4 flex min-h-[3.5rem] items-center justify-between border-b border-charcoal/5 px-6 py-4">
-            <h2 className="relative top-[3px] flex items-center text-xs sm:text-sm leading-none font-brand font-semibold uppercase tracking-[0.24em] sm:tracking-[0.3em] text-charcoal/85">
-              {cat.name}
-            </h2>
+            <div>
+              <h2 className="relative top-[3px] flex items-center text-xs sm:text-sm leading-none font-brand font-semibold uppercase tracking-[0.24em] sm:tracking-[0.3em] text-charcoal/85">
+                {cat.name}
+              </h2>
+              {cat.name === "Teglie" && <p className="mt-2 text-[10px] font-brand font-bold uppercase tracking-[0.14em] text-terracotta/70">Formato fisso: 60×40 cm</p>}
+              {cat.name === "Mezze teglie" && <p className="mt-2 text-[10px] font-brand font-bold uppercase tracking-[0.14em] text-terracotta/70">Formato fisso: 30×40 cm</p>}
+            </div>
             <span className="relative top-[3px] flex items-center text-[10px] leading-none font-brand font-bold uppercase tracking-[0.2em] text-charcoal/30">
               {cat.products.length} Opzioni
             </span>
@@ -270,7 +274,6 @@ function MenuContent() {
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-charcoal/5 text-charcoal/40 shadow-sm transition-all group-hover:bg-terracotta group-hover:text-white active:scale-90 sm:h-10 sm:w-10">
                     <span className="text-xl font-light">+</span>
                   </div>
-                  <span className="hidden text-[9px] font-brand font-bold uppercase tracking-[0.16em] text-charcoal/30 sm:block">Personalizza</span>
                 </div>
               </button>
             ))}

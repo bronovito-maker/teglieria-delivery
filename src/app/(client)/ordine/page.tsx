@@ -12,7 +12,7 @@ import { calculateDeliveryFee, MIN_ORDER_SUBTOTAL } from "@/lib/constants";
 export default function OrdinePage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
-  const { items, orderType, getSubtotal, getClubSavings, clearCart } = useCartStore();
+  const { items, orderType, getSubtotal, getClubSavings, clearCart, syncPrices } = useCartStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [loggedUser, setLoggedUser] = useState<{ name: string; email: string } | null>(null);
@@ -25,6 +25,40 @@ export default function OrdinePage() {
 
   useEffect(() => {
     let cancelled = false;
+
+    async function applyCustomerSession(user: { id: string; email?: string; user_metadata?: Record<string, unknown> } | null) {
+      const role = user?.user_metadata?.role;
+      if (!user || role === "admin" || role === "rider") {
+        if (!cancelled) {
+          setLoggedUser(null);
+          setAuthChecked(true);
+        }
+        return;
+      }
+      if (!cancelled) {
+        const metadata = user.user_metadata ?? {};
+        setLoggedUser({
+          name: typeof metadata.full_name === "string" ? metadata.full_name : typeof metadata.name === "string" ? metadata.name : "",
+          email: user.email || "",
+        });
+        setShowDetails(true);
+        setCustomerEmail((current) => current || user.email || "");
+        setCustomerName((current) => current || (typeof metadata.full_name === "string" ? metadata.full_name : typeof metadata.name === "string" ? metadata.name : ""));
+        setCustomerPhone((current) => current || (typeof metadata.phone === "string" ? metadata.phone : ""));
+        setAuthChecked(true);
+      }
+      // Aggiorna il carrello se il login avviene dopo il caricamento del menu.
+      try {
+        const response = await fetch("/api/menu", { cache: "no-store" });
+        const data = await response.json();
+        const categories = Array.isArray(data) ? data : data.categories;
+        if (!cancelled && Array.isArray(categories)) {
+          syncPrices(categories.flatMap((category: { products?: Array<{ id: string; price: number | string; standardPrice?: number | string | null }> }) => category.products ?? []));
+        }
+      } catch {
+        // Il checkout resta utilizzabile anche se la sincronizzazione prezzi fallisce.
+      }
+    }
 
     async function restoreCustomerData() {
       const { data: { user } } = await supabase.auth.getUser();
@@ -72,8 +106,11 @@ export default function OrdinePage() {
     }
 
     restoreCustomerData();
-    return () => { cancelled = true; };
-  }, [supabase]);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      void applyCustomerSession(session?.user ? session.user : null);
+    });
+    return () => { cancelled = true; subscription.unsubscribe(); };
+  }, [supabase, syncPrices]);
 
   async function handleGoogleLogin() {
     setError("");
