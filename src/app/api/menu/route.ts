@@ -31,7 +31,7 @@ export async function GET() {
         include: { items: { include: { product: { select: { id: true, name: true } } } } },
       })
     : [];
-  return NextResponse.json({ categories: categories.map((category) => ({
+  return NextResponse.json({ isClubMember, categories: categories.map((category) => ({
     ...category,
     products: category.products.map((product) => ({
       ...product,

@@ -87,10 +87,11 @@ function MenuContent() {
 
     const loadMenu = async () => {
       try {
-        const response = await fetch("/api/menu");
+        const response = await fetch("/api/menu", { cache: "no-store" });
         const data = await response.json();
         const menuCategories = Array.isArray(data) ? data : data.categories;
         setCategories(menuCategories);
+        if (!Array.isArray(data) && typeof data.isClubMember === "boolean") setIsLoggedIn(data.isClubMember);
         setPromotions(Array.isArray(data) ? [] : data.promotions ?? []);
         syncPrices(menuCategories.flatMap((category: CategoryWithProducts) => category.products).map((product: ProductWithRelations) => ({
           id: product.id,
@@ -264,8 +265,8 @@ function MenuContent() {
                     </p>
                   )}
                   <div className="mt-3 flex items-center">
-                    <span data-testid={product.configuration ? "configurable-price" : isLoggedIn ? "club-price" : "full-price"} className={`text-base font-brand font-bold ${isLoggedIn ? "text-terracotta" : "text-charcoal"}`}>
-                      {product.configuration ? "Scegli formato e gusti" : formatCurrency(Number(isLoggedIn ? product.price : product.standardPrice ?? product.price))}
+                    <span data-testid={product.configuration ? "configurable-price" : product.isClubPrice ? "club-price" : "full-price"} className={`text-base font-brand font-bold ${product.isClubPrice ? "text-terracotta" : "text-charcoal"}`}>
+                      {product.configuration ? "Scegli formato e gusti" : formatCurrency(Number(product.price))}
                     </span>
                   </div>
                 </div>
