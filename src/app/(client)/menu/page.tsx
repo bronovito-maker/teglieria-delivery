@@ -255,16 +255,10 @@ function MenuContent() {
                       {product.description}
                     </p>
                   )}
-                  <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
-                    {isLoggedIn ? (
-                      <span data-testid="club-price" className="text-[10px] font-brand font-bold uppercase tracking-[0.12em] text-terracotta">Club&nbsp; {formatCurrency(Number(product.price))}</span>
-                    ) : (
-                      <>
-                        <span className="text-[10px] font-brand font-bold uppercase tracking-[0.12em] text-charcoal/40">A partire da&nbsp; {formatCurrency(Number(product.promoPrice ?? product.price))}</span>
-                        <span className="text-[10px] font-brand font-bold uppercase tracking-[0.12em] text-terracotta">Club&nbsp; {formatCurrency(Number(product.clubPrice ?? product.promoPrice ?? product.price))}</span>
-                        <span className="text-[10px] font-brand font-bold uppercase tracking-[0.12em] text-charcoal/40">Prezzo pieno&nbsp; {formatCurrency(Number(product.standardPrice ?? product.price))}</span>
-                      </>
-                    )}
+                  <div className="mt-3 flex items-center">
+                    <span data-testid={isLoggedIn ? "club-price" : "full-price"} className={`text-base font-brand font-bold ${isLoggedIn ? "text-terracotta" : "text-charcoal"}`}>
+                      {formatCurrency(Number(isLoggedIn ? product.price : product.standardPrice ?? product.price))}
+                    </span>
                   </div>
                 </div>
 

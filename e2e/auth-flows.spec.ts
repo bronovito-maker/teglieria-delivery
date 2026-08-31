@@ -33,6 +33,13 @@ test.describe("customer authentication flow", () => {
     await expect(page.getByText("Controlla la Email!")).toBeVisible();
   });
 
+  test("guest vede una sola tariffa", async ({ page }) => {
+    await page.goto("/menu");
+    await expect(page.getByTestId("club-banner-login")).toBeVisible();
+    await expect(page.getByTestId("full-price").first()).toBeVisible();
+    await expect(page.getByTestId("club-price")).toHaveCount(0);
+  });
+
   test.describe("authenticated customer", () => {
     test.skip(!customerEmail || !customerPassword, "Imposta E2E_CUSTOMER_EMAIL/E2E_CUSTOMER_PASSWORD per i test autenticati.");
 
@@ -41,8 +48,7 @@ test.describe("customer authentication flow", () => {
       await expect(page.getByTestId("club-banner-active")).toBeVisible();
       await expect(page.getByTestId("club-banner-login")).toHaveCount(0);
       await expect(page.getByTestId("club-price").first()).toBeVisible();
-      await expect(page.getByText("Prezzo pieno", { exact: false })).toHaveCount(0);
-      await expect(page.getByText("A partire da", { exact: false })).toHaveCount(0);
+      await expect(page.getByTestId("full-price")).toHaveCount(0);
 
       const menuResponse = await page.request.get("/api/menu");
       expect(menuResponse.ok()).toBe(true);
