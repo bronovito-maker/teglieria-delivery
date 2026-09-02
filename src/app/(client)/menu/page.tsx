@@ -193,7 +193,7 @@ function MenuContent() {
         </p>
         {authChecked && (isLoggedIn ? (
           <div data-testid="club-banner-active" className="mt-7 rounded-full border border-green-200 bg-green-50 px-5 py-3 text-center">
-            <p className="font-brand text-[11px] font-bold uppercase tracking-[0.14em] text-green-700">Club attivo · prezzi riservati applicati automaticamente</p>
+            <p className="font-brand text-[11px] font-bold uppercase tracking-[0.14em] text-green-700">Sei membro del Club! Prezzi riservati applicati automaticamente</p>
           </div>
         ) : (
           <div data-testid="club-banner-login" className="mt-7 max-w-md rounded-[1.25rem] border border-marigold/30 bg-marigold/10 px-5 py-4 text-left">
