@@ -192,9 +192,8 @@ function MenuContent() {
           Scegli la tua teglia preferita, preparata con 48 ore di lenta maturazione.
         </p>
         {authChecked && (isLoggedIn ? (
-          <div data-testid="club-banner-active" className="mt-7 max-w-md rounded-[1.25rem] border border-green-200 bg-green-50 px-5 py-4 text-left">
-            <p className="font-brand text-[11px] font-bold uppercase tracking-[0.14em] text-green-700">Prezzi Club attivi</p>
-            <p className="mt-1 text-sm leading-relaxed text-green-700/75">Sei loggato: i prezzi Club vengono applicati automaticamente al tuo ordine.</p>
+          <div data-testid="club-banner-active" className="mt-7 rounded-full border border-green-200 bg-green-50 px-5 py-3 text-center">
+            <p className="font-brand text-[11px] font-bold uppercase tracking-[0.14em] text-green-700">Club attivo · prezzi riservati applicati automaticamente</p>
           </div>
         ) : (
           <div data-testid="club-banner-login" className="mt-7 max-w-md rounded-[1.25rem] border border-marigold/30 bg-marigold/10 px-5 py-4 text-left">

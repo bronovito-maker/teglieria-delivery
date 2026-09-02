@@ -48,13 +48,13 @@ export function calculatePizzaConfiguration(selection: PizzaBuilderSelection) {
     if (slot.base === "ROSSA" && slot.mozzarellaStandard) {
       const mozzarella = PIZZA_BUILDER_CONFIG.mozzarellaStandard.prices[selection.format][selection.gusti - 1];
       total += mozzarella;
-      additions.push({ name: `Gusto ${index + 1} · Mozzarella standard`, price: mozzarella, grams: Number((PIZZA_BUILDER_CONFIG.mozzarellaStandard.grams / (selection.format === "INTERA" ? selection.gusti : selection.gusti * 2)).toFixed(1)), available: true });
+      additions.push({ name: `Gusto ${index + 1} · Mozzarella standard`, price: mozzarella, available: true });
     }
     for (const name of slot.ingredients) {
       if (typeof name !== "string" || !pizzaIngredientData(name, selection.format, selection.gusti)) throw new Error("INVALID_PIZZA_CONFIGURATION");
       const ingredient = pizzaIngredientData(name, selection.format, selection.gusti)!;
       total += ingredient.price;
-      additions.push({ name: `Gusto ${index + 1} · ${ingredient.name}`, price: ingredient.price, grams: ingredient.grams, available: true });
+      additions.push({ name: `Gusto ${index + 1} · ${ingredient.name}`, price: ingredient.price, available: true });
     }
   });
   return { total: Number(total.toFixed(2)), additions };

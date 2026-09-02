@@ -17,7 +17,9 @@ export default function OrdinePage() {
   const [error, setError] = useState("");
   const [loggedUser, setLoggedUser] = useState<{ name: string; email: string } | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
+  // Il checkout resta sempre accessibile anche agli ospiti: l'accesso è
+  // facoltativo e non deve creare un passaggio bloccante, soprattutto su mobile.
+  const [showDetails, setShowDetails] = useState(true);
 
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -473,24 +475,6 @@ export default function OrdinePage() {
               </div>
           )}
         </div>
-
-        {!showDetails && (
-          <div className="reveal space-y-3 pt-1">
-            <Link
-              href="/menu"
-              className="flex min-h-12 w-full items-center justify-center rounded-full bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] px-6 text-base font-brand font-semibold text-white shadow-[0_12px_24px_rgba(197,86,26,0.2)] transition-transform active:scale-[.99]"
-            >
-              Torna al menu
-            </Link>
-            <button
-              type="button"
-              onClick={() => setShowDetails(true)}
-              className="flex min-h-12 w-full items-center justify-center rounded-2xl border border-charcoal/15 bg-transparent px-6 text-base font-brand font-semibold text-charcoal transition-colors hover:bg-white"
-            >
-              Continua con i tuoi dati
-            </button>
-          </div>
-        )}
 
         {showDetails && <>
         {/* SECTION 2: DATI CLIENTE */}
