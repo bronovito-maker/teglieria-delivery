@@ -260,8 +260,8 @@ function MenuContent() {
                 {/* Subtle Hover Gradient */}
                 <div className="absolute inset-0 bg-gradient-to-br from-terracotta/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                 {product.imageUrl && (
-                  <div className="relative mr-4 h-24 w-24 shrink-0 overflow-hidden rounded-2xl sm:h-28 sm:w-28">
-                    <Image src={product.imageUrl} alt="" fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="112px" />
+                  <div className={`relative mr-4 h-24 w-24 shrink-0 overflow-hidden rounded-2xl sm:h-28 sm:w-28 ${cat.name === "Bevande analcoliche" || cat.name === "Birre" ? "bg-charcoal/[.04] p-1.5" : ""}`}>
+                    <Image src={product.imageUrl} alt="" fill className={`${cat.name === "Bevande analcoliche" || cat.name === "Birre" ? "object-contain" : "object-cover"} transition-transform duration-500 group-hover:scale-105`} sizes="112px" />
                   </div>
                 )}
                 <div className="flex-1 relative z-10 pr-3">
