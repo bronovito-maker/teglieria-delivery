@@ -109,14 +109,15 @@ export default function NewOrderAlert() {
   }, []);
 
   function openConfirmModal(order: OrderWithItems) {
-    // For future-date orders, ETA widget is irrelevant — default to 30 min
-    const isFutureOrder = order.pickupTime
-      ? new Date(order.pickupTime) > new Date(new Date().setHours(23, 59, 59, 999))
-      : false;
+    // Ogni orario futuro è una prenotazione, anche se cade nella giornata odierna.
+    // In questo caso il ritardo iniziale è sempre zero rispetto all'orario richiesto.
+    const isScheduledOrder = order.pickupTime ? new Date(order.pickupTime).getTime() > Date.now() : false;
 
-    if (!isFutureOrder && order.estimatedTime) {
+    if (!isScheduledOrder && order.estimatedTime) {
       const diff = Math.round((new Date(order.estimatedTime).getTime() - Date.now()) / 60000);
       setEtaMinutes(Math.max(5, diff));
+    } else if (isScheduledOrder) {
+      setEtaMinutes(0);
     } else {
       setEtaMinutes(30);
     }
@@ -165,14 +166,17 @@ export default function NewOrderAlert() {
   }
 
   function adjustEtaMinutes(delta: number) {
-    setEtaMinutes((prev) => Math.max(5, Math.min(120, prev + delta)));
+    const isScheduledOrder = confirmingOrder?.pickupTime ? new Date(confirmingOrder.pickupTime).getTime() > Date.now() : false;
+    setEtaMinutes((prev) => Math.max(isScheduledOrder ? -120 : 5, Math.min(120, prev + delta)));
   }
 
   async function confirmIncomingOrder() {
     if (!confirmingOrder) return;
     const orderId = confirmingOrder.id;
     setConfirmingLoading(true);
-    const estimatedTime = new Date(Date.now() + etaMinutes * 60000).toISOString();
+    const isScheduledOrder = confirmingOrder.pickupTime ? new Date(confirmingOrder.pickupTime).getTime() > Date.now() : false;
+    const baseTime = isScheduledOrder ? new Date(confirmingOrder.pickupTime as Date | string).getTime() : Date.now();
+    const estimatedTime = new Date(baseTime + etaMinutes * 60000).toISOString();
     await fetch(`/api/ordini/${orderId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -266,17 +270,19 @@ export default function NewOrderAlert() {
 
   if (!mounted) return null;
 
-  const eta = new Date(Date.now() + etaMinutes * 60000).toLocaleTimeString("it-IT", {
+  const isScheduled = confirmingOrder?.pickupTime
+    ? new Date(confirmingOrder.pickupTime).getTime() > Date.now()
+    : false;
+  const etaBaseTime = isScheduled && confirmingOrder?.pickupTime
+    ? new Date(confirmingOrder.pickupTime).getTime()
+    : Date.now();
+  const eta = new Date(etaBaseTime + etaMinutes * 60000).toLocaleTimeString("it-IT", {
     hour: "2-digit",
     minute: "2-digit",
     timeZone: "Europe/Rome",
   });
 
   const pickupLabel = confirmingOrder ? formatPickupDate(confirmingOrder.pickupTime) : null;
-  const isScheduled = confirmingOrder?.pickupTime
-    ? new Date(confirmingOrder.pickupTime) > new Date(new Date().setHours(23, 59, 59, 999))
-    : false;
-
   return (
     <>
       {/* Hidden audio fallback */}
@@ -328,10 +334,10 @@ export default function NewOrderAlert() {
               </div>
             )}
 
-            {/* ETA selector — hidden for future-date orders */}
-            {!isScheduled && (
+            {/* Per gli ordini programmati si parte dall'orario richiesto e si può anticipare o posticipare. */}
+            {(
               <div className="px-6 py-4 text-center">
-                <p className="text-[11px] font-body text-charcoal/50 mb-3">Hai bisogno di tempo extra?</p>
+                <p className="text-[11px] font-body text-charcoal/50 mb-3">{isScheduled ? "Anticipa o posticipa l'orario" : "Hai bisogno di tempo extra?"}</p>
                 <div className="flex items-center justify-center gap-6">
                   <button
                     type="button"
@@ -341,8 +347,8 @@ export default function NewOrderAlert() {
                     −
                   </button>
                   <div className="text-center w-20">
-                    <span className="text-4xl font-brand font-bold text-charcoal tabular-nums">{etaMinutes}</span>
-                    <p className="text-[11px] text-charcoal/40 font-body">mins</p>
+                    <span className="text-4xl font-brand font-bold text-charcoal tabular-nums">{etaMinutes > 0 ? "+" : ""}{etaMinutes}</span>
+                    <p className="text-[11px] text-charcoal/40 font-body">min</p>
                     <p className="text-[13px] font-brand font-bold text-charcoal/70 tabular-nums">{eta}</p>
                   </div>
                   <button
