@@ -21,6 +21,18 @@ const ceci = [["Torta di Ceci", "Vendita a peso - € 1,90 / 100 g", 1.9, "torta
 const fritti = [["Pane Fritto della Teglieria", "8 pezzi", 4], ["Patatine Fritte", "220 g", 4], ["Nuggets di Pollo", "4 pezzi", 4], ["Anelli di Cipolla", "5 pezzi", 4], ["Fritto Teglieria", "Patatine, 4 anelli, 3 nuggets e 4 pezzi di pane fritto", 5]] as const;
 const analcoliche = [["Acqua naturale S. Antonio", "50 cl", 1, "bevanda_acqua_naturale.jpg"], ["Acqua gassata S. Antonio", "50 cl", 1, "bevanda_acqua_frizzante.jpg"], ["Acqua Valmora naturale", "1,5 L", 1.5, "bevanda_acqua_naturale.jpg"], ["Estathé pesca o limone - brick", "20 cl", 1.2, "bevanda_estate_pesca_brick.jpg"], ["Coca-Cola, Coca-Cola Zero o Fanta - lattina", "33 cl", 2.3, "bevanda_coca_cola_lattina.jpg"], ["Coca-Cola, Coca-Cola Zero o Fanta Lemon - PET", "45 cl", 3.5, "bevanda_coca_cola_bottiglia.jpg"], ["Estathé pesca o limone - PET", "40 cl", 3, "bevanda_estate_pesca_bottiglia.jpg"], ["Spuma bionda Queen", "33 cl", 4.5, "bevanda_spuma_bionda.jpg"]] as const;
 const birre = [["Bitburger Drive analcolica", "33 cl", 3, "bevanda_birra_analcolica_bitburger.jpg"], ["Bitburger Pils", "50 cl", 3.5, "bevanda_birra_bitburger.jpg"], ["Corona Extra", "33 cl", 4, "bevanda_birra_corona_extra.jpg"], ["Theresianer Lager", "33 cl", 4, "bevanda_birra_theresianer.jpg"], ["Theresianer Vienna Rossa", "33 cl", 4.5, "bevanda_birra_theresianer.jpg"], ["Ichnusa Non Filtrata", "50 cl", 5, "bevanda_birra_ichnusa_non_filtrata.jpg"], ["Lauterbacher Weizen", "50 cl", 4.5, "bevanda_birra_lauterbacher.jpg"], ["BrewDog Punk IPA", "33 cl", 5.5, "bevanda_birra_brewdog_punk_ipa.jpg"]] as const;
+const trancioImages: Record<string, string> = {
+  "La Regina": "/menu/tranci/regina.webp",
+  "La Partenopea": "/menu/tranci/partenopea.webp",
+  "La Contadina": "/menu/tranci/contadina.webp",
+  "La Diavola": "/menu/tranci/diavola.webp",
+  "L'Ortolana": "/menu/tranci/ortolana.webp",
+  "La Pistacchio": "/menu/tranci/pistacchio.webp",
+  "La Nordica": "/menu/tranci/nordica.webp",
+  "La Parma": "/menu/tranci/parma.webp",
+  "La Burrata": "/menu/tranci/burrata.webp",
+  "La Carbonara": "/menu/tranci/carbonara.webp",
+};
 
 async function getCategory(name: string, sortOrder: number) {
   const existing = await prisma.category.findFirst({ where: { name } });
@@ -46,9 +58,9 @@ async function main() {
     const imageUrl = image ? `/menu/${image}` : null;
     await upsertProduct({ categoryId: wholeCategoryId, name, description, price: whole, clubPrice: wholeClub, promoPrice: wholePromo, imageUrl, sortOrder: index });
     await upsertProduct({ categoryId: halfCategoryId, name, description, price: half, clubPrice: halfClub, promoPrice: halfPromo, imageUrl, sortOrder: index });
-    await upsertProduct({ categoryId: sliceCategoryId, name, description: `${description} Taglio trancio 1/12.`, price: slice, imageUrl, sortOrder: index });
+    await upsertProduct({ categoryId: sliceCategoryId, name, description: `${description} Taglio trancio 1/12.`, price: slice, imageUrl: trancioImages[name] ?? imageUrl, sortOrder: index });
   }
-  await upsertProduct({ categoryId: categories[0].id, name: "Crea la tua pizza", description: "Componi ogni gusto scegliendo base e ingredienti. Mezza teglia 30x40 o teglia intera 60x40.", price: 0, imageUrl: "/menu/placeholder-food.svg", sortOrder: 0, configuration: PIZZA_BUILDER_CONFIG });
+  await upsertProduct({ categoryId: categories[0].id, name: "Crea la tua pizza", description: "Componi ogni gusto scegliendo base e ingredienti. Mezza teglia 30x40 o teglia intera 60x40.", price: 0, imageUrl: "/menu/pizza-componi.webp", sortOrder: 0, configuration: PIZZA_BUILDER_CONFIG });
   for (const [index, [name, description, price]] of schiacciatine.entries()) await upsertProduct({ categoryId: categories[4].id, name, description, price, imageUrl: "/menu/placeholder-food.svg", sortOrder: index });
   for (const [index, [name, description, price, image]] of ceci.entries()) await upsertProduct({ categoryId: categories[5].id, name, description, price, imageUrl: `/menu/${image}`, sortOrder: index });
   for (const [index, [name, description, price]] of fritti.entries()) await upsertProduct({ categoryId: categories[6].id, name, description, price, imageUrl: "/menu/placeholder-food.svg", sortOrder: index });
