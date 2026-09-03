@@ -30,7 +30,7 @@ export default function PizzaBuilderModal({ product, onClose }: { product: Produ
     toast.success("Pizza componibile aggiunta al carrello"); onClose();
   }
 
-  return <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center backdrop-blur-sm" onClick={onClose}>
+  return <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center backdrop-blur-sm">
     <div className="bg-warm-light w-full sm:max-w-2xl sm:rounded-[2.5rem] rounded-t-[2.5rem] max-h-[92vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
       <div className="p-6 sm:p-8">
         <div className="flex justify-between items-start mb-6"><div><span className="ds-micro-label text-terracotta/60">Configuratore</span><h2 className="text-4xl font-display tracking-tight text-charcoal leading-none mt-2">Crea la tua pizza</h2><p className="text-sm text-charcoal/55 mt-2">Scegli il formato, crea i tuoi gusti e aggiungi gli ingredienti che preferisci. Più ingredienti nello stesso gusto non significano più gusti.</p></div><button onClick={onClose} aria-label="Chiudi" className="w-10 h-10 rounded-full bg-charcoal/5 text-2xl text-charcoal/50">×</button></div>

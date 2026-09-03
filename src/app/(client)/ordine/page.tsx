@@ -12,7 +12,7 @@ import { calculateDeliveryFee, MIN_ORDER_SUBTOTAL } from "@/lib/constants";
 export default function OrdinePage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
-  const { items, orderType, getSubtotal, getClubSavings, clearCart, syncPrices } = useCartStore();
+  const { items, orderType, setOrderType, getSubtotal, getClubSavings, clearCart, syncPrices } = useCartStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [loggedUser, setLoggedUser] = useState<{ name: string; email: string } | null>(null);
@@ -415,9 +415,19 @@ export default function OrdinePage() {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-center">
-              <div className="px-4 py-1.5 bg-terracotta/10 text-terracotta rounded-full text-xs font-brand font-semibold uppercase tracking-[0.2em]">
-                {orderType === "ASPORTO" ? "Ritiro in Sede" : "Consegna a Domicilio"}
+            <div className="mt-6 border-t border-charcoal/8 pt-5">
+              <p className="mb-2 text-center text-[11px] font-brand font-bold uppercase tracking-[0.18em] text-charcoal/40">Come vuoi ricevere il tuo ordine?</p>
+              <div className="flex rounded-full border border-charcoal/10 bg-charcoal/5 p-1">
+                {(["ASPORTO", "DELIVERY"] as const).map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setOrderType(type)}
+                    className={`min-h-10 flex-1 rounded-full text-xs font-brand font-bold uppercase tracking-widest transition-all ${orderType === type ? "bg-white text-charcoal shadow-sm" : "text-charcoal/40"}`}
+                  >
+                    {type === "ASPORTO" ? "Ritiro in sede" : "Consegna a domicilio"}
+                  </button>
+                ))}
               </div>
             </div>
           </div>

@@ -10,6 +10,7 @@ import { verifyOrderStatusToken } from "@/lib/order-status-token";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { enforceSameOrigin, safeEqual } from "@/lib/request-security";
 import { randomBytes } from "node:crypto";
+import { getStripe } from "@/lib/stripe";
 
 function isRiderSafePatch(body: OrderPatchBody, riderId: string): boolean {
   const allowedStatuses = new Set(["OUT", "DELIVERED"]);
@@ -61,6 +62,41 @@ function toPublicTrackingOrder(order: TrackingOrder | null) {
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,
   };
+}
+
+async function reconcilePaidStripeOrder(order: TrackingOrder & { stripeSessionId?: string | null; stripePaymentIntentId?: string | null }) {
+  if (order.paymentMethod !== "STRIPE" || order.paymentStatus !== "PENDING" || !order.stripeSessionId) {
+    return;
+  }
+
+  try {
+    const session = await getStripe().checkout.sessions.retrieve(order.stripeSessionId);
+    const expectedAmount = Math.round(Number(order.total) * 100);
+    const paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : null;
+
+    if (session.payment_status !== "paid" || session.currency !== "eur" || session.amount_total !== expectedAmount) {
+      return;
+    }
+
+    const result = await prisma.order.updateMany({
+      where: { id: order.id, paymentMethod: "STRIPE", paymentStatus: "PENDING", stripeSessionId: session.id },
+      data: {
+        paymentStatus: "PAID",
+        stripePaymentIntentId: paymentIntentId,
+      },
+    });
+
+    if (result.count > 0) {
+      Object.assign(order, {
+        paymentStatus: "PAID",
+        stripePaymentIntentId: paymentIntentId,
+      });
+      console.info("[STRIPE RECONCILIATION] Ordine marcato come pagato", { orderId: order.id, sessionId: session.id });
+    }
+  } catch (error) {
+    // Il riepilogo ordine deve restare consultabile anche se Stripe è momentaneamente irraggiungibile.
+    console.error("[STRIPE RECONCILIATION] Verifica pagamento fallita", { orderId: order.id, error });
+  }
 }
 
 async function findActiveRiderForUser(user: { id: string; email?: string | null }) {
@@ -119,7 +155,9 @@ export async function GET(
 
   const url = new URL(request.url);
   const token = url.searchParams.get("token");
-  if (token && verifyOrderStatusToken(token, id)) {
+  const hasValidStatusToken = Boolean(token && verifyOrderStatusToken(token, id));
+  if (hasValidStatusToken) {
+    await reconcilePaidStripeOrder(order);
     return NextResponse.json(toPublicTrackingOrder(order));
   }
 
@@ -148,6 +186,7 @@ export async function GET(
     return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
   }
 
+  await reconcilePaidStripeOrder(order);
   return NextResponse.json(order);
 }
 

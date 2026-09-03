@@ -39,7 +39,7 @@ export default function CartDrawer({ open, onClose }: Props) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] h-[100dvh] overflow-hidden overscroll-contain bg-warm-light" role="dialog" aria-modal="true" aria-label="Carrello" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] h-[100dvh] overflow-hidden overscroll-contain bg-warm-light" role="dialog" aria-modal="true" aria-label="Carrello">
       <div className="mx-auto flex h-full min-h-0 w-full max-w-xl flex-col" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-end px-5 pb-2 pt-5 sm:px-8 sm:pt-7">
           <button type="button" onClick={onClose} aria-label="Chiudi carrello" className="flex h-10 w-10 items-center justify-center rounded-full bg-charcoal/5 text-xl text-charcoal/60 transition-colors hover:bg-charcoal/10">×</button>

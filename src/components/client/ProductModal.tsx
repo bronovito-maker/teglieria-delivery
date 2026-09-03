@@ -71,7 +71,7 @@ function ProductModalContent({ product, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center backdrop-blur-sm">
       <div className="bg-warm-light w-full sm:max-w-md sm:rounded-[2.5rem] rounded-t-[2.5rem] max-h-[90vh] overflow-y-auto border border-charcoal/5 shadow-2xl transition-all duration-500 ease-out translate-y-0" onClick={(e) => e.stopPropagation()}>
 
         {/* Immagine hero (se presente) */}
