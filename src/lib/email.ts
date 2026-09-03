@@ -70,6 +70,7 @@ type OrderConfirmationInput = {
   pickupTime?: Date | string | null;
   estimatedTime?: Date | string | null;
   paymentMethod?: string | null;
+  paymentConfirmed?: boolean;
   accountLink?: string | null; // magic link per accesso senza password
 };
 
@@ -81,6 +82,7 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmationInput):
   }
 
   const isDelivery = order.type === "DELIVERY";
+  const paymentConfirmed = order.paymentConfirmed === true;
   const timeLabel = formatTime(isDelivery ? order.estimatedTime : order.pickupTime);
   const paymentLabel = order.paymentMethod === "STRIPE"
     ? "Carta online (Stripe)"
@@ -99,9 +101,9 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmationInput):
   `).join("");
 
   const content = `
-    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">Ordine Ricevuto</p>
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">${paymentConfirmed ? "Pagamento Ricevuto" : "Ordine Ricevuto"}</p>
     <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Grazie, ${order.customerName}!</h1>
-    <p style="margin:0 0 24px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">Abbiamo ricevuto il tuo ordine — ti confermiamo a breve. Ecco il riepilogo:</p>
+    <p style="margin:0 0 24px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">${paymentConfirmed ? "Il pagamento è andato a buon fine e il tuo ordine è confermato. Ecco il riepilogo:" : "Abbiamo ricevuto il tuo ordine — ti confermiamo a breve. Ecco il riepilogo:"}</p>
 
     <div style="background:#f5f0e8;border-radius:16px;padding:16px 20px;margin-bottom:24px;text-align:center;">
       <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Numero Ordine</p>
@@ -152,7 +154,7 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmationInput):
     </div>
 
     <p style="margin:0;font-size:13px;color:#1d1d1f;opacity:0.5;text-align:center;line-height:1.6;">
-      Ti invieremo un aggiornamento quando il tuo ordine sarà in consegna.
+      ${paymentConfirmed ? "Ti invieremo un aggiornamento quando il tuo ordine sarà in preparazione." : "Ti invieremo un aggiornamento quando il tuo ordine sarà in consegna."}
     </p>
 
     ${order.accountLink ? `
@@ -171,11 +173,67 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmationInput):
     await client.transactionalEmails.sendTransacEmail({
       sender: { name: FROM_NAME, email: FROM_EMAIL },
       to: [{ email: order.customerEmail, name: order.customerName }],
-      subject: `Ordine #${order.orderNumber} ricevuto — La Teglieria`,
+      subject: paymentConfirmed
+        ? `Pagamento ricevuto — ordine #${order.orderNumber} — La Teglieria`
+        : `Ordine #${order.orderNumber} ricevuto — La Teglieria`,
       htmlContent: emailWrapper(content),
     });
   } catch (err) {
     console.error("[EMAIL][ERROR] Conferma ordine:", err);
+  }
+}
+
+// ─── EMAIL 1b: Pagamento rifiutato ──────────────────────────────────────────
+
+type OrderPaymentFailedInput = {
+  customerEmail: string;
+  customerName: string;
+  orderNumber: number;
+  total: number;
+  retryUrl?: string | null;
+};
+
+export async function sendOrderPaymentFailedEmail(order: OrderPaymentFailedInput): Promise<void> {
+  const client = getClient();
+  if (!client) {
+    console.info("[EMAIL][SKIPPED] BREVO_API_KEY non configurata");
+    return;
+  }
+
+  const content = `
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">Pagamento non riuscito</p>
+    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Non siamo riusciti a completare il pagamento</h1>
+    <p style="margin:0 0 24px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">
+      Il pagamento dell&apos;ordine <strong>#${order.orderNumber}</strong> non è andato a buon fine. L&apos;ordine non è stato confermato e non ti è stato addebitato alcun importo.
+    </p>
+
+    <div style="background:#f5f0e8;border-radius:16px;padding:16px 20px;margin-bottom:24px;text-align:center;">
+      <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Totale ordine</p>
+      <p style="margin:6px 0 0;font-size:32px;font-weight:700;color:#D96A2B;">${formatCurrency(order.total)}</p>
+    </div>
+
+    ${order.retryUrl ? `
+    <div style="text-align:center;margin:30px 0 28px;">
+      <a href="${order.retryUrl}" style="display:inline-block;padding:16px 34px;background:#D96A2B;color:#ffffff;text-decoration:none;border-radius:99px;font-size:13px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;">
+        Riprova il pagamento →
+      </a>
+    </div>
+    ` : ""}
+
+    <p style="margin:0;font-size:13px;color:#1d1d1f;opacity:0.5;text-align:center;line-height:1.6;">
+      Se il problema persiste, contattaci prima di effettuare un nuovo ordine.
+    </p>
+  `;
+
+  try {
+    await client.transactionalEmails.sendTransacEmail({
+      sender: { name: FROM_NAME, email: FROM_EMAIL },
+      to: [{ email: order.customerEmail, name: order.customerName }],
+      subject: `Pagamento non riuscito — ordine #${order.orderNumber}`,
+      htmlContent: emailWrapper(content),
+    });
+  } catch (err) {
+    console.error("[EMAIL][ERROR] Pagamento non riuscito:", err);
   }
 }
 

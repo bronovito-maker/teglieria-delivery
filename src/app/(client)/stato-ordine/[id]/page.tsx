@@ -163,10 +163,12 @@ export default function StatoOrdinePage() {
           {order.paymentMethod === "STRIPE" && !["PAID", "REFUNDED"].includes(order.paymentStatus) && (
             <div className="mb-6 rounded-[1.4rem] border border-terracotta/20 bg-terracotta/10 p-5 text-center sm:mb-8">
               <p className="text-xs font-brand font-bold uppercase tracking-widest text-terracotta">
-                Pagamento in attesa
+                {order.paymentStatus === "FAILED" ? "Pagamento non riuscito" : "Pagamento in attesa"}
               </p>
               <p className="text-xs text-charcoal/45 font-body italic mt-2">
-                Completa il pagamento con carta per confermare l&apos;ordine.
+                {order.paymentStatus === "FAILED"
+                  ? "Il pagamento non è andato a buon fine. Puoi riprovare con la carta."
+                  : "Completa il pagamento con carta per confermare l&apos;ordine."}
               </p>
               <button
                 type="button"

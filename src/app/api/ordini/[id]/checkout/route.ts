@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getStripe, getStripeSiteUrl } from "@/lib/stripe";
+import { getStripe, getStripeErrorContext, getStripeSiteUrl } from "@/lib/stripe";
 import { createOrderStatusToken, verifyOrderStatusToken } from "@/lib/order-status-token";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { enforceSameOrigin } from "@/lib/request-security";
@@ -65,7 +65,7 @@ export async function POST(
     await prisma.order.update({ where: { id: order.id }, data: { stripeSessionId: session.id, paymentStatus: "PENDING" } });
     return NextResponse.json({ checkoutUrl: session.url });
   } catch (error) {
-    console.error("[STRIPE RETRY] Creazione sessione fallita", error);
+    console.error("[STRIPE RETRY] Creazione sessione fallita", getStripeErrorContext(error));
     return NextResponse.json({ error: "Impossibile riavviare il pagamento" }, { status: 502 });
   }
 }

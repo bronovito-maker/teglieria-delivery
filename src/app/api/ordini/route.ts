@@ -9,7 +9,7 @@ import { createOrderSchema, generateOrderCode, orderStatusSchema, orderTypeSchem
 import { createOrderStatusToken } from "@/lib/order-status-token";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { enforceSameOrigin } from "@/lib/request-security";
-import { getStripe, getStripeSiteUrl } from "@/lib/stripe";
+import { getStripe, getStripeErrorContext, getStripeSiteUrl } from "@/lib/stripe";
 import { calculateDeliveryFee, getItalianTimeSlot, isOrderTimeAllowed, MIN_ORDER_SUBTOTAL } from "@/lib/constants";
 import { calculatePizzaConfiguration, type PizzaBuilderSelection } from "@/lib/pizza-builder";
 
@@ -260,7 +260,10 @@ export async function POST(request: Request) {
     }
   }
 
-  if (order.customerEmail) {
+  // Per Stripe l'ordine è solo pending finché il webhook non conferma il pagamento.
+  // La conferma email viene inviata da lì, evitando di comunicare un ordine
+  // pagato prima che il pagamento sia realmente riuscito.
+  if (order.customerEmail && order.paymentMethod !== "STRIPE") {
     // Genera magic link solo per ordini guest (loggati hanno già l'account)
     let accountLink: string | null = null;
     if (!authUserId) {
@@ -354,7 +357,7 @@ export async function POST(request: Request) {
         data: { stripeSessionId: session.id },
       });
     } catch (error) {
-      console.error("[STRIPE CHECKOUT] Creazione sessione fallita", error);
+      console.error("[STRIPE CHECKOUT] Creazione sessione fallita", getStripeErrorContext(error));
       return NextResponse.json({ error: "Impossibile avviare il pagamento con carta" }, { status: 502 });
     }
   }

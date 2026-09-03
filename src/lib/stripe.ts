@@ -21,3 +21,16 @@ export function getStripeWebhookSecret(): string | null {
   }
   return process.env.STRIPE_WEBHOOK_SECRET || null;
 }
+
+export function getStripeErrorContext(error: unknown) {
+  const value = error && typeof error === "object" ? error as Record<string, unknown> : {};
+  return {
+    name: error instanceof Error ? error.name : undefined,
+    message: error instanceof Error ? error.message : undefined,
+    type: typeof value.type === "string" ? value.type : undefined,
+    code: typeof value.code === "string" ? value.code : undefined,
+    declineCode: typeof value.decline_code === "string" ? value.decline_code : undefined,
+    statusCode: typeof value.statusCode === "number" ? value.statusCode : undefined,
+    requestId: typeof value.requestId === "string" ? value.requestId : undefined,
+  };
+}

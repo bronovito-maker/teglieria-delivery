@@ -11,6 +11,7 @@ import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { enforceSameOrigin, safeEqual } from "@/lib/request-security";
 import { randomBytes } from "node:crypto";
 import { getStripe } from "@/lib/stripe";
+import { markStripePaymentSucceeded } from "@/lib/stripe-order-notifications";
 
 function isRiderSafePatch(body: OrderPatchBody, riderId: string): boolean {
   const allowedStatuses = new Set(["OUT", "DELIVERED"]);
@@ -65,28 +66,27 @@ function toPublicTrackingOrder(order: TrackingOrder | null) {
 }
 
 async function reconcilePaidStripeOrder(order: TrackingOrder & { stripeSessionId?: string | null; stripePaymentIntentId?: string | null }) {
-  if (order.paymentMethod !== "STRIPE" || order.paymentStatus !== "PENDING" || !order.stripeSessionId) {
+  if (order.paymentMethod !== "STRIPE" || !["PENDING", "FAILED"].includes(order.paymentStatus) || !order.stripeSessionId) {
     return;
   }
 
   try {
     const session = await getStripe().checkout.sessions.retrieve(order.stripeSessionId);
-    const expectedAmount = Math.round(Number(order.total) * 100);
     const paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : null;
 
-    if (session.payment_status !== "paid" || session.currency !== "eur" || session.amount_total !== expectedAmount) {
+    if (session.payment_status !== "paid") {
       return;
     }
 
-    const result = await prisma.order.updateMany({
-      where: { id: order.id, paymentMethod: "STRIPE", paymentStatus: "PENDING", stripeSessionId: session.id },
-      data: {
-        paymentStatus: "PAID",
-        stripePaymentIntentId: paymentIntentId,
-      },
+    const markedPaid = await markStripePaymentSucceeded({
+      orderId: order.id,
+      amountCents: session.amount_total,
+      currency: session.currency,
+      stripeSessionId: session.id,
+      stripePaymentIntentId: paymentIntentId,
     });
 
-    if (result.count > 0) {
+    if (markedPaid) {
       Object.assign(order, {
         paymentStatus: "PAID",
         stripePaymentIntentId: paymentIntentId,

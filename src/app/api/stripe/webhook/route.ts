@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import { getStripe, getStripeWebhookSecret } from "@/lib/stripe";
+import { markStripePaymentFailed, markStripePaymentSucceeded } from "@/lib/stripe-order-notifications";
 
 export const runtime = "nodejs";
 
@@ -37,20 +38,21 @@ export async function POST(request: Request) {
     const session = event.data.object as Stripe.Checkout.Session;
     const orderId = session.metadata?.orderId;
     if (orderId && session.payment_status === "paid") {
-      const order = await prisma.order.findUnique({ where: { id: orderId }, select: { total: true, paymentMethod: true } });
-      const expectedAmount = order ? Math.round(Number(order.total) * 100) : null;
-      if (!order || order.paymentMethod !== "STRIPE" || session.currency !== "eur" || session.amount_total !== expectedAmount) {
-        console.error("[STRIPE WEBHOOK] Importo o valuta non corrispondenti", { orderId, expectedAmount, amountTotal: session.amount_total, currency: session.currency });
-        return NextResponse.json({ received: true });
-      }
-      await prisma.order.updateMany({
-        where: { id: orderId, paymentMethod: "STRIPE", paymentStatus: { not: "REFUNDED" } },
-        data: {
-          paymentStatus: "PAID",
-          stripeSessionId: session.id,
-          stripePaymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : null,
-        },
+      const markedPaid = await markStripePaymentSucceeded({
+        orderId,
+        amountCents: session.amount_total,
+        currency: session.currency,
+        stripeSessionId: session.id,
+        stripePaymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : null,
       });
+      if (!markedPaid) {
+        console.error("[STRIPE WEBHOOK] Pagamento sessione non applicato", {
+          orderId,
+          sessionId: session.id,
+          amountTotal: session.amount_total,
+          currency: session.currency,
+        });
+      }
     }
   }
 
@@ -58,15 +60,19 @@ export async function POST(request: Request) {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
     const orderId = paymentIntent.metadata?.orderId;
     if (orderId) {
-      const order = await prisma.order.findUnique({ where: { id: orderId }, select: { total: true, paymentMethod: true } });
-      const expectedAmount = order ? Math.round(Number(order.total) * 100) : null;
-      if (order?.paymentMethod === "STRIPE" && paymentIntent.currency === "eur" && paymentIntent.amount_received === expectedAmount) {
-        await prisma.order.updateMany({
-          where: { id: orderId, paymentMethod: "STRIPE", paymentStatus: { not: "REFUNDED" } },
-          data: { paymentStatus: "PAID", stripePaymentIntentId: paymentIntent.id },
+      const markedPaid = await markStripePaymentSucceeded({
+        orderId,
+        amountCents: paymentIntent.amount_received,
+        currency: paymentIntent.currency,
+        stripePaymentIntentId: paymentIntent.id,
+      });
+      if (!markedPaid) {
+        console.error("[STRIPE WEBHOOK] PaymentIntent non applicato", {
+          orderId,
+          paymentIntentId: paymentIntent.id,
+          amountReceived: paymentIntent.amount_received,
+          currency: paymentIntent.currency,
         });
-      } else {
-        console.error("[STRIPE WEBHOOK] PaymentIntent non corrispondente", { orderId, expectedAmount, received: paymentIntent.amount_received });
       }
     }
   }
@@ -75,10 +81,7 @@ export async function POST(request: Request) {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
     const orderId = paymentIntent.metadata?.orderId;
     if (orderId) {
-      await prisma.order.updateMany({
-        where: { id: orderId, paymentMethod: "STRIPE", paymentStatus: "PENDING" },
-        data: { paymentStatus: "FAILED", stripePaymentIntentId: paymentIntent.id },
-      });
+      await markStripePaymentFailed(orderId, paymentIntent.id);
     }
   }
 
@@ -86,10 +89,7 @@ export async function POST(request: Request) {
     const session = event.data.object as Stripe.Checkout.Session;
     const orderId = session.metadata?.orderId;
     if (orderId) {
-      await prisma.order.updateMany({
-        where: { id: orderId, paymentMethod: "STRIPE" },
-        data: { paymentStatus: "FAILED" },
-      });
+      await markStripePaymentFailed(orderId);
     }
   }
 
@@ -97,10 +97,7 @@ export async function POST(request: Request) {
     const session = event.data.object as Stripe.Checkout.Session;
     const orderId = session.metadata?.orderId;
     if (orderId) {
-      await prisma.order.updateMany({
-        where: { id: orderId, paymentMethod: "STRIPE", paymentStatus: "PENDING" },
-        data: { paymentStatus: "FAILED" },
-      });
+      await markStripePaymentFailed(orderId);
     }
   }
 

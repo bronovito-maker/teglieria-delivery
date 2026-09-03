@@ -344,7 +344,7 @@ export default function OrdinePage() {
           clearCart();
           throw new Error("Il carrello conteneva prodotti non più disponibili. Svuotato automaticamente — torna al menu e riordina.");
         }
-        throw new Error("Errore nell'invio dell'ordine. Riprova.");
+        throw new Error(data?.error || "Errore nell'invio dell'ordine. Riprova.");
       }
 
       const order = await res.json();
@@ -379,8 +379,8 @@ export default function OrdinePage() {
         ? `/stato-ordine/${order.id}?token=${encodeURIComponent(order.statusAccessToken)}`
         : `/stato-ordine/${order.id}`;
       router.push(trackingUrl);
-    } catch {
-      setError("Si è verificato un errore. Riprova.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Si è verificato un errore. Riprova.");
       setLoading(false);
     }
   }
