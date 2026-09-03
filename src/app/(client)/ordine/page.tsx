@@ -9,6 +9,15 @@ import { formatCurrency } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { calculateDeliveryFee, MIN_ORDER_SUBTOTAL } from "@/lib/constants";
 
+const STORE_POSITION = {
+  lat: Number.isFinite(Number(process.env.NEXT_PUBLIC_STORE_LAT))
+    ? Number(process.env.NEXT_PUBLIC_STORE_LAT)
+    : 43.5261962,
+  lng: Number.isFinite(Number(process.env.NEXT_PUBLIC_STORE_LNG))
+    ? Number(process.env.NEXT_PUBLIC_STORE_LNG)
+    : 10.3371522,
+};
+
 export default function OrdinePage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
@@ -232,24 +241,34 @@ export default function OrdinePage() {
       return;
     }
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    if (!apiKey) return;
+    if (!apiKey) {
+      setDeliveryKm(null);
+      setError("Calcolo della distanza non disponibile. Contattaci per verificare la consegna.");
+      return;
+    }
     setDistanceLoading(true);
     try {
       const response = await fetch("https://routes.googleapis.com/directions/v2:computeRoutes", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Goog-Api-Key": apiKey, "X-Goog-FieldMask": "routes.distanceMeters" },
         body: JSON.stringify({
-          origin: { location: { latLng: { latitude: 43.5485, longitude: 10.3106 } } },
-          destination: { location: { latLng: coordinates } },
+          origin: { location: { latLng: STORE_POSITION } },
+          destination: { location: { latLng: { latitude: coordinates.lat, longitude: coordinates.lng } } },
           travelMode: "DRIVE",
           routingPreference: "TRAFFIC_UNAWARE",
         }),
       });
+      if (!response.ok) throw new Error("Routes API error");
       const data = await response.json();
       const meters = data?.routes?.[0]?.distanceMeters;
-      setDeliveryKm(typeof meters === "number" ? meters / 1000 : null);
+      if (typeof meters !== "number" || !Number.isFinite(meters) || meters < 0) {
+        throw new Error("Distance unavailable");
+      }
+      setDeliveryKm(meters / 1000);
+      setError("");
     } catch {
       setDeliveryKm(null);
+      setError("Non riesco a calcolare la distanza per la consegna. Controlla l’indirizzo o contattaci.");
     } finally {
       setDistanceLoading(false);
     }
