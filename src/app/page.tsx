@@ -23,7 +23,7 @@ const reviews = [
 const faqItems = [
   ["Fate consegna a domicilio a Livorno?", "Sì, consegniamo nelle zone coperte di Livorno."],
   ["Posso ordinare anche da asporto?", "Sì, puoi ordinare online e ritirare in sede."],
-  ["Quali sono gli orari?", "Siamo aperti tutti i giorni dalle 16:00 alle 24:00. Ultime consegne entro le 22:00."],
+  ["Quali sono gli orari?", "Siamo aperti tutti i giorni: asporto dalle 16:00 e delivery dalle 19:00 alle 22:00."],
   ["Quanto costa la consegna?", "Il costo viene calcolato nel checkout in base alla zona."],
 ];
 
@@ -69,7 +69,7 @@ export default function LandingPage() {
         <h1 className="mt-7 max-w-[9ch] font-display text-[clamp(3rem,12vw,5.6rem)] font-semibold leading-[.91] tracking-[-.06em]">
           La tua pizzeria <span className="text-terracotta">di quartiere.</span>
         </h1>
-        <Link href="/preshop" className="ds-cta-primary mt-12 flex min-h-12 w-full max-w-[22rem] items-center justify-center text-lg">
+        <Link href="/menu" className="ds-cta-primary mt-12 flex min-h-12 w-full max-w-[22rem] items-center justify-center text-lg">
           Ordina ora
         </Link>
       </section>
@@ -128,7 +128,7 @@ export default function LandingPage() {
           <p className="ds-micro-label text-terracotta/75">Servizi</p>
           <h2 className="mt-3 font-display text-2xl font-semibold tracking-tight sm:text-3xl">Consegna e asporto a Livorno</h2>
           <p className="mt-4 text-sm leading-relaxed text-charcoal/55">Ordina online per consegna a domicilio oppure ritira in sede.</p>
-          <p className="mt-3 text-xs font-brand font-semibold text-charcoal/55">Aperti tutti i giorni: 16:00 – 24:00 · Ultime consegne: entro le 22:00</p>
+          <p className="mt-3 text-xs font-brand font-semibold text-charcoal/55">Asporto: 16:00 – 22:00 · Delivery: 19:00 – 22:00</p>
         </div>
       </section>
 

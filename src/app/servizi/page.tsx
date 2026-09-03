@@ -23,7 +23,7 @@ const FAQ_ITEMS = [
   },
   {
     question: "Fino a che ora consegnate?",
-    answer: "Siamo aperti tutti i giorni 16:00 - 24:00, con ultime consegne entro le 22:00.",
+    answer: "Siamo aperti tutti i giorni: asporto dalle 16:00 e delivery dalle 19:00 alle 22:00.",
   },
   {
     question: "Come vedo gli orari disponibili?",
@@ -60,7 +60,7 @@ export default function ServiziPage() {
       <section className="max-w-5xl mx-auto px-6 mt-12 grid md:grid-cols-2 gap-5">
         <article className="rounded-3xl border border-charcoal/10 bg-white/70 p-6">
           <h2 className="text-2xl font-display">Orari</h2>
-          <p className="mt-3 font-body text-charcoal/70">Aperti tutti i giorni: {SITE_CONFIG.hours.display}</p>
+          <p className="mt-3 font-body text-charcoal/70">Orari: {SITE_CONFIG.hours.display}</p>
           <p className="mt-1 font-body text-charcoal/70">{SITE_CONFIG.hours.lastDeliveryDisplay}</p>
         </article>
         <article className="rounded-3xl border border-charcoal/10 bg-white/70 p-6">

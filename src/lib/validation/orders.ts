@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
+import { isOrderTimeAllowed } from "../constants";
 
 export const orderTypeSchema = z.enum(["ASPORTO", "DELIVERY"]);
 export const orderChannelSchema = z.enum(["WEB", "PHONE", "COUNTER"]);
@@ -65,6 +66,15 @@ export const createOrderSchema = z
         code: "custom",
         path: ["address"],
         message: "Indirizzo richiesto per consegna delivery",
+      });
+    }
+    if (order.timeSlot && !isOrderTimeAllowed(order.type, order.timeSlot)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["timeSlot"],
+        message: order.type === "DELIVERY"
+          ? "Le consegne sono disponibili dalle 19:00 alle 22:00"
+          : "I ritiri sono disponibili dalle 16:00",
       });
     }
   });

@@ -36,7 +36,7 @@ export default function ClientFooter() {
           Esci
         </button>
       ) : (
-        <Link href="/accedi?next=/ordine" className="mt-2 inline-block rounded-full border border-charcoal/10 px-4 py-2 text-[9px] font-brand font-bold uppercase tracking-[0.12em] text-charcoal/55 transition-colors hover:border-terracotta/30 hover:text-terracotta">
+        <Link href="/accedi?next=/menu" className="mt-2 inline-block rounded-full border border-charcoal/10 px-4 py-2 text-[9px] font-brand font-bold uppercase tracking-[0.12em] text-charcoal/55 transition-colors hover:border-terracotta/30 hover:text-terracotta">
           Accedi
         </Link>
       )}

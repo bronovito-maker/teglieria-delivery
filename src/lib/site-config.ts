@@ -11,9 +11,9 @@ export const SITE_CONFIG = {
   },
   hours: {
     open: "16:00",
-    close: "23:59",
-    display: "16:00 - 24:00",
-    lastDeliveryDisplay: "Ultime consegne: entro le 22:00",
+    close: "22:00",
+    display: "Asporto 16:00 - 22:00 · Delivery 19:00 - 22:00",
+    lastDeliveryDisplay: "Consegne a domicilio: 19:00 - 22:00",
   },
   phone: process.env.NEXT_PUBLIC_STORE_PHONE ?? "",
   social: {

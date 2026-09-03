@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logisticsSlotsQuerySchema } from "@/lib/validation/catalog";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
+import { ASPORTO_START_TIME, DELIVERY_END_TIME, DELIVERY_START_TIME } from "@/lib/constants";
 
 function generateSlots(start: string, end: string, slotMinutes = 30): string[] {
   const [sh, sm] = start.split(":").map(Number);
@@ -30,6 +31,7 @@ export async function GET(request: Request) {
   }
 
   const dateStr = parsed.data.date || new Date().toISOString().split("T")[0];
+  const orderType = parsed.data.type ?? "ASPORTO";
 
   // 1. Read config + schedule data
   let config = await prisma.globalConfig.findFirst();
@@ -65,13 +67,27 @@ export async function GET(request: Request) {
 
   // 4. Generate slots from active services
   const baseSlots: string[] = [];
-  if (daySchedule.lunchActive) {
-    baseSlots.push(...generateSlots(daySchedule.lunchStart, daySchedule.lunchEnd));
+  if (orderType === "ASPORTO") {
+    if (daySchedule.lunchActive) {
+      baseSlots.push(...generateSlots(daySchedule.lunchStart, daySchedule.lunchEnd));
+    }
+    if (daySchedule.dinnerActive) {
+      baseSlots.push(...generateSlots(daySchedule.dinnerStart, daySchedule.dinnerEnd));
+    }
+  } else if (daySchedule.dinnerActive) {
+    const deliveryStart = daySchedule.dinnerStart > DELIVERY_START_TIME ? daySchedule.dinnerStart : DELIVERY_START_TIME;
+    const deliveryEnd = daySchedule.dinnerEnd < DELIVERY_END_TIME ? daySchedule.dinnerEnd : DELIVERY_END_TIME;
+    if (deliveryStart < deliveryEnd) {
+      baseSlots.push(...generateSlots(deliveryStart, deliveryEnd));
+    }
   }
-  if (daySchedule.dinnerActive) {
-    baseSlots.push(...generateSlots(daySchedule.dinnerStart, daySchedule.dinnerEnd));
-  }
-  if (baseSlots.length === 0) {
+  const serviceStart = orderType === "DELIVERY" ? DELIVERY_START_TIME : ASPORTO_START_TIME;
+  const serviceStartMinutes = Number(serviceStart.slice(0, 2)) * 60 + Number(serviceStart.slice(3));
+  const serviceSlots = baseSlots.filter((time) => {
+    const minutes = Number(time.slice(0, 2)) * 60 + Number(time.slice(3));
+    return minutes >= serviceStartMinutes;
+  });
+  if (serviceSlots.length === 0) {
     return NextResponse.json({ date: dateStr, slots: [], closed: true, maxPerSlot: config.maxOrdersPerSlot });
   }
 
@@ -84,11 +100,11 @@ export async function GET(request: Request) {
   const nowMinutes = italyH * 60 + italyM + 30;
 
   const filteredSlots = isToday
-    ? baseSlots.filter((t) => {
+    ? serviceSlots.filter((t) => {
         const [h, m] = t.split(":").map(Number);
         return h * 60 + m > nowMinutes;
       })
-    : baseSlots;
+    : serviceSlots;
 
   if (filteredSlots.length === 0) {
     return NextResponse.json({ date: dateStr, slots: [], closed: true, maxPerSlot: config.maxOrdersPerSlot });

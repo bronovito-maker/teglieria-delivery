@@ -33,7 +33,7 @@ function RegisterForm() {
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/api/auth/callback?type=customer&next=/ordine`,
+        redirectTo: `${window.location.origin}/api/auth/callback?type=customer&next=/menu`,
       },
     });
     if (oauthError) {

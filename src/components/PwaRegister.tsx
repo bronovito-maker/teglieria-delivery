@@ -20,7 +20,9 @@ export default function PwaRegister() {
 
     const register = async () => {
       try {
-        await navigator.serviceWorker.register("/sw.js");
+        // Evita che Safari/Chrome mobile riutilizzi una versione vecchia del
+        // service worker che conteneva pagine di login nella cache.
+        await navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" });
       } catch (error) {
         console.error("Service Worker registration failed:", error);
       }

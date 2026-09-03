@@ -10,7 +10,7 @@ import { createOrderStatusToken } from "@/lib/order-status-token";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { enforceSameOrigin } from "@/lib/request-security";
 import { getStripe, getStripeSiteUrl } from "@/lib/stripe";
-import { calculateDeliveryFee, MIN_ORDER_SUBTOTAL } from "@/lib/constants";
+import { calculateDeliveryFee, getItalianTimeSlot, isOrderTimeAllowed, MIN_ORDER_SUBTOTAL } from "@/lib/constants";
 import { calculatePizzaConfiguration, type PizzaBuilderSelection } from "@/lib/pizza-builder";
 
 export async function GET(request: Request) {
@@ -77,6 +77,20 @@ export async function POST(request: Request) {
   }
 
   const body = parsed.data;
+  const requestedTimeSlots = [
+    body.timeSlot,
+    body.pickupTime ? getItalianTimeSlot(body.pickupTime) : null,
+  ].filter((time): time is string => Boolean(time));
+  if (requestedTimeSlots.some((time) => !isOrderTimeAllowed(body.type, time))) {
+    return NextResponse.json(
+      {
+        error: body.type === "DELIVERY"
+          ? "Le consegne sono disponibili dalle 19:00 alle 22:00"
+          : "I ritiri sono disponibili dalle 16:00",
+      },
+      { status: 400 },
+    );
+  }
   const idempotencyKey = request.headers.get("idempotency-key")?.trim().slice(0, 100) || null;
 
   if (body.paymentMethod === "STRIPE" && !process.env.STRIPE_SECRET_KEY) {

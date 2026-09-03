@@ -82,7 +82,7 @@ export default function CartDrawer({ open, onClose }: Props) {
                 </div>
               ))}
 
-              <Link href="/preshop" className="group mt-4 block overflow-hidden rounded-[1.4rem] border border-charcoal/5 bg-white shadow-[0_10px_24px_rgba(26,26,26,0.04)]">
+              <Link href="/menu" className="group mt-4 block overflow-hidden rounded-[1.4rem] border border-charcoal/5 bg-white shadow-[0_10px_24px_rgba(26,26,26,0.04)]">
                 <div className="relative aspect-[2.35] w-full overflow-hidden">
                   <Image src="/images/pizza-teglia-hero.png" alt="La Teglia Perfetta" fill className="object-cover transition-transform duration-700 group-hover:scale-105" sizes="(max-width: 640px) 100vw, 560px" />
                   <div className="absolute inset-0 bg-gradient-to-t from-charcoal/75 via-transparent to-transparent" />

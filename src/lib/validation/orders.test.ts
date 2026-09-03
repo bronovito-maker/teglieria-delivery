@@ -39,6 +39,22 @@ describe("createOrderSchema", () => {
     expect(result.success).toBe(false);
   });
 
+  it("rejects delivery before the delivery service starts", () => {
+    const result = createOrderSchema.safeParse({
+      type: "DELIVERY",
+      channel: "WEB",
+      customerName: "Mario Rossi",
+      customerPhone: "3331234567",
+      address: "Via Roma 1",
+      timeSlot: "18:30",
+      subtotal: 16,
+      total: 18.5,
+      items: [validItem],
+    });
+
+    expect(result.success).toBe(false);
+  });
+
   it("rejects empty carts", () => {
     const result = createOrderSchema.safeParse({
       type: "ASPORTO",

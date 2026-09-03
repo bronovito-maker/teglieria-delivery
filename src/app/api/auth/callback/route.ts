@@ -41,7 +41,7 @@ export async function GET(request: Request) {
       }
 
       if (next) return NextResponse.redirect(`${origin}${next}`);
-      if (role === "customer" || type === "customer") return NextResponse.redirect(`${origin}/ordine`);
+      if (role === "customer" || type === "customer") return NextResponse.redirect(`${origin}/menu`);
       return NextResponse.redirect(`${origin}/admin/dashboard`);
     }
   }

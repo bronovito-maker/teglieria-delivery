@@ -144,6 +144,8 @@ export default function OrdinePage() {
 
   // Pre-check availability for all 7 days shown
   useEffect(() => {
+    let cancelled = false;
+
     async function checkDays() {
       const checks = Array.from({ length: 7 }, (_, i) => {
         const d = new Date();
@@ -151,13 +153,14 @@ export default function OrdinePage() {
         return d.toISOString().split("T")[0];
       });
       const results = await Promise.all(
-        checks.map((date) => fetch(`/api/logistica/fasce?date=${date}`).then((r) => r.json()).catch(() => ({ closed: true })))
+        checks.map((date) => fetch(`/api/logistica/fasce?date=${date}&type=${orderType}`).then((r) => r.json()).catch(() => ({ closed: true })))
       );
+      if (cancelled) return;
       const closed = new Set<string>();
       const cachePatch: Record<string, { slots: { time: string, available: boolean, remaining: number }[]; closed: boolean }> = {};
       results.forEach((r, i) => {
         if (r.closed || r.slots?.length === 0) closed.add(checks[i]);
-        cachePatch[checks[i]] = {
+        cachePatch[`${orderType}:${checks[i]}`] = {
           slots: Array.isArray(r.slots) ? r.slots : [],
           closed: !!r.closed || (Array.isArray(r.slots) && r.slots.length === 0),
         };
@@ -170,12 +173,14 @@ export default function OrdinePage() {
       if (firstOpen) setSelectedDate(firstOpen);
     }
     checkDays();
-  }, []);
+    return () => { cancelled = true; };
+  }, [orderType]);
 
   useEffect(() => {
     async function fetchSlots() {
-      if (slotsCache[selectedDate]) {
-        const cached = slotsCache[selectedDate];
+      const cacheKey = `${orderType}:${selectedDate}`;
+      if (slotsCache[cacheKey]) {
+        const cached = slotsCache[cacheKey];
         setSlots(cached.slots);
         setDayClosed(cached.closed);
         setPickupTime("");
@@ -183,7 +188,7 @@ export default function OrdinePage() {
       }
       setSlotsLoading(true);
       try {
-        const res = await fetch(`/api/logistica/fasce?date=${selectedDate}`);
+        const res = await fetch(`/api/logistica/fasce?date=${selectedDate}&type=${orderType}`);
         if (res.ok) {
           const data = await res.json();
           const resolvedSlots = Array.isArray(data.slots) ? data.slots : [];
@@ -192,7 +197,7 @@ export default function OrdinePage() {
           setDayClosed(resolvedClosed);
           setSlotsCache((prev) => ({
             ...prev,
-            [selectedDate]: { slots: resolvedSlots, closed: resolvedClosed },
+            [cacheKey]: { slots: resolvedSlots, closed: resolvedClosed },
           }));
           setPickupTime(""); // reset orario quando cambia data
         }
@@ -203,7 +208,7 @@ export default function OrdinePage() {
       }
     }
     fetchSlots();
-  }, [selectedDate, slotsCache]);
+  }, [selectedDate, orderType, slotsCache]);
 
   // Scroll Reveal Logic
   useEffect(() => {
@@ -422,13 +427,21 @@ export default function OrdinePage() {
                   <button
                     key={type}
                     type="button"
-                    onClick={() => setOrderType(type)}
+                    onClick={() => {
+                      setOrderType(type);
+                      setPickupTime("");
+                      setSlots([]);
+                      setDayClosed(false);
+                    }}
                     className={`min-h-10 flex-1 rounded-full text-xs font-brand font-bold uppercase tracking-widest transition-all ${orderType === type ? "bg-white text-charcoal shadow-sm" : "text-charcoal/40"}`}
                   >
                     {type === "ASPORTO" ? "Ritiro in sede" : "Consegna a domicilio"}
                   </button>
                 ))}
               </div>
+              <p className="mt-3 text-center text-[10px] font-brand font-semibold uppercase tracking-[0.12em] text-charcoal/35">
+                Ritiro in sede dalle 16:00 · Delivery dalle 19:00 alle 22:00
+              </p>
             </div>
           </div>
         </div>

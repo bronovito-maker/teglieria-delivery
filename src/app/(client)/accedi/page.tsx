@@ -7,10 +7,10 @@ import { createClient } from "@/lib/supabase/client";
 import { Suspense } from "react";
 
 function sanitizeNextPath(next: string | null) {
-  if (!next) return "/ordine";
-  if (!next.startsWith("/")) return "/ordine";
-  if (next.startsWith("//")) return "/ordine";
-  if (next.includes("://")) return "/ordine";
+  if (!next) return "/menu";
+  if (!next.startsWith("/")) return "/menu";
+  if (next.startsWith("//")) return "/menu";
+  if (next.includes("://")) return "/menu";
   return next;
 }
 
@@ -50,16 +50,30 @@ function LoginForm() {
     setLoading(true);
     setError(null);
 
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+      // Completa il login sul server: in questo modo i cookie SSR vengono
+      // inclusi nella risposta prima di navigare verso una route protetta.
+      const response = await fetch("/api/auth/password", {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (authError) {
+      if (!response.ok) {
+        setError("Email o password non validi.");
+        setLoading(false);
+        return;
+      }
+
+      // Su mobile un document navigation evita che la richiesta RSC parta
+      // prima che il browser abbia applicato i cookie appena ricevuti.
+      window.location.replace(redirectTo);
+    } catch {
       setError("Email o password non validi.");
       setLoading(false);
-      return;
     }
-
-    router.push(redirectTo);
-    router.refresh();
   }
 
   return (

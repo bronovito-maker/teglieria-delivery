@@ -151,4 +151,6 @@ export const reportQuerySchema = z
   })
   .strict();
 
-export const logisticsSlotsQuerySchema = reportQuerySchema;
+export const logisticsSlotsQuerySchema = reportQuerySchema.extend({
+  type: z.enum(["ASPORTO", "DELIVERY"]).optional(),
+});

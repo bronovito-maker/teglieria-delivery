@@ -3,6 +3,7 @@ import {
   adminConfigSchema,
   categoryCreateSchema,
   closureUpsertSchema,
+  logisticsSlotsQuerySchema,
   productCreateSchema,
   scheduleDaysSchema,
 } from "./catalog";
@@ -50,5 +51,10 @@ describe("admin schemas", () => {
 
   it("rejects non-positive slot limits", () => {
     expect(adminConfigSchema.safeParse({ maxOrdersPerSlot: 0 }).success).toBe(false);
+  });
+
+  it("accepts the service type for slot availability", () => {
+    expect(logisticsSlotsQuerySchema.safeParse({ date: "2026-04-29", type: "DELIVERY" }).success).toBe(true);
+    expect(logisticsSlotsQuerySchema.safeParse({ date: "2026-04-29", type: "INVALID" }).success).toBe(false);
   });
 });
