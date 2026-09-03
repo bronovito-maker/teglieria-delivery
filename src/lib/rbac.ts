@@ -13,7 +13,7 @@ function readCsvEnv(name: string): string[] {
     .filter(Boolean);
 }
 
-function extractRole(user: UserLike): string | null {
+export function getUserRole(user: UserLike): string | null {
   if (!user) return null;
   const metaRole = user.user_metadata?.role;
   if (typeof metaRole === "string" && metaRole.trim()) return metaRole.trim().toLowerCase();
@@ -28,7 +28,7 @@ export function isAdminRbacStrictEnabled(): boolean {
 
 export function isAdminUser(user: UserLike): boolean {
   if (!user) return false;
-  const role = extractRole(user);
+  const role = getUserRole(user);
   if (role === "admin") return true;
   const adminAllowlist = readCsvEnv("ADMIN_ALLOWLIST_EMAILS");
   const email = user.email?.toLowerCase();
@@ -38,7 +38,7 @@ export function isAdminUser(user: UserLike): boolean {
 export function isOperatorUser(user: UserLike): boolean {
   if (!user) return false;
   if (isAdminUser(user)) return true;
-  const role = extractRole(user);
+  const role = getUserRole(user);
   if (role === "operator") return true;
   const operatorAllowlist = readCsvEnv("OPERATOR_ALLOWLIST_EMAILS");
   const email = user.email?.toLowerCase();

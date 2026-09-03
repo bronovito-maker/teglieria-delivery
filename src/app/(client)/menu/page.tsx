@@ -8,10 +8,12 @@ import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
 import CartDrawer from "@/components/client/CartDrawer";
 import ProductModal from "@/components/client/ProductModal";
+import type { PizzaMenuFlavorOption } from "@/components/client/PizzaBuilderModal";
 import type { CategoryWithProducts, ProductWithRelations } from "@/types";
 import type { ClubPromotionWithItems } from "@/types";
 import { SITE_CONFIG } from "@/lib/site-config";
 import { createClient } from "@/lib/supabase/client";
+import { PIZZA_MENU_FLAVORS } from "@/lib/pizza-builder";
 
 function MenuContent() {
   const router = useRouter();
@@ -25,9 +27,25 @@ function MenuContent() {
   const [cartOpen, setCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isClubMember, setIsClubMember] = useState<boolean | null>(null);
   const [authVersion, setAuthVersion] = useState(0);
   const navRef = useRef<HTMLDivElement>(null);
+  const pizzaMenuFlavors = useMemo<PizzaMenuFlavorOption[]>(() => {
+    const availableNames = new Set(
+      categories
+        .filter((category) => category.name === "Teglie" || category.name === "Mezze teglie")
+        .flatMap((category) => category.products.map((product) => product.name)),
+    );
+    return PIZZA_MENU_FLAVORS
+      .filter((flavor) => availableNames.has(flavor.name))
+      .map((flavor) => {
+        const product = categories
+          .filter((category) => category.name === "Teglie" || category.name === "Mezze teglie")
+          .flatMap((category) => category.products)
+          .find((candidate) => candidate.name === flavor.name);
+        return { name: flavor.name, description: product?.description ?? null };
+      });
+  }, [categories]);
 
   useEffect(() => {
     const previousScrollRestoration = window.history.scrollRestoration;
@@ -39,21 +57,15 @@ function MenuContent() {
   }, []);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      const role = typeof user?.user_metadata?.role === "string" ? user.user_metadata.role : null;
-      setIsLoggedIn(Boolean(user && role !== "rider"));
+    supabase.auth.getUser().then(() => {
       setAuthChecked(true);
       setAuthVersion((version) => version + 1);
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      const role = typeof session?.user?.user_metadata?.role === "string" ? session.user.user_metadata.role : null;
-      setIsLoggedIn(Boolean(session?.user && role !== "rider"));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
       setAuthChecked(true);
       setAuthVersion((version) => version + 1);
     });
-    const onAuthChanged = () => supabase.auth.getUser().then(({ data: { user } }) => {
-      const role = typeof user?.user_metadata?.role === "string" ? user.user_metadata.role : null;
-      setIsLoggedIn(Boolean(user && role !== "rider"));
+    const onAuthChanged = () => supabase.auth.getUser().then(() => {
       setAuthChecked(true);
       setAuthVersion((version) => version + 1);
     });
@@ -99,16 +111,23 @@ function MenuContent() {
     }
 
     const loadMenu = async () => {
+      setIsClubMember(null);
+      setCategories([]);
+      setPromotions([]);
+      setIsLoading(true);
       try {
         const response = await fetch("/api/menu", { cache: "no-store" });
+        if (!response.ok) throw new Error("Menu unavailable");
         const data = await response.json();
         const menuCategories = Array.isArray(data) ? data : data.categories;
+        if (!Array.isArray(menuCategories)) throw new Error("Invalid menu response");
+        setIsClubMember(!Array.isArray(data) && data.isClubMember === true);
         setCategories(menuCategories);
         setPromotions(Array.isArray(data) ? [] : data.promotions ?? []);
         syncPrices(menuCategories.flatMap((category: CategoryWithProducts) => category.products).map((product: ProductWithRelations) => ({
           id: product.id,
-          price: product.price,
-          standardPrice: product.standardPrice,
+          price: Number(product.price),
+          standardPrice: product.standardPrice == null ? null : Number(product.standardPrice),
         })));
       } finally {
         setIsLoading(false);
@@ -191,7 +210,7 @@ function MenuContent() {
         <p className="reveal active text-charcoal/55 text-base md:text-lg mt-8 font-body italic max-w-md leading-relaxed">
           Scegli la tua teglia preferita, preparata con 48 ore di lenta maturazione.
         </p>
-        {authChecked && (isLoggedIn ? (
+        {authChecked && isClubMember !== null && (isClubMember ? (
           <div data-testid="club-banner-active" className="mt-7 rounded-full border border-green-200 bg-green-50 px-5 py-3 text-center">
             <p className="font-brand text-[11px] font-bold uppercase tracking-[0.14em] text-green-700">Sei membro del Club! Prezzi riservati applicati automaticamente</p>
           </div>
@@ -250,8 +269,11 @@ function MenuContent() {
           </div>
           
           <div className="grid gap-4 px-5 sm:gap-5 sm:px-8">
-            {cat.products.map((product, pIdx) => (
-              <button
+            {cat.products.map((product, pIdx) => {
+              const isBeverageCategory = cat.name === "Bevande analcoliche" || cat.name === "Birre";
+              const isZoomedParma = (cat.name === "Teglie" || cat.name === "Mezze teglie") && product.name === "La Parma";
+              return (
+                <button
                 key={product.id}
                 onClick={() => setSelectedProduct(product)}
                 className="reveal group relative flex min-h-[7.5rem] items-center justify-between rounded-[1.5rem] border border-charcoal/5 bg-white px-5 py-5 text-left shadow-[0_8px_20px_rgba(26,26,26,0.025)] transition-all hover:border-terracotta/20 hover:shadow-lg sm:px-6 sm:py-6"
@@ -260,8 +282,14 @@ function MenuContent() {
                 {/* Subtle Hover Gradient */}
                 <div className="absolute inset-0 bg-gradient-to-br from-terracotta/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                 {product.imageUrl && (
-                  <div className={`relative mr-4 h-24 w-24 shrink-0 overflow-hidden rounded-2xl sm:h-28 sm:w-28 ${cat.name === "Bevande analcoliche" || cat.name === "Birre" ? "bg-charcoal/[.04] p-1.5" : ""}`}>
-                    <Image src={product.imageUrl} alt="" fill className={`${cat.name === "Bevande analcoliche" || cat.name === "Birre" ? "object-contain" : "object-cover"} transition-transform duration-500 group-hover:scale-105`} sizes="112px" />
+                  <div className={`relative mr-4 h-24 w-24 shrink-0 overflow-hidden rounded-2xl sm:h-28 sm:w-28 ${isBeverageCategory ? "bg-charcoal/[.04] p-1.5" : ""}`}>
+                    <Image
+                      src={product.imageUrl}
+                      alt=""
+                      fill
+                      className={`${isBeverageCategory ? "object-contain" : "object-cover"} ${isZoomedParma ? "scale-[1.14] group-hover:scale-[1.18]" : "group-hover:scale-105"} transition-transform duration-500`}
+                      sizes="112px"
+                    />
                   </div>
                 )}
                 <div className="flex-1 relative z-10 pr-3">
@@ -280,10 +308,17 @@ function MenuContent() {
                       {product.description}
                     </p>
                   )}
-                  <div className="mt-3 flex items-center">
-                    <span data-testid={product.configuration ? "configurable-price" : product.isClubPrice ? "club-price" : "full-price"} className={`text-base font-brand font-bold ${product.isClubPrice ? "text-terracotta" : "text-charcoal"}`}>
-                      {product.configuration ? "Scegli formato e gusti" : formatCurrency(Number(product.price))}
-                    </span>
+                  <div className="mt-3">
+                    <div className="flex items-center">
+                      <span data-testid={product.configuration ? "configurable-price" : product.isClubPrice ? "club-price" : "full-price"} className={`text-base font-brand font-bold ${product.isClubPrice ? "text-terracotta" : "text-charcoal"}`}>
+                        {product.configuration ? "Scegli formato e gusti" : formatCurrency(Number(product.price))}
+                      </span>
+                    </div>
+                    {authChecked && isClubMember === false && !product.configuration && product.clubPrice != null && Number(product.clubPrice) < Number(product.price) && (
+                      <p data-testid="club-price-offer" className="mt-1 text-[10px] font-brand font-semibold leading-tight tracking-[0.04em] text-terracotta/80">
+                        Prezzo Club: {formatCurrency(Number(product.clubPrice))} · registrati e risparmia
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -292,8 +327,9 @@ function MenuContent() {
                     <span className="text-xl font-light">+</span>
                   </div>
                 </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
         </div>
       ))}
@@ -316,7 +352,7 @@ function MenuContent() {
         </div>
       )}
 
-      {isLoggedIn && promotions.length > 0 && (
+      {isClubMember === true && promotions.length > 0 && (
         <section className="mb-14 px-5 sm:px-8" data-testid="club-promotions">
           <div className="mb-4 flex items-end justify-between border-b border-charcoal/5 pb-4">
             <div>
@@ -362,6 +398,7 @@ function MenuContent() {
       {selectedProduct && (
         <ProductModal
           product={selectedProduct}
+          menuFlavors={pizzaMenuFlavors}
           onClose={() => setSelectedProduct(null)}
         />
       )}

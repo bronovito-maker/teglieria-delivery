@@ -45,10 +45,23 @@ function LoginForm() {
     }
   }
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    // Apple Passwords e Google Password Manager possono compilare il valore
+    // nativo degli input senza passare dagli onChange di React. Leggiamo il
+    // form al submit, così inviamo sempre i valori realmente visibili.
+    const formData = new FormData(e.currentTarget);
+    const formEmail = String(formData.get("email") ?? "").trim();
+    const formPassword = String(formData.get("password") ?? "");
+
+    if (!formEmail || !formPassword) {
+      setError("Inserisci email e password.");
+      setLoading(false);
+      return;
+    }
 
     try {
       // Completa il login sul server: in questo modo i cookie SSR vengono
@@ -58,13 +71,30 @@ function LoginForm() {
         credentials: "same-origin",
         cache: "no-store",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: formEmail, password: formPassword }),
       });
 
       if (!response.ok) {
         setError("Email o password non validi.");
         setLoading(false);
         return;
+      }
+
+      // Su alcuni browser mobile la risposta del server può arrivare prima
+      // che il client Supabase abbia rilevato i cookie appena impostati.
+      // Verifichiamo la sessione e, solo se non è ancora visibile, la
+      // sincronizziamo con il client prima della navigazione completa.
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        const { error: clientAuthError } = await supabase.auth.signInWithPassword({
+          email: formEmail,
+          password: formPassword,
+        });
+        if (clientAuthError) {
+          setError("Accesso riuscito, ma la sessione non è stata salvata. Riprova.");
+          setLoading(false);
+          return;
+        }
       }
 
       // Su mobile un document navigation evita che la richiesta RSC parta
@@ -93,26 +123,30 @@ function LoginForm() {
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/40 ml-1 block">
+            <label htmlFor="login-email" className="text-[10px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/40 ml-1 block">
               Email
             </label>
             <input
+              id="login-email"
+              name="email"
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="mario@esempio.it"
-              autoComplete="email"
+              autoComplete="username"
               className="w-full px-5 py-4 bg-white/80 border border-charcoal/10 rounded-2xl font-body text-sm text-charcoal focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta outline-none transition-all placeholder:text-charcoal/20 min-h-[52px]"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/40 ml-1 block">
+            <label htmlFor="login-password" className="text-[10px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/40 ml-1 block">
               Password
             </label>
             <div className="relative">
               <input
+                id="login-password"
+                name="password"
                 type={showPassword ? "text" : "password"}
                 required
                 value={password}

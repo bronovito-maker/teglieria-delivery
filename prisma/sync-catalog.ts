@@ -18,7 +18,7 @@ const pizzas = [
 ] as const;
 const schiacciatine = [["La Semplice", "Base intera da 400 g", 2.5, null], ["La Classica", "Base intera da 400 g", 8, null], ["La Rustica", "Base intera da 400 g", 10, null], ["La Cruda", "Base intera da 400 g", 10.5, null], ["La Pistacchio", "Base intera da 400 g", 12, "pizza_teglia_la_pistacchio.jpg"], ["La Parma", "Base intera da 400 g", 12.5, "pizza_teglia_la_parma_closeup.jpg"], ["La Golosa", "Base intera da 400 g", 7, null]] as const;
 const ceci = [["Torta di Ceci", "Vendita a peso - € 1,90 / 100 g", 1.9, "torta_di_ceci_dettaglio.jpg"], ["Giga 5e5", "Base intera da 400 g", 4, "5e5_closeup.jpg"], ["Giga 5e5 con Melanzane", "Base intera da 400 g", 5.5, "5e5_melanzane.jpg"], ["5e5 Piccolo", "Mezza base", 2.5, "5e5_closeup.jpg"], ["5e5 Piccolo con Melanzane", "Mezza base", 3.5, "5e5_melanzane.jpg"]] as const;
-const fritti = [["Pane Fritto della Teglieria", "8 pezzi", 4], ["Patatine Fritte", "220 g", 4], ["Nuggets di Pollo", "4 pezzi", 4], ["Anelli di Cipolla", "5 pezzi", 4], ["Fritto Teglieria", "Patatine, 4 anelli, 3 nuggets e 4 pezzi di pane fritto", 5]] as const;
+const fritti = [["Pane Fritto della Teglieria", "8 pezzi", 4], ["Patatine Fritte", "220 g", 4], ["Nuggets di Pollo", "4 pezzi", 4], ["Anelli di Cipolla", "5 pezzi", 4]] as const;
 const analcoliche = [["Acqua naturale S. Antonio", "50 cl", 1, "bevanda_acqua_naturale.jpg"], ["Acqua gassata S. Antonio", "50 cl", 1, "bevanda_acqua_frizzante.jpg"], ["Acqua Valmora naturale", "1,5 L", 1.5, "bevanda_acqua_naturale.jpg"], ["Estathé pesca o limone - brick", "20 cl", 1.2, "bevanda_estate_pesca_brick.jpg"], ["Coca-Cola, Coca-Cola Zero o Fanta - lattina", "33 cl", 2.3, "bevanda_coca_cola_lattina.jpg"], ["Coca-Cola, Coca-Cola Zero o Fanta Lemon - PET", "45 cl", 3.5, "bevanda_coca_cola_bottiglia.jpg"], ["Estathé pesca o limone - PET", "40 cl", 3, "bevanda_estate_pesca_bottiglia.jpg"], ["Spuma bionda Queen", "33 cl", 4.5, "bevanda_spuma_bionda.jpg"]] as const;
 const birre = [["Bitburger Drive analcolica", "33 cl", 3, "bevanda_birra_analcolica_bitburger.jpg"], ["Bitburger Pils", "50 cl", 3.5, "bevanda_birra_bitburger.jpg"], ["Corona Extra", "33 cl", 4, "bevanda_birra_corona_extra.jpg"], ["Theresianer Lager", "33 cl", 4, "bevanda_birra_theresianer.jpg"], ["Theresianer Vienna Rossa", "33 cl", 4.5, "bevanda_birra_theresianer.jpg"], ["Ichnusa Non Filtrata", "50 cl", 5, "bevanda_birra_ichnusa_non_filtrata.jpg"], ["Lauterbacher Weizen", "50 cl", 4.5, "bevanda_birra_lauterbacher.jpg"], ["BrewDog Punk IPA", "33 cl", 5.5, "bevanda_birra_brewdog_punk_ipa.jpg"]] as const;
 const trancioImages: Record<string, string> = {
@@ -64,6 +64,10 @@ async function main() {
   for (const [index, [name, description, price]] of schiacciatine.entries()) await upsertProduct({ categoryId: categories[4].id, name, description, price, imageUrl: "/menu/placeholder-food.svg", sortOrder: index });
   for (const [index, [name, description, price, image]] of ceci.entries()) await upsertProduct({ categoryId: categories[5].id, name, description, price, imageUrl: `/menu/${image}`, sortOrder: index });
   for (const [index, [name, description, price]] of fritti.entries()) await upsertProduct({ categoryId: categories[6].id, name, description, price, imageUrl: "/menu/placeholder-food.svg", sortOrder: index });
+  await prisma.product.updateMany({
+    where: { name: "Fritto Teglieria", categoryId: categories[6].id },
+    data: { active: false },
+  });
   for (const [index, [name, description, price, image]] of analcoliche.entries()) await upsertProduct({ categoryId: categories[7].id, name, description, price, imageUrl: `/menu/${image}`, sortOrder: index });
   for (const [index, [name, description, price, image]] of birre.entries()) await upsertProduct({ categoryId: categories[8].id, name, description, price, imageUrl: image ? `/menu/${image}` : null, sortOrder: index });
   console.log("Catalogo completo sincronizzato.");

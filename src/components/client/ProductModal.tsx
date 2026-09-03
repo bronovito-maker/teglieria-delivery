@@ -8,10 +8,12 @@ import type { ProductWithRelations } from "@/types";
 import type { CartItemAddition, CartItemRemoval } from "@/types";
 import { toast } from "sonner";
 import PizzaBuilderModal from "./PizzaBuilderModal";
+import type { PizzaMenuFlavorOption } from "./PizzaBuilderModal";
 
 interface Props {
   product: ProductWithRelations;
   onClose: () => void;
+  menuFlavors: PizzaMenuFlavorOption[];
 }
 
 export default function ProductModal(props: Props) {
@@ -33,6 +35,7 @@ function ProductModalContent({ product, onClose }: Props) {
   const additionsTotal = selectedAdditions.reduce((s, a) => s + a.price, 0);
   const unitTotal = basePrice + variantDelta + additionsTotal;
   const total = unitTotal * quantity;
+  const shouldZoomParma = (product.category?.name === "Teglie" || product.category?.name === "Mezze teglie") && product.name === "La Parma";
 
   function toggleAddition(name: string, price: number) {
     setSelectedAdditions((prev) =>
@@ -71,8 +74,8 @@ function ProductModalContent({ product, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center backdrop-blur-sm">
-      <div className="bg-warm-light w-full sm:max-w-md sm:rounded-[2.5rem] rounded-t-[2.5rem] max-h-[90vh] overflow-y-auto border border-charcoal/5 shadow-2xl transition-all duration-500 ease-out translate-y-0" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[80] flex h-[100dvh] items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+      <div className="flex max-h-[100dvh] min-h-0 w-full flex-col overflow-hidden rounded-t-[2.5rem] border border-charcoal/5 bg-warm-light shadow-2xl transition-all duration-500 ease-out sm:max-h-[calc(100dvh-2rem)] sm:max-w-md sm:rounded-[2.5rem]" onClick={(e) => e.stopPropagation()}>
 
         {/* Immagine hero (se presente) */}
         {product.imageUrl && (
@@ -81,7 +84,7 @@ function ProductModalContent({ product, onClose }: Props) {
               src={product.imageUrl}
               alt={product.name}
               fill
-              className="object-cover"
+              className={`object-cover ${shouldZoomParma ? "scale-[1.08]" : ""}`}
               sizes="(max-width: 448px) 100vw, 448px"
               priority
             />
@@ -94,7 +97,8 @@ function ProductModalContent({ product, onClose }: Props) {
           </div>
         )}
 
-        <div className="p-8">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <div className="p-8">
           <div className="flex items-start justify-between mb-6">
             <div className="flex-1">
               <h2 className="text-4xl font-display tracking-tight text-charcoal leading-none mb-2">{product.name}</h2>
@@ -237,7 +241,7 @@ function ProductModalContent({ product, onClose }: Props) {
             </div>
 
             {/* Azioni finali mobile sticky */}
-            <div className="sm:hidden -mx-8 px-4 pt-3 pb-[max(0.9rem,env(safe-area-inset-bottom))] bg-warm-light border-t border-charcoal/8">
+            <div className="sticky bottom-0 z-10 -mx-8 bg-warm-light px-4 pb-[max(0.9rem,env(safe-area-inset-bottom))] pt-3 sm:hidden border-t border-charcoal/8">
               <div className="flex items-center gap-3">
                 <div className="flex items-center bg-charcoal/5 rounded-full p-1 border border-charcoal/5 shrink-0">
                   <button
@@ -262,6 +266,7 @@ function ProductModalContent({ product, onClose }: Props) {
                 </button>
               </div>
             </div>
+          </div>
           </div>
         </div>
       </div>

@@ -39,7 +39,7 @@ export default function CartDrawer({ open, onClose }: Props) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] h-[100dvh] overflow-hidden overscroll-contain bg-warm-light" role="dialog" aria-modal="true" aria-label="Carrello">
+    <div className="fixed inset-0 z-[80] h-[100dvh] overflow-hidden overscroll-contain bg-warm-light" role="dialog" aria-modal="true" aria-label="Carrello">
       <div className="mx-auto flex h-full min-h-0 w-full max-w-xl flex-col" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-end px-5 pb-2 pt-5 sm:px-8 sm:pt-7">
           <button type="button" onClick={onClose} aria-label="Chiudi carrello" className="flex h-10 w-10 items-center justify-center rounded-full bg-charcoal/5 text-xl text-charcoal/60 transition-colors hover:bg-charcoal/10">×</button>
@@ -84,7 +84,7 @@ export default function CartDrawer({ open, onClose }: Props) {
 
               <Link href="/menu" className="group mt-4 block overflow-hidden rounded-[1.4rem] border border-charcoal/5 bg-white shadow-[0_10px_24px_rgba(26,26,26,0.04)]">
                 <div className="relative aspect-[2.35] w-full overflow-hidden">
-                  <Image src="/images/pizza-teglia-hero.png" alt="La Teglia Perfetta" fill className="object-cover transition-transform duration-700 group-hover:scale-105" sizes="(max-width: 640px) 100vw, 560px" />
+                  <Image src="/menu/pizza_laregina.jpg" alt="Pizza La Regina" fill className="object-cover transition-transform duration-700 group-hover:scale-105" sizes="(max-width: 640px) 100vw, 560px" />
                   <div className="absolute inset-0 bg-gradient-to-t from-charcoal/75 via-transparent to-transparent" />
                   <div className="absolute bottom-3 left-4">
                     <p className="text-[9px] font-brand font-bold uppercase tracking-[.25em] text-marigold">Il nostro orgoglio</p>

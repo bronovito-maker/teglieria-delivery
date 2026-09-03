@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
-import { isOperatorUser } from "@/lib/rbac";
+import { getUserRole, isOperatorUser } from "@/lib/rbac";
 
 export async function GET() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const role = typeof user?.user_metadata?.role === "string" ? user.user_metadata.role : null;
+  const role = getUserRole(user);
   const isClubMember = Boolean(user && role !== "rider" && !isOperatorUser(user));
   const categories = await prisma.category.findMany({
     where: { active: true },
@@ -15,10 +15,30 @@ export async function GET() {
       products: {
         where: { active: true },
         orderBy: { sortOrder: "asc" },
-        include: {
-          variants: { where: { active: true } },
-          additions: { where: { active: true } },
-          removals: { where: { active: true } },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          price: true,
+          clubPrice: true,
+          promoPrice: true,
+          imageUrl: true,
+          categoryId: true,
+          active: true,
+          sortOrder: true,
+          configuration: true,
+          variants: {
+            where: { active: true },
+            select: { id: true, productId: true, name: true, priceDelta: true, active: true },
+          },
+          additions: {
+            where: { active: true },
+            select: { id: true, productId: true, name: true, price: true, active: true },
+          },
+          removals: {
+            where: { active: true },
+            select: { id: true, productId: true, name: true, active: true },
+          },
         },
       },
     },

@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
+import { getUserRole, isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
 import { createOrderSchema, generateOrderCode, orderStatusSchema, orderTypeSchema, toNullableJson } from "@/lib/validation/orders";
 import { createOrderStatusToken } from "@/lib/order-status-token";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
@@ -93,15 +93,6 @@ export async function POST(request: Request) {
   }
   const idempotencyKey = request.headers.get("idempotency-key")?.trim().slice(0, 100) || null;
 
-  if (body.paymentMethod === "STRIPE" && !process.env.STRIPE_SECRET_KEY) {
-    return NextResponse.json({ error: "Pagamento con carta temporaneamente non disponibile" }, { status: 503 });
-  }
-
-  const channel = body.channel || "WEB";
-  const authoritativeDeliveryCost = body.type === "DELIVERY"
-    ? channel === "WEB" ? calculateDeliveryFee(body.deliveryKm) : body.deliveryCost ?? 0
-    : 0;
-
   // Leggi sessione opzionale — gli ordini guest hanno authUserId null
   let authUserId: string | null = null;
   let pricingAuthUserId: string | null = null;
@@ -109,7 +100,7 @@ export async function POST(request: Request) {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    const role = user?.user_metadata?.role;
+    const role = getUserRole(user);
     isOperator = Boolean(user && (role === "rider" || isOperatorUser(user)));
     if (user && !isOperator) {
       authUserId = user.id;
@@ -119,13 +110,33 @@ export async function POST(request: Request) {
     // Sessione non disponibile — procedi come guest
   }
 
+  // Il checkout pubblico non può scegliere canali manuali o dichiarare un
+  // pagamento POS: questi valori sono riservati agli operatori autenticati.
+  const effectivePaymentMethod = !isOperator && body.paymentMethod === "POS"
+    ? null
+    : body.paymentMethod || "CONTANTI";
+  if (!effectivePaymentMethod) {
+    return NextResponse.json({ error: "Metodo di pagamento non disponibile online" }, { status: 400 });
+  }
+  if (effectivePaymentMethod === "STRIPE" && !process.env.STRIPE_SECRET_KEY) {
+    return NextResponse.json({ error: "Pagamento con carta temporaneamente non disponibile" }, { status: 503 });
+  }
+
+  // Il costo delivery viene sempre calcolato dal server per gli ordini WEB.
+  // Solo un operatore autenticato può creare ordini PHONE/COUNTER con un
+  // importo inserito manualmente.
+  const channel = isOperator ? body.channel || "WEB" : "WEB";
+  const authoritativeDeliveryCost = body.type === "DELIVERY"
+    ? channel === "WEB" ? calculateDeliveryFee(body.deliveryKm) : body.deliveryCost ?? 0
+    : 0;
+
   let order = idempotencyKey
     ? await prisma.order.findUnique({ where: { idempotencyKey }, include: { items: true } })
     : null;
   let orderWasReused = Boolean(order);
   if (order && (
     order.type !== body.type ||
-    order.paymentMethod !== (body.paymentMethod || "CONTANTI") ||
+    order.paymentMethod !== effectivePaymentMethod ||
     order.customerPhone !== body.customerPhone
   )) {
     return NextResponse.json({ error: "Chiave idempotenza già associata a un altro ordine" }, { status: 409 });
@@ -135,8 +146,13 @@ export async function POST(request: Request) {
       // Validate product IDs exist to avoid FK violations (cart may have stale IDs after DB reset)
       const productIds = body.items.map((i) => i.productId).filter(Boolean);
       const existingProducts = await tx.product.findMany({
-        where: { id: { in: productIds } },
-        include: { variants: { where: { active: true } }, additions: { where: { active: true } }, removals: { where: { active: true } } },
+        where: { id: { in: productIds }, active: true, category: { active: true } },
+        include: {
+          category: true,
+          variants: { where: { active: true } },
+          additions: { where: { active: true } },
+          removals: { where: { active: true } },
+        },
       });
       const validIds = new Set(existingProducts.map((p) => p.id));
       const stale = productIds.filter((id) => !validIds.has(id));
@@ -145,11 +161,40 @@ export async function POST(request: Request) {
       }
 
       const productsById = new Map(existingProducts.map((product) => [product.id, product]));
+      const requestedPizzaFlavorNames = new Set<string>();
+      for (const item of body.items) {
+        const product = productsById.get(item.productId)!;
+        if (!product.configuration) continue;
+        let selection: PizzaBuilderSelection;
+        try { selection = JSON.parse(item.variant || "") as PizzaBuilderSelection; } catch { throw new Error("INVALID_CART_PRICE"); }
+        if (!Array.isArray(selection.slots)) throw new Error("INVALID_CART_PRICE");
+        for (const slot of selection.slots) {
+          if (slot && typeof slot.flavor === "string" && slot.flavor.trim()) requestedPizzaFlavorNames.add(slot.flavor);
+        }
+      }
+      const validPizzaFlavorKeys = new Set<string>();
+      if (requestedPizzaFlavorNames.size > 0) {
+        const flavorProducts = await tx.product.findMany({
+          where: {
+            active: true,
+            name: { in: [...requestedPizzaFlavorNames] },
+            category: { name: { in: ["Teglie", "Mezze teglie"] } },
+          },
+          select: { name: true, category: { select: { name: true } } },
+        });
+        for (const flavorProduct of flavorProducts) {
+          validPizzaFlavorKeys.add(`${flavorProduct.category.name}:${flavorProduct.name}`);
+        }
+      }
       const authoritativeItems = body.items.map((item) => {
         const product = productsById.get(item.productId)!;
         if (product.configuration) {
           let selection: PizzaBuilderSelection;
           try { selection = JSON.parse(item.variant || "") as PizzaBuilderSelection; } catch { throw new Error("INVALID_CART_PRICE"); }
+          const flavorCategory = selection.format === "MEZZA" ? "Mezze teglie" : "Teglie";
+          if (selection.slots.some((slot) => typeof slot?.flavor === "string" && slot.flavor.trim() && !validPizzaFlavorKeys.has(`${flavorCategory}:${slot.flavor}`))) {
+            throw new Error("INVALID_CART_PRICE");
+          }
           let calculated: ReturnType<typeof calculatePizzaConfiguration>;
           try { calculated = calculatePizzaConfiguration(selection); } catch { throw new Error("INVALID_CART_PRICE"); }
           const priceMismatch = Math.abs(item.unitPrice - calculated.total) > 0.01 || Math.abs(item.totalPrice - calculated.total * item.quantity) > 0.01;
@@ -195,7 +240,7 @@ export async function POST(request: Request) {
           subtotal: authoritativeSubtotal,
           total: authoritativeTotal,
           notes: body.notes,
-          paymentMethod: body.paymentMethod || "CONTANTI",
+          paymentMethod: effectivePaymentMethod,
           idempotencyKey,
           items: {
             createMany: {
@@ -306,7 +351,7 @@ export async function POST(request: Request) {
   }
 
   let checkoutUrl: string | null = null;
-  if (body.paymentMethod === "STRIPE") {
+  if (effectivePaymentMethod === "STRIPE") {
     try {
       if (orderWasReused && order.stripeSessionId) {
         const existingSession = await getStripe().checkout.sessions.retrieve(order.stripeSessionId);

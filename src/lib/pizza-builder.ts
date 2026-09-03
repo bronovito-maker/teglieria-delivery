@@ -12,12 +12,38 @@ export const PIZZA_BUILDER_CONFIG = {
     BIANCA: { label: "Base bianca", prices: { INTERA: [29, 15.95, 11.6, 9.45], MEZZA: [20.3, 10.9] } },
   },
   mozzarellaStandard: { label: "Mozzarella standard su base rossa", grams: 400, prices: { INTERA: [8.7, 4.8, 3.5, 2.85], MEZZA: [6.1, 3.3] } },
-  included: ["Basilico", "Olio EVO", "Sale", "Pepe nero"],
-  excluded: ["Tonno", "Nduja", "Crudo nazionale", "Provola", "Edamer", "Salame Napoli"],
   ingredients: [
     ["Pomodoro extra",150,1.3,.75,.55,.45,.95,.5],["Mozzarella extra",150,3.25,1.8,1.3,1.1,2.3,1.25],["Prosciutto cotto",100,2,1.1,.8,.65,1.4,.75],["Funghi",120,.95,.55,.4,.3,.65,.35],["Salamino piccante",100,3,1.65,1.2,1,2.1,1.15],["Verdure di stagione",150,1.75,1,.7,.6,1.25,.7],["Melanzane sotto pesto",150,3,1.65,1.2,1,2.1,1.15],["Acciughe",30,2.35,1.3,.95,.75,1.65,.9],["Capperi",15,.3,.15,.15,.1,.2,.1],["Salsiccia",120,2.5,1.4,1,.85,1.75,.95],["Cipolla",80,.4,.25,.2,.15,.3,.15],["Würstel",125,1.95,1.1,.8,.65,1.4,.75],["Patatine",150,.95,.55,.4,.35,.7,.4],["Speck",90,2.9,1.6,1.2,.95,2.05,1.1],["Scamorza affumicata",80,2.3,1.25,.95,.75,1.6,.85],["Prosciutto di Parma DOP",110,6.05,3.35,2.45,2,4.25,2.3],["Stracciatella",100,3.7,2.05,1.5,1.2,2.6,1.4],["Burrata",200,7.9,4.35,3.15,2.6,5.55,2.95],["Mozzarella di bufala",200,7.7,4.25,3.1,2.5,5.4,2.9],["Guanciale",100,3.1,1.7,1.25,1.05,2.2,1.2],["Pecorino",60,2.8,1.55,1.15,.9,1.95,1.05],["Grana Padano",60,3,1.65,1.2,1,2.1,1.15],["Rucola",30,.8,.45,.35,.3,.6,.3],["Pomodorini",100,2.9,1.6,1.15,.95,2.05,1.1],["Pomodorini confit",100,2.35,1.3,.95,.8,1.65,.9],["Pesto di pistacchio",40,3.75,2.05,1.5,1.25,2.6,1.4],["Granella di pistacchio",20,2,1.1,.8,.65,1.4,.75],["Salmone affumicato",100,9,4.95,3.6,2.95,6.3,3.4],["Gorgonzola",100,3.2,1.75,1.3,1.05,2.25,1.2],["Mascarpone",100,2.8,1.55,1.15,.95,2,1.05],["Mortadella",120,2.75,1.5,1.1,.9,1.95,1.05],["Olive nere",80,.85,.5,.35,.3,.6,.35],["Carciofi",150,1.65,.95,.7,.55,1.2,.65],["Friarielli",150,2.65,1.45,1.1,.9,1.85,1],["Zucchine grigliate",150,4.3,2.35,1.75,1.4,3,1.6],["Peperoni grigliati",150,5.35,2.95,2.15,1.75,3.75,2]],
   priceKeys: ["I1", "I2", "I3", "I4", "M1", "M2"],
 } as const;
+
+export type PizzaMenuFlavor = {
+  name: string;
+  base: "ROSSA" | "BIANCA";
+  mozzarellaStandard?: boolean;
+  ingredients: readonly string[];
+};
+
+// Ricette dei gusti già presenti nel catalogo. Il prezzo resta quello del
+// configuratore e gli ingredienti extra vengono aggiunti separatamente.
+export const PIZZA_MENU_FLAVORS: readonly PizzaMenuFlavor[] = [
+  { name: "La Regina", base: "ROSSA", mozzarellaStandard: true, ingredients: [] },
+  { name: "La Partenopea", base: "ROSSA", mozzarellaStandard: true, ingredients: ["Acciughe", "Capperi"] },
+  { name: "La Contadina", base: "ROSSA", mozzarellaStandard: true, ingredients: ["Prosciutto cotto", "Funghi"] },
+  { name: "La Diavola", base: "ROSSA", mozzarellaStandard: true, ingredients: ["Salamino piccante"] },
+  { name: "L'Ortolana", base: "ROSSA", mozzarellaStandard: true, ingredients: ["Verdure di stagione"] },
+  { name: "La Pistacchio", base: "BIANCA", ingredients: ["Scamorza affumicata", "Prosciutto cotto", "Burrata", "Pesto di pistacchio", "Granella di pistacchio"] },
+  { name: "La Nordica", base: "BIANCA", ingredients: ["Salmone affumicato", "Burrata", "Rucola", "Pomodorini"] },
+  { name: "La Parma", base: "BIANCA", ingredients: ["Prosciutto di Parma DOP", "Rucola", "Grana Padano"] },
+  { name: "La Burrata", base: "ROSSA", mozzarellaStandard: true, ingredients: ["Burrata", "Pomodorini confit"] },
+  { name: "La Carbonara", base: "BIANCA", ingredients: ["Pecorino", "Guanciale"] },
+] as const;
+
+const pizzaMenuFlavorByName = new Map(PIZZA_MENU_FLAVORS.map((flavor) => [flavor.name, flavor]));
+
+export function getPizzaMenuFlavor(name?: string | null) {
+  return name ? pizzaMenuFlavorByName.get(name) ?? null : null;
+}
 
 export function pizzaPriceKey(format: PizzaFormat, gusti: number) { return format === "INTERA" ? `I${gusti}` : `M${gusti}`; }
 export function pizzaIngredientData(name: string, format: PizzaFormat, gusti: number) {
@@ -33,31 +59,64 @@ export function pizzaBaseData(base: "ROSSA" | "BIANCA", format: PizzaFormat, gus
   return { name: PIZZA_BUILDER_CONFIG.bases[base].label, price: PIZZA_BUILDER_CONFIG.bases[base].prices[format][gusti - 1] };
 }
 
-export type PizzaBuilderSelection = { format: PizzaFormat; gusti: number; slots: Array<{ base: "ROSSA" | "BIANCA"; mozzarellaStandard?: boolean; ingredients: string[] }> };
+export type PizzaBuilderSelection = {
+  format: PizzaFormat;
+  gusti: number;
+  slots: Array<{
+    base: "ROSSA" | "BIANCA";
+    flavor?: string;
+    mozzarellaStandard?: boolean;
+    ingredients: string[];
+  }>;
+};
+
+export function calculatePizzaSlot(
+  slot: PizzaBuilderSelection["slots"][number],
+  format: PizzaFormat,
+  gusti: number,
+  index: number,
+) {
+  if (!slot || !["ROSSA", "BIANCA"].includes(slot.base) || !Array.isArray(slot.ingredients)) {
+    throw new Error("INVALID_PIZZA_CONFIGURATION");
+  }
+  if (slot.flavor !== undefined && slot.flavor !== null && typeof slot.flavor !== "string") {
+    throw new Error("INVALID_PIZZA_CONFIGURATION");
+  }
+  const flavor = getPizzaMenuFlavor(slot.flavor);
+  if (slot.flavor && !flavor) throw new Error("INVALID_PIZZA_CONFIGURATION");
+
+  const baseType = flavor?.base ?? slot.base;
+  const base = pizzaBaseData(baseType, format, gusti);
+  const additions: Array<{ name: string; price: number; grams?: number; available?: boolean }> = [];
+  let total = base.price;
+  additions.push({ name: `Gusto ${index + 1} · ${flavor?.name ?? base.name}`, price: base.price });
+
+  const mozzarellaStandard = flavor?.mozzarellaStandard ?? (baseType === "ROSSA" && slot.mozzarellaStandard);
+  if (mozzarellaStandard) {
+    const mozzarella = PIZZA_BUILDER_CONFIG.mozzarellaStandard.prices[format][gusti - 1];
+    total += mozzarella;
+    additions.push({ name: `Gusto ${index + 1} · Mozzarella standard`, price: mozzarella, available: true });
+  }
+
+  const ingredientNames = [...new Set([...(flavor?.ingredients ?? []), ...slot.ingredients])];
+  for (const name of ingredientNames) {
+    if (typeof name !== "string" || !pizzaIngredientData(name, format, gusti)) throw new Error("INVALID_PIZZA_CONFIGURATION");
+    const ingredient = pizzaIngredientData(name, format, gusti)!;
+    total += ingredient.price;
+    additions.push({ name: `Gusto ${index + 1} · ${ingredient.name}`, price: ingredient.price, available: true });
+  }
+
+  return { total: Number(total.toFixed(2)), additions };
+}
 
 export function calculatePizzaConfiguration(selection: PizzaBuilderSelection) {
   const format = PIZZA_BUILDER_CONFIG.formats[selection.format];
   if (!format.gusti.includes(selection.gusti as never) || selection.slots.length !== selection.gusti) throw new Error("INVALID_PIZZA_CONFIGURATION");
-  const additions: Array<{ name: string; price: number; grams?: number; available?: boolean }> = [];
-  let total = 0;
-  selection.slots.forEach((slot, index) => {
-    if (!slot || !["ROSSA", "BIANCA"].includes(slot.base) || !Array.isArray(slot.ingredients)) throw new Error("INVALID_PIZZA_CONFIGURATION");
-    const base = pizzaBaseData(slot.base, selection.format, selection.gusti);
-    total += base.price;
-    additions.push({ name: `Gusto ${index + 1} · ${base.name}`, price: base.price });
-    if (slot.base === "ROSSA" && slot.mozzarellaStandard) {
-      const mozzarella = PIZZA_BUILDER_CONFIG.mozzarellaStandard.prices[selection.format][selection.gusti - 1];
-      total += mozzarella;
-      additions.push({ name: `Gusto ${index + 1} · Mozzarella standard`, price: mozzarella, available: true });
-    }
-    for (const name of slot.ingredients) {
-      if (typeof name !== "string" || !pizzaIngredientData(name, selection.format, selection.gusti)) throw new Error("INVALID_PIZZA_CONFIGURATION");
-      const ingredient = pizzaIngredientData(name, selection.format, selection.gusti)!;
-      total += ingredient.price;
-      additions.push({ name: `Gusto ${index + 1} · ${ingredient.name}`, price: ingredient.price, available: true });
-    }
-  });
-  return { total: Number(total.toFixed(2)), additions };
+  const slotCalculations = selection.slots.map((slot, index) => calculatePizzaSlot(slot, selection.format, selection.gusti, index));
+  return {
+    total: Number(slotCalculations.reduce((sum, slot) => sum + slot.total, 0).toFixed(2)),
+    additions: slotCalculations.flatMap((slot) => slot.additions),
+  };
 }
 
 export function formatPizzaVariant(variant?: string | null) {
