@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Epilogue, Manrope } from "next/font/google";
 import "./globals.css";
 import PwaRegister from "@/components/PwaRegister";
+import CustomerAuthProvider from "@/components/client/CustomerAuthProvider";
 import ZirelWidgetHomeOnly from "@/components/client/ZirelWidgetHomeOnly";
 import { Analytics } from "@vercel/analytics/react";
 import { GoogleAnalytics } from "@next/third-parties/google";
@@ -150,7 +151,7 @@ export default function RootLayout({
           />
         </noscript>
         <PwaRegister />
-        {children}
+        <CustomerAuthProvider>{children}</CustomerAuthProvider>
         <ZirelWidgetHomeOnly />
         <Analytics />
         {process.env.NEXT_PUBLIC_GA_ID && (

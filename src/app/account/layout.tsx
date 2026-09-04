@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import MobileTopBar from "@/components/client/MobileTopBar";
+import ClientFooter from "@/components/client/ClientFooter";
 
 export default async function AccountLayout({
   children,
@@ -39,9 +40,7 @@ export default async function AccountLayout({
         <main className="flex-1">{children}</main>
       </div>
 
-      <footer className="text-center text-[11px] uppercase tracking-[0.2em] font-bold text-charcoal/25 py-6">
-        © {new Date().getFullYear()} La Teglieria
-      </footer>
+      <ClientFooter showLogout={false} />
     </div>
   );
 }

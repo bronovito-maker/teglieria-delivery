@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { hasAdminPanelAccess } from "@/lib/rbac";
+import { SUPABASE_COOKIE_ENCODING, SUPABASE_COOKIE_OPTIONS } from "./config";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -9,6 +10,8 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions: SUPABASE_COOKIE_OPTIONS,
+      cookieEncoding: SUPABASE_COOKIE_ENCODING,
       cookies: {
         getAll() {
           return request.cookies.getAll();

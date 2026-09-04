@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/constants";
 import { formatCurrency, formatTime, formatOrderCode } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
+import { useCustomerAuth } from "@/components/client/CustomerAuthProvider";
 import type { OrderWithItems } from "@/types";
 
 const STATUS_STEPS = ["RECEIVED", "CONFIRMED", "READY", "OUT", "DELIVERED"];
@@ -13,6 +13,7 @@ const STATUS_STEPS = ["RECEIVED", "CONFIRMED", "READY", "OUT", "DELIVERED"];
 export default function StatoOrdinePage() {
   const { id } = useParams();
   const searchParams = useSearchParams();
+  const { user, loading: authLoading } = useCustomerAuth();
   const [order, setOrder] = useState<OrderWithItems | null>(null);
   const [error, setError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -23,20 +24,16 @@ export default function StatoOrdinePage() {
   const [paymentError, setPaymentError] = useState("");
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) {
-        const raw = sessionStorage.getItem("guestOrderData");
-        if (raw) {
-          try {
-            const parsed = JSON.parse(raw);
-            setGuestData(parsed);
-            setShowRegisterBanner(true);
-          } catch {}
-        }
-      }
-    });
-  }, []);
+    if (authLoading || user) return;
+    const raw = sessionStorage.getItem("guestOrderData");
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        setGuestData(parsed);
+        setShowRegisterBanner(true);
+      } catch {}
+    }
+  }, [authLoading, user]);
 
   useEffect(() => {
     let timeout: NodeJS.Timeout;

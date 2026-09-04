@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { ShoppingCart } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
 
 /**
  * Header pubblico volutamente minimale: il riferimento usa il brand come
@@ -13,22 +12,12 @@ import { createClient } from "@/lib/supabase/client";
  */
 export default function MobileTopBar() {
   const [hydrated, setHydrated] = useState(false);
-  const [loggedIn, setLoggedIn] = useState(false);
-  const supabase = useMemo(() => createClient(), []);
   const itemCount = useCartStore((state) => state.getItemCount());
   const total = useCartStore((state) => state.getSubtotal());
 
   useEffect(() => {
     setHydrated(true);
-    supabase.auth.getUser().then(({ data: { user } }) => setLoggedIn(Boolean(user)));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setLoggedIn(Boolean(session?.user)));
-    const onAuthChanged = () => supabase.auth.getUser().then(({ data: { user } }) => setLoggedIn(Boolean(user)));
-    window.addEventListener("customer-auth-changed", onAuthChanged);
-    return () => {
-      subscription.unsubscribe();
-      window.removeEventListener("customer-auth-changed", onAuthChanged);
-    };
-  }, [supabase]);
+  }, []);
 
   return (
     <header className="fixed inset-x-0 top-0 z-[70] border-b border-charcoal/5 bg-warm-light/95 backdrop-blur-xl">

@@ -13,7 +13,10 @@ export async function GET(request: Request) {
 
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = sanitizeInternalPath(searchParams.get("next"), "");
+  const requestedNext = sanitizeInternalPath(searchParams.get("next"), "");
+  const next = requestedNext === "/accedi" || requestedNext.startsWith("/accedi?") || requestedNext.startsWith("/accedi/")
+    ? ""
+    : requestedNext;
   const type = searchParams.get("type") ?? "admin"; // "admin" | "customer"
 
   if (code) {

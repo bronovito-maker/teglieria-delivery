@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { useCustomerAuth } from "@/components/client/CustomerAuthProvider";
 import { Suspense } from "react";
 
 function sanitizeNextPath(next: string | null) {
@@ -11,6 +12,7 @@ function sanitizeNextPath(next: string | null) {
   if (!next.startsWith("/")) return "/menu";
   if (next.startsWith("//")) return "/menu";
   if (next.includes("://")) return "/menu";
+  if (next === "/accedi" || next.startsWith("/accedi?") || next.startsWith("/accedi/")) return "/menu";
   return next;
 }
 
@@ -18,8 +20,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = useMemo(() => createClient(), []);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const { user, loading: authLoading } = useCustomerAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,10 +28,8 @@ function LoginForm() {
   const redirectTo = sanitizeNextPath(searchParams.get("next"));
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) router.replace(redirectTo);
-    });
-  }, [router, supabase, redirectTo]);
+    if (!authLoading && user) router.replace(redirectTo);
+  }, [authLoading, router, user, redirectTo]);
 
   async function handleOAuth(provider: "google") {
     setError(null);
@@ -43,6 +42,29 @@ function LoginForm() {
     if (oauthError) {
       setError("Impossibile avviare Google. Riprova tra poco.");
     }
+  }
+
+  async function waitForServerSession() {
+    const maxAttempts = 4;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      try {
+        const response = await fetch("/api/auth/session", {
+          credentials: "same-origin",
+          cache: "no-store",
+        });
+        if (response.ok) return true;
+      } catch {
+        // Riprova: il cookie Set-Cookie potrebbe non essere ancora visibile
+        // alla richiesta successiva su alcuni browser mobile.
+      }
+
+      if (attempt < maxAttempts - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 75 * (attempt + 1)));
+      }
+    }
+
+    return false;
   }
 
   async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
@@ -80,25 +102,18 @@ function LoginForm() {
         return;
       }
 
-      // Su alcuni browser mobile la risposta del server può arrivare prima
-      // che il client Supabase abbia rilevato i cookie appena impostati.
-      // Verifichiamo la sessione e, solo se non è ancora visibile, la
-      // sincronizziamo con il client prima della navigazione completa.
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        const { error: clientAuthError } = await supabase.auth.signInWithPassword({
-          email: formEmail,
-          password: formPassword,
-        });
-        if (clientAuthError) {
-          setError("Accesso riuscito, ma la sessione non è stata salvata. Riprova.");
-          setLoading(false);
-          return;
-        }
+      // Verifica che il browser abbia ricevuto e rimandato i cookie SSR prima
+      // della navigazione. Non autentica di nuovo: controlla solo la sessione.
+      if (!(await waitForServerSession())) {
+        setError("Accesso riuscito, ma la sessione non è stata sincronizzata. Riprova.");
+        setLoading(false);
+        return;
       }
 
-      // Su mobile un document navigation evita che la richiesta RSC parta
-      // prima che il browser abbia applicato i cookie appena ricevuti.
+      // L'endpoint SSR è l'unica autorità del login password e ha già
+      // impostato i cookie nella risposta. Una navigazione completa fa
+      // rileggere la sessione al server senza avviare una seconda auth lato
+      // browser.
       window.location.replace(redirectTo);
     } catch {
       setError("Email o password non validi.");
@@ -131,10 +146,10 @@ function LoginForm() {
               name="email"
               type="email"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               placeholder="mario@esempio.it"
               autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
               className="w-full px-5 py-4 bg-white/80 border border-charcoal/10 rounded-2xl font-body text-sm text-charcoal focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta outline-none transition-all placeholder:text-charcoal/20 min-h-[52px]"
             />
           </div>
@@ -149,8 +164,6 @@ function LoginForm() {
                 name="password"
                 type={showPassword ? "text" : "password"}
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 autoComplete="current-password"
                 className="w-full px-5 py-4 pr-14 bg-white/80 border border-charcoal/10 rounded-2xl font-body text-sm text-charcoal focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta outline-none transition-all placeholder:text-charcoal/20 min-h-[52px]"

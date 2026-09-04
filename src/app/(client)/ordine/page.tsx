@@ -7,6 +7,7 @@ import AddressAutocomplete from "@/components/client/AddressAutocomplete";
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import { useCustomerAuth } from "@/components/client/CustomerAuthProvider";
 import { calculateDeliveryFee, MIN_ORDER_SUBTOTAL } from "@/lib/constants";
 
 const STORE_POSITION = {
@@ -21,11 +22,19 @@ const STORE_POSITION = {
 export default function OrdinePage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
+  const { user, loading: authLoading } = useCustomerAuth();
   const { items, orderType, setOrderType, getSubtotal, getClubSavings, clearCart, syncPrices } = useCartStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [loggedUser, setLoggedUser] = useState<{ name: string; email: string } | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
+  const loggedUser = useMemo(() => {
+    if (!user) return null;
+    const metadata = user.user_metadata ?? {};
+    return {
+      name: typeof metadata.full_name === "string" ? metadata.full_name : typeof metadata.name === "string" ? metadata.name : "",
+      email: user.email || "",
+    };
+  }, [user]);
+  const authChecked = !authLoading;
   // Il checkout resta sempre accessibile anche agli ospiti: l'accesso è
   // facoltativo e non deve creare un passaggio bloccante, soprattutto su mobile.
   const [showDetails, setShowDetails] = useState(true);
@@ -37,46 +46,8 @@ export default function OrdinePage() {
   useEffect(() => {
     let cancelled = false;
 
-    async function applyCustomerSession(user: { id: string; email?: string; user_metadata?: Record<string, unknown> } | null) {
-      const role = user?.user_metadata?.role;
-      if (!user || role === "admin" || role === "rider") {
-        if (!cancelled) {
-          setLoggedUser(null);
-          setAuthChecked(true);
-        }
-        return;
-      }
-      if (!cancelled) {
-        const metadata = user.user_metadata ?? {};
-        setLoggedUser({
-          name: typeof metadata.full_name === "string" ? metadata.full_name : typeof metadata.name === "string" ? metadata.name : "",
-          email: user.email || "",
-        });
-        setShowDetails(true);
-        setCustomerEmail((current) => current || user.email || "");
-        setCustomerName((current) => current || (typeof metadata.full_name === "string" ? metadata.full_name : typeof metadata.name === "string" ? metadata.name : ""));
-        setCustomerPhone((current) => current || (typeof metadata.phone === "string" ? metadata.phone : ""));
-        setAuthChecked(true);
-      }
-      // Aggiorna il carrello se il login avviene dopo il caricamento del menu.
-      try {
-        const response = await fetch("/api/menu", { cache: "no-store" });
-        const data = await response.json();
-        const categories = Array.isArray(data) ? data : data.categories;
-        if (!cancelled && Array.isArray(categories)) {
-          syncPrices(categories.flatMap((category: { products?: Array<{ id: string; price: number | string; standardPrice?: number | string | null }> }) => category.products ?? []));
-        }
-      } catch {
-        // Il checkout resta utilizzabile anche se la sincronizzazione prezzi fallisce.
-      }
-    }
-
     async function restoreCustomerData() {
-      const { data: { user } } = await supabase.auth.getUser();
-      // Accetta customer espliciti e utenti OAuth (Google) senza ruolo admin/rider
-      const role = user?.user_metadata?.role;
-      const isCustomer = user && role !== "admin" && role !== "rider";
-      if (isCustomer) {
+      if (user) {
         const name = user.user_metadata?.full_name || user.user_metadata?.name || "";
         const phone = user.user_metadata?.phone || "";
         const email = user.email || "";
@@ -89,6 +60,18 @@ export default function OrdinePage() {
         if (lastAddress) setAddress((current) => current || lastAddress);
         if (lastAddressDetail) setAddressDetail((current) => current || lastAddressDetail);
         if (lastDeliveryZone) setDeliveryZone((current) => current || lastDeliveryZone);
+
+        // Dopo un cambio sessione riallinea i prezzi al listino Club del server.
+        try {
+          const menuResponse = await fetch("/api/menu", { cache: "no-store" });
+          const menuData = await menuResponse.json();
+          const categories = Array.isArray(menuData) ? menuData : menuData.categories;
+          if (!cancelled && Array.isArray(categories)) {
+            syncPrices(categories.flatMap((category: { products?: Array<{ id: string; price: number | string; standardPrice?: number | string | null }> }) => category.products ?? []));
+          }
+        } catch {
+          // Il checkout resta utilizzabile anche se la sincronizzazione prezzi fallisce.
+        }
 
         // I metadati possono contenere solo l'ultimo indirizzo: completa i
         // campi usando l'ultimo ordine associato all'account, se disponibile.
@@ -110,18 +93,13 @@ export default function OrdinePage() {
           // Il checkout resta utilizzabile anche se la cronologia non è disponibile.
         }
 
-        setLoggedUser({ name, email });
         setShowDetails(true);
       }
-      if (!cancelled) setAuthChecked(true);
     }
 
-    restoreCustomerData();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      void applyCustomerSession(session?.user ? session.user : null);
-    });
-    return () => { cancelled = true; subscription.unsubscribe(); };
-  }, [supabase, syncPrices]);
+    if (!authLoading) void restoreCustomerData();
+    return () => { cancelled = true; };
+  }, [authLoading, syncPrices, user]);
 
   async function handleGoogleLogin() {
     setError("");

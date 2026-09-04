@@ -12,23 +12,22 @@ import type { PizzaMenuFlavorOption } from "@/components/client/PizzaBuilderModa
 import type { CategoryWithProducts, ProductWithRelations } from "@/types";
 import type { ClubPromotionWithItems } from "@/types";
 import { SITE_CONFIG } from "@/lib/site-config";
-import { createClient } from "@/lib/supabase/client";
+import { useCustomerAuth } from "@/components/client/CustomerAuthProvider";
 import { PIZZA_MENU_FLAVORS } from "@/lib/pizza-builder";
 
 function MenuContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setOrderType, syncPrices } = useCartStore();
-  const supabase = useMemo(() => createClient(), []);
+  const { user, loading: authLoading } = useCustomerAuth();
   const [categories, setCategories] = useState<CategoryWithProducts[]>([]);
   const [promotions, setPromotions] = useState<ClubPromotionWithItems[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<ProductWithRelations | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
   const [isClubMember, setIsClubMember] = useState<boolean | null>(null);
-  const [authVersion, setAuthVersion] = useState(0);
+  const authChecked = !authLoading;
   const navRef = useRef<HTMLDivElement>(null);
   const pizzaMenuFlavors = useMemo<PizzaMenuFlavorOption[]>(() => {
     const availableNames = new Set(
@@ -56,25 +55,6 @@ function MenuContent() {
     };
   }, []);
 
-  useEffect(() => {
-    supabase.auth.getUser().then(() => {
-      setAuthChecked(true);
-      setAuthVersion((version) => version + 1);
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      setAuthChecked(true);
-      setAuthVersion((version) => version + 1);
-    });
-    const onAuthChanged = () => supabase.auth.getUser().then(() => {
-      setAuthChecked(true);
-      setAuthVersion((version) => version + 1);
-    });
-    window.addEventListener("customer-auth-changed", onAuthChanged);
-    return () => {
-      subscription.unsubscribe();
-      window.removeEventListener("customer-auth-changed", onAuthChanged);
-    };
-  }, [supabase]);
   const menuSchema = {
     "@context": "https://schema.org",
     "@type": "Menu",
@@ -102,6 +82,8 @@ function MenuContent() {
   };
 
   useEffect(() => {
+    if (authLoading) return;
+
     const type = searchParams.get("type");
     const openCartParam = searchParams.get("openCart");
     if (type === "DELIVERY" || type === "ASPORTO") setOrderType(type);
@@ -135,7 +117,7 @@ function MenuContent() {
     };
 
     loadMenu();
-  }, [authVersion, router, searchParams, setOrderType, syncPrices]);
+  }, [authLoading, router, searchParams, setOrderType, syncPrices, user?.id]);
 
   // Scroll Reveal Logic
   useEffect(() => {

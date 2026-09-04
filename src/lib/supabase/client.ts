@@ -1,4 +1,5 @@
 import { createBrowserClient } from "@supabase/ssr";
+import { SUPABASE_COOKIE_ENCODING, SUPABASE_COOKIE_OPTIONS } from "./config";
 
 type BrowserClientOptions = {
   persistSession?: boolean;
@@ -9,6 +10,8 @@ export function createClient(options?: BrowserClientOptions) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions: SUPABASE_COOKIE_OPTIONS,
+      cookieEncoding: SUPABASE_COOKIE_ENCODING,
       auth: {
         persistSession: options?.persistSession ?? true,
       },

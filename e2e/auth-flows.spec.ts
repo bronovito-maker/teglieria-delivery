@@ -43,6 +43,33 @@ test.describe("customer authentication flow", () => {
   test.describe("authenticated customer", () => {
     test.skip(!customerEmail || !customerPassword, "Imposta E2E_CUSTOMER_EMAIL/E2E_CUSTOMER_PASSWORD per i test autenticati.");
 
+    test("autofill diretto mantiene cookie e sessione dopo il redirect", async ({ page, context }) => {
+      await page.goto("/accedi?next=/menu");
+
+      // Simula Apple Passwords/Google Password Manager: assegna il valore
+      // direttamente al DOM senza fill() e senza eventi React onChange.
+      await page.locator("#login-email").evaluate((input, value) => {
+        const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+        setter?.call(input, value);
+      }, customerEmail!);
+      await page.locator("#login-password").evaluate((input, value) => {
+        const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+        setter?.call(input, value);
+      }, customerPassword!);
+
+      await expect(page.locator("#login-email")).toHaveValue(customerEmail!);
+      await expect(page.locator("#login-password")).toHaveValue(customerPassword!);
+      await page.getByRole("button", { name: "Accedi" }).click();
+      await expect(page).toHaveURL(/\/menu/);
+
+      const authCookies = (await context.cookies()).filter(({ name }) => name.startsWith("sb-"));
+      expect(authCookies.length).toBeGreaterThan(0);
+
+      const sessionResponse = await page.request.get("/api/auth/session", { headers: { "Cache-Control": "no-cache" } });
+      expect(sessionResponse.status()).toBe(200);
+      expect(await sessionResponse.json()).toEqual({ authenticated: true });
+    });
+
     test("sessione persistente, banner Club e prezzi Club lato API", async ({ page }) => {
       await login(page);
       await expect(page.getByTestId("club-banner-active")).toBeVisible();
