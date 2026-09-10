@@ -124,10 +124,10 @@ export default function OrdinePage() {
   const [paymentMethod, setPaymentMethod] = useState<"CONTANTI" | "STRIPE">("CONTANTI");
   const [deliveryKm, setDeliveryKm] = useState<number | null>(null);
   const [distanceLoading, setDistanceLoading] = useState(false);
-  const [slots, setSlots] = useState<{ time: string, available: boolean, remaining: number }[]>([]);
+  const [slots, setSlots] = useState<{ time: string, start?: string, end?: string, label?: string, available: boolean, remaining: number }[]>([]);
   const [dayClosed, setDayClosed] = useState(false);
   const [closedDays, setClosedDays] = useState<Set<string>>(new Set());
-  const [slotsCache, setSlotsCache] = useState<Record<string, { slots: { time: string, available: boolean, remaining: number }[]; closed: boolean }>>({});
+  const [slotsCache, setSlotsCache] = useState<Record<string, { slots: { time: string, start?: string, end?: string, label?: string, available: boolean, remaining: number }[]; closed: boolean }>>({});
   const [slotsLoading, setSlotsLoading] = useState(false);
   const orderRequestKey = useRef(crypto.randomUUID());
 
@@ -146,7 +146,7 @@ export default function OrdinePage() {
       );
       if (cancelled) return;
       const closed = new Set<string>();
-      const cachePatch: Record<string, { slots: { time: string, available: boolean, remaining: number }[]; closed: boolean }> = {};
+      const cachePatch: Record<string, { slots: { time: string, start?: string, end?: string, label?: string, available: boolean, remaining: number }[]; closed: boolean }> = {};
       results.forEach((r, i) => {
         if (r.closed || r.slots?.length === 0) closed.add(checks[i]);
         cachePatch[`${orderType}:${checks[i]}`] = {
@@ -690,7 +690,7 @@ export default function OrdinePage() {
                       : "bg-charcoal/5 border-transparent text-charcoal/30 cursor-not-allowed opacity-50"
                   }`}
               >
-                {slot.time}
+                {slot.label ?? slot.time}
               </button>
             ))}
           </div>

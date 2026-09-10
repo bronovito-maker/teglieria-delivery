@@ -1,43 +1,14 @@
-export type PizzaFormat = "INTERA" | "MEZZA";
+import {
+  PIZZA_BUILDER_CONFIG,
+  PIZZA_FORMATS,
+  PIZZA_MENU_FLAVORS,
+  type PizzaFormat,
+} from "./catalog";
+
+export { PIZZA_BUILDER_CONFIG, PIZZA_FORMATS, PIZZA_MENU_FLAVORS } from "./catalog";
+export type { PizzaFormat, PizzaMenuFlavor } from "./catalog";
+
 export type PizzaIngredient = { name: string; grams: number; prices: Record<string, number> };
-
-export const PIZZA_BUILDER_CONFIG = {
-  version: 1,
-  formats: {
-    INTERA: { label: "Teglia intera 60x40", gusti: [1, 2, 3, 4], upsell: { 1: 0, 2: 0.1, 3: 0.2, 4: 0.3 } },
-    MEZZA: { label: "Mezza teglia 30x40", gusti: [1, 2], upsell: { 1: 0.4, 2: 0.5 } },
-  },
-  bases: {
-    ROSSA: { label: "Base rossa", prices: { INTERA: [20.3, 11.2, 8.15, 6.6], MEZZA: [14.25, 7.65] } },
-    BIANCA: { label: "Base bianca", prices: { INTERA: [29, 15.95, 11.6, 9.45], MEZZA: [20.3, 10.9] } },
-  },
-  mozzarellaStandard: { label: "Mozzarella standard su base rossa", grams: 400, prices: { INTERA: [8.7, 4.8, 3.5, 2.85], MEZZA: [6.1, 3.3] } },
-  ingredients: [
-    ["Pomodoro extra",150,1.3,.75,.55,.45,.95,.5],["Mozzarella extra",150,3.25,1.8,1.3,1.1,2.3,1.25],["Prosciutto cotto",100,2,1.1,.8,.65,1.4,.75],["Funghi",120,.95,.55,.4,.3,.65,.35],["Salamino piccante",100,3,1.65,1.2,1,2.1,1.15],["Verdure di stagione",150,1.75,1,.7,.6,1.25,.7],["Melanzane sotto pesto",150,3,1.65,1.2,1,2.1,1.15],["Acciughe",30,2.35,1.3,.95,.75,1.65,.9],["Capperi",15,.3,.15,.15,.1,.2,.1],["Salsiccia",120,2.5,1.4,1,.85,1.75,.95],["Cipolla",80,.4,.25,.2,.15,.3,.15],["Würstel",125,1.95,1.1,.8,.65,1.4,.75],["Patatine",150,.95,.55,.4,.35,.7,.4],["Speck",90,2.9,1.6,1.2,.95,2.05,1.1],["Scamorza affumicata",80,2.3,1.25,.95,.75,1.6,.85],["Prosciutto di Parma DOP",110,6.05,3.35,2.45,2,4.25,2.3],["Stracciatella",100,3.7,2.05,1.5,1.2,2.6,1.4],["Burrata",200,7.9,4.35,3.15,2.6,5.55,2.95],["Mozzarella di bufala",200,7.7,4.25,3.1,2.5,5.4,2.9],["Guanciale",100,3.1,1.7,1.25,1.05,2.2,1.2],["Pecorino",60,2.8,1.55,1.15,.9,1.95,1.05],["Grana Padano",60,3,1.65,1.2,1,2.1,1.15],["Rucola",30,.8,.45,.35,.3,.6,.3],["Pomodorini",100,2.9,1.6,1.15,.95,2.05,1.1],["Pomodorini confit",100,2.35,1.3,.95,.8,1.65,.9],["Pesto di pistacchio",40,3.75,2.05,1.5,1.25,2.6,1.4],["Granella di pistacchio",20,2,1.1,.8,.65,1.4,.75],["Salmone affumicato",100,9,4.95,3.6,2.95,6.3,3.4],["Gorgonzola",100,3.2,1.75,1.3,1.05,2.25,1.2],["Mascarpone",100,2.8,1.55,1.15,.95,2,1.05],["Mortadella",120,2.75,1.5,1.1,.9,1.95,1.05],["Olive nere",80,.85,.5,.35,.3,.6,.35],["Carciofi",150,1.65,.95,.7,.55,1.2,.65],["Friarielli",150,2.65,1.45,1.1,.9,1.85,1],["Zucchine grigliate",150,4.3,2.35,1.75,1.4,3,1.6],["Peperoni grigliati",150,5.35,2.95,2.15,1.75,3.75,2]],
-  priceKeys: ["I1", "I2", "I3", "I4", "M1", "M2"],
-} as const;
-
-export type PizzaMenuFlavor = {
-  name: string;
-  base: "ROSSA" | "BIANCA";
-  mozzarellaStandard?: boolean;
-  ingredients: readonly string[];
-};
-
-// Ricette dei gusti già presenti nel catalogo. Il prezzo resta quello del
-// configuratore e gli ingredienti extra vengono aggiunti separatamente.
-export const PIZZA_MENU_FLAVORS: readonly PizzaMenuFlavor[] = [
-  { name: "La Regina", base: "ROSSA", mozzarellaStandard: true, ingredients: [] },
-  { name: "La Partenopea", base: "ROSSA", mozzarellaStandard: true, ingredients: ["Acciughe", "Capperi"] },
-  { name: "La Contadina", base: "ROSSA", mozzarellaStandard: true, ingredients: ["Prosciutto cotto", "Funghi"] },
-  { name: "La Diavola", base: "ROSSA", mozzarellaStandard: true, ingredients: ["Salamino piccante"] },
-  { name: "L'Ortolana", base: "ROSSA", mozzarellaStandard: true, ingredients: ["Verdure di stagione"] },
-  { name: "La Pistacchio", base: "BIANCA", ingredients: ["Scamorza affumicata", "Prosciutto cotto", "Burrata", "Pesto di pistacchio", "Granella di pistacchio"] },
-  { name: "La Nordica", base: "BIANCA", ingredients: ["Salmone affumicato", "Burrata", "Rucola", "Pomodorini"] },
-  { name: "La Parma", base: "BIANCA", ingredients: ["Prosciutto di Parma DOP", "Rucola", "Grana Padano"] },
-  { name: "La Burrata", base: "ROSSA", mozzarellaStandard: true, ingredients: ["Burrata", "Pomodorini confit"] },
-  { name: "La Carbonara", base: "BIANCA", ingredients: ["Pecorino", "Guanciale"] },
-] as const;
 
 const pizzaMenuFlavorByName = new Map(PIZZA_MENU_FLAVORS.map((flavor) => [flavor.name, flavor]));
 
@@ -123,7 +94,9 @@ export function formatPizzaVariant(variant?: string | null) {
   if (!variant) return "";
   try {
     const selection = JSON.parse(variant) as Partial<PizzaBuilderSelection>;
-    const format = selection.format === "MEZZA" ? "Mezza teglia 30x40" : "Teglia intera 60x40";
+    const format = selection.format === "MEZZA"
+      ? PIZZA_FORMATS.MEZZA.displayLabel
+      : PIZZA_FORMATS.INTERA.displayLabel;
     const gusti = selection.gusti ?? "?";
     return `${format} · ${gusti} ${gusti === 1 ? "gusto" : "gusti"}`;
   } catch {

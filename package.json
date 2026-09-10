@@ -9,8 +9,9 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "seed": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts && npm run sync-catalog",
-    "sync-catalog": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/sync-catalog.ts",
+    "seed": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
+    "sync-catalog": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/sync-catalog.ts --dry-run",
+    "sync-catalog:apply": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/sync-catalog.ts --apply --expect-categories=9 --expect-products=63",
     "stripe:sync-catalog": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' scripts/sync-stripe-catalog.ts",
     "stripe:reconcile": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' scripts/reconcile-stripe-payments.ts",
     "allergens:seed": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed-allergens.ts"

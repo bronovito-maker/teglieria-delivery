@@ -356,14 +356,20 @@ Per un database nuovo e vuoto si può usare:
 npm run seed
 ```
 
-`seed` inizializza i dati base e richiama la sincronizzazione del catalogo.
-Per riallineare solo il catalogo applicativo:
+`seed` inizializza i dati base e il catalogo canonico, ma rifiuta per sicurezza
+un database che contiene già dati. Sui database esistenti va usato soltanto il
+flusso catalogo: prima l'anteprima, poi l'applicazione esplicita.
 
 ```bash
 npm run sync-catalog
+npm run sync-catalog:apply
 ```
 
-Il comando mantiene disattivato il prodotto `Fritto Teglieria`.
+`sync-catalog` è sempre un dry-run e non modifica il database. Mostra creazioni,
+aggiornamenti, disattivazioni e prodotti aggiunti dall'Admin che verranno
+preservati. `sync-catalog:apply` richiede i conteggi attesi di 9 categorie e 63
+prodotti, applica tutto in una transazione e verifica che non restino differenze.
+Entrambi i comandi mantengono disattivato il prodotto `Fritto Teglieria`.
 
 ## Comandi utili
 
@@ -448,6 +454,8 @@ Prima del rilascio:
 - ruotare prima del rilascio tutte le credenziali eventualmente esposte e
   rimuovere `ORDER_STATUS_TOKEN_SECRET` dal runtime: i token ordine usano ora
   valori casuali opachi con hash e scadenza nel database;
+- eseguire `npm run sync-catalog`, verificare il piano e solo dopo eseguire
+  `npm run sync-catalog:apply`;
 - eseguire `npm run stripe:sync-catalog` se il catalogo è cambiato;
 - verificare che `/api/stripe/webhook` sia raggiungibile sul dominio live;
 - configurare tutti gli eventi Stripe documentati sopra;
@@ -468,7 +476,13 @@ Prima del rilascio:
 - [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md): regole UI e layout;
 - [`copy.md`](copy.md): testi istituzionali e orari pubblici;
 - [`prisma/schema.prisma`](prisma/schema.prisma): modello dati;
-- [`prisma/sync-catalog.ts`](prisma/sync-catalog.ts): catalogo applicativo;
+- [`src/lib/catalog.ts`](src/lib/catalog.ts): prodotti, ricette, immagini,
+  formati e regole prezzo canonici;
+- [`prisma/catalog-sync.ts`](prisma/catalog-sync.ts): pianificazione e
+  sincronizzazione transazionale del catalogo;
+- [`prisma/sync-catalog.ts`](prisma/sync-catalog.ts): comando dry-run/apply;
+- [`docs/CATALOGO_CANONICO.md`](docs/CATALOGO_CANONICO.md): procedura, confini
+  con l'Admin e protezioni operative;
 - [`La_Teglieria_Crea_la_tua_Pizza_Sito_v1.pdf`](La_Teglieria_Crea_la_tua_Pizza_Sito_v1.pdf):
   riferimento visuale storico del configuratore; la fonte tecnica aggiornata è
   `src/lib/pizza-builder.ts` e questa documentazione.

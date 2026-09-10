@@ -14,7 +14,7 @@ import type { CategoryWithProducts, ProductWithRelations } from "@/types";
 import type { ClubPromotionWithItems } from "@/types";
 import { SITE_CONFIG } from "@/lib/site-config";
 import { useCustomerAuth } from "@/components/client/CustomerAuthProvider";
-import { PIZZA_MENU_FLAVORS } from "@/lib/pizza-builder";
+import { getPizzaFormatByCategory, PIZZA_MENU_FLAVORS } from "@/lib/catalog";
 
 function MenuContent() {
   const router = useRouter();
@@ -242,8 +242,11 @@ function MenuContent() {
               <h2 className="relative top-[3px] flex items-center text-xs sm:text-sm leading-none font-brand font-semibold uppercase tracking-[0.24em] sm:tracking-[0.3em] text-charcoal/85">
                 {cat.name}
               </h2>
-              {cat.name === "Teglie" && <p className="mt-2 text-[10px] font-brand font-bold uppercase tracking-[0.14em] text-terracotta/70">Formato fisso: 60×40 cm</p>}
-              {cat.name === "Mezze teglie" && <p className="mt-2 text-[10px] font-brand font-bold uppercase tracking-[0.14em] text-terracotta/70">Formato fisso: 30×40 cm</p>}
+              {getPizzaFormatByCategory(cat.name) && (
+                <p className="mt-2 text-[10px] font-brand font-bold uppercase tracking-[0.14em] text-terracotta/70">
+                  Formato fisso: {getPizzaFormatByCategory(cat.name)!.dimensions.replace("x", "×")} cm
+                </p>
+              )}
             </div>
             <span className="relative top-[3px] flex items-center text-[10px] leading-none font-brand font-bold uppercase tracking-[0.2em] text-charcoal/30">
               {cat.products.length} Opzioni

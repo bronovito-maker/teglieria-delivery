@@ -7,6 +7,7 @@ import { isOperatorUser } from "@/lib/rbac";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { escapeHtml } from "@/lib/html";
 import { getTrustedSiteOrigin } from "@/lib/request-security";
+import { formatOrderTimeSlot } from "@/lib/order-time-slots";
 
 export async function GET(
   request: Request,
@@ -43,6 +44,10 @@ export async function GET(
   const date = new Date(order.createdAt).toLocaleDateString("it-IT");
   const time = new Date(order.createdAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
   const displayCode = order.orderCode ?? `${order.type === "ASPORTO" ? "A" : "D"}${String(order.orderNumber).padStart(3, "0")}`;
+  const requestedTime = formatOrderTimeSlot(order.type, order.timeSlot)
+    || (order.pickupTime
+      ? new Date(order.pickupTime).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })
+      : null);
 
   const itemsHtml = order.items
     .map((item) => {
@@ -115,6 +120,7 @@ export async function GET(
     ${order.address ? `<div>${escapeHtml(order.address)}</div>` : ""}
     ${order.addressDetail ? `<div>${escapeHtml(order.addressDetail)}</div>` : ""}
     ${order.deliveryZone ? `<div>Zona: ${escapeHtml(order.deliveryZone)}</div>` : ""}
+    ${requestedTime ? `<div class="bold">Orario richiesto: ${escapeHtml(requestedTime)}</div>` : ""}
   </div>
   <div class="sep"></div>
   <table>${itemsHtml}</table>

@@ -11,29 +11,9 @@ export const MIN_ORDER_SUBTOTAL = 12;
 
 export const BASE_DELIVERY_FEE = 2;
 
-export const ASPORTO_START_TIME = "16:00";
-export const DELIVERY_START_TIME = "19:00";
-export const DELIVERY_END_TIME = "22:00";
-
-function timeToMinutes(value: string) {
-  const match = /^(\d{2}):(\d{2})$/.exec(value);
-  if (!match) return null;
-  const hours = Number(match[1]);
-  const minutes = Number(match[2]);
-  if (hours > 23 || minutes > 59) return null;
-  return hours * 60 + minutes;
-}
-
-export function isOrderTimeAllowed(type: "ASPORTO" | "DELIVERY", time: string) {
-  const minutes = timeToMinutes(time);
-  if (minutes == null) return false;
-
-  if (type === "DELIVERY") {
-    return minutes >= timeToMinutes(DELIVERY_START_TIME)! && minutes < timeToMinutes(DELIVERY_END_TIME)!;
-  }
-
-  return minutes >= timeToMinutes(ASPORTO_START_TIME)!;
-}
+export const ASPORTO_START_TIME = ORDER_TIME_SLOT_CONFIG.ASPORTO.start;
+export const DELIVERY_START_TIME = ORDER_TIME_SLOT_CONFIG.DELIVERY.start;
+export const DELIVERY_END_TIME = ORDER_TIME_SLOT_CONFIG.DELIVERY.end;
 
 export function getItalianTimeSlot(value: string) {
   const date = new Date(value);
@@ -121,3 +101,12 @@ export function canTransitionDeliveryStatus(current: string | null, requested: s
   if (current === null) return requested === "ASSIGNED" || requested === "EN_ROUTE";
   return DELIVERY_STATUS_TRANSITIONS[current]?.includes(requested) ?? false;
 }
+import { ORDER_TIME_SLOT_CONFIG } from "./order-time-slots";
+
+export {
+  buildOrderTimeSlot,
+  formatOrderTimeSlot,
+  generateOrderTimeSlots,
+  isOrderTimeAllowed,
+  ORDER_TIME_SLOT_CONFIG,
+} from "./order-time-slots";

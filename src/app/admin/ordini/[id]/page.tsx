@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, getStatusTransitions } from "@/lib/constants";
+import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, formatOrderTimeSlot, getStatusTransitions } from "@/lib/constants";
 import { formatCurrency, formatDateTime, formatTime, formatOrderCode } from "@/lib/utils";
 import { formatPizzaVariant } from "@/lib/pizza-builder";
 import type { OrderWithItems } from "@/types";
@@ -182,7 +182,7 @@ export default function OrderDetailPage() {
               <p className="text-gray-500 font-body">Cliente</p>
               <p className="font-brand font-semibold">{order.customerName}</p>
               <p className="font-body">{order.customerPhone}</p>
-              <p className="mt-1 font-brand font-semibold text-blue-600">Richiesto: {order.timeSlot || (order.pickupTime ? new Date(order.pickupTime).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : 'N/D')}</p>
+              <p className="mt-1 font-brand font-semibold text-blue-600">Richiesto: {formatOrderTimeSlot(order.type, order.timeSlot) || (order.pickupTime ? new Date(order.pickupTime).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : 'N/D')}</p>
             </div>
             {order.type === "DELIVERY" && (
               <div>

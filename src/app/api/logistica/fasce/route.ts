@@ -2,20 +2,13 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logisticsSlotsQuerySchema } from "@/lib/validation/catalog";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
-import { ASPORTO_START_TIME, DELIVERY_END_TIME, DELIVERY_START_TIME } from "@/lib/constants";
-
-function generateSlots(start: string, end: string, slotMinutes = 30): string[] {
-  const [sh, sm] = start.split(":").map(Number);
-  const [eh, em] = end.split(":").map(Number);
-  const slots: string[] = [];
-  let cur = sh * 60 + sm;
-  const endTotal = eh * 60 + em;
-  while (cur < endTotal) {
-    slots.push(`${String(Math.floor(cur / 60)).padStart(2, "0")}:${String(cur % 60).padStart(2, "0")}`);
-    cur += slotMinutes;
-  }
-  return slots;
-}
+import {
+  ASPORTO_START_TIME,
+  buildOrderTimeSlot,
+  DELIVERY_END_TIME,
+  DELIVERY_START_TIME,
+  generateOrderTimeSlots,
+} from "@/lib/constants";
 
 export async function GET(request: Request) {
   const ip = getClientIp(request.headers);
@@ -69,16 +62,16 @@ export async function GET(request: Request) {
   const baseSlots: string[] = [];
   if (orderType === "ASPORTO") {
     if (daySchedule.lunchActive) {
-      baseSlots.push(...generateSlots(daySchedule.lunchStart, daySchedule.lunchEnd));
+      baseSlots.push(...generateOrderTimeSlots("ASPORTO", daySchedule.lunchStart, daySchedule.lunchEnd).map((slot) => slot.time));
     }
     if (daySchedule.dinnerActive) {
-      baseSlots.push(...generateSlots(daySchedule.dinnerStart, daySchedule.dinnerEnd));
+      baseSlots.push(...generateOrderTimeSlots("ASPORTO", daySchedule.dinnerStart, daySchedule.dinnerEnd).map((slot) => slot.time));
     }
   } else if (daySchedule.dinnerActive) {
     const deliveryStart = daySchedule.dinnerStart > DELIVERY_START_TIME ? daySchedule.dinnerStart : DELIVERY_START_TIME;
     const deliveryEnd = daySchedule.dinnerEnd < DELIVERY_END_TIME ? daySchedule.dinnerEnd : DELIVERY_END_TIME;
     if (deliveryStart < deliveryEnd) {
-      baseSlots.push(...generateSlots(deliveryStart, deliveryEnd));
+      baseSlots.push(...generateOrderTimeSlots("DELIVERY", deliveryStart, deliveryEnd).map((slot) => slot.time));
     }
   }
   const serviceStart = orderType === "DELIVERY" ? DELIVERY_START_TIME : ASPORTO_START_TIME;
@@ -131,8 +124,9 @@ export async function GET(request: Request) {
 
   const slots = filteredSlots.map((time) => {
     const current = orderCounts[time] || 0;
+    const sharedSlot = buildOrderTimeSlot(orderType, time);
     return {
-      time,
+      ...sharedSlot,
       available: current < config!.maxOrdersPerSlot,
       remaining: config!.maxOrdersPerSlot - current,
     };

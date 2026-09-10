@@ -131,17 +131,21 @@ export default function PizzaBuilderModal({
           </div>
 
           <div className="mb-4 grid grid-cols-2 gap-2">
-            {(["INTERA", "MEZZA"] as PizzaFormat[]).map((value) => (
+            {(["INTERA", "MEZZA"] as PizzaFormat[]).map((value) => {
+              const formatOption = PIZZA_BUILDER_CONFIG.formats[value];
+              return (
               <button
                 type="button"
                 key={value}
                 onClick={() => setFormatAndGusti(value, 1)}
                 className={`rounded-2xl border p-3 text-left ${format === value ? "border-terracotta bg-terracotta/10" : "border-charcoal/10 bg-white"}`}
               >
-                <b className="block text-sm">{value === "INTERA" ? "Teglia intera · 60×40 cm" : "Mezza teglia · 30×40 cm"}</b>
-                <span className="text-xs text-charcoal/50">Da 1 a {PIZZA_BUILDER_CONFIG.formats[value].gusti.at(-1)} gusti</span>
+                <b className="block text-sm">{formatOption.label.replace("x", "×")} cm</b>
+                <span className="block text-xs text-charcoal/50">{formatOption.recommendationLabel}</span>
+                <span className="text-xs text-charcoal/50">Da 1 a {formatOption.gusti.at(-1)} gusti</span>
               </button>
-            ))}
+              );
+            })}
           </div>
 
           <div className="mb-6 flex gap-2">
