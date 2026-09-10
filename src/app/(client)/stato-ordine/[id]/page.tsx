@@ -244,6 +244,11 @@ export default function StatoOrdinePage() {
                 <span className="text-terracotta text-xs mr-2">{item.quantity}×</span>
                 {item.productName}
                 {item.variant && <span className="text-[10px] text-charcoal/30 font-body italic block">{item.variant}</span>}
+                {Array.isArray(item.ingredientSnapshot) && item.ingredientSnapshot.length > 0 && (
+                  <span className="mt-1 block text-[11px] font-body font-normal normal-case leading-relaxed text-charcoal/45">
+                    Ingredienti: {item.ingredientSnapshot.filter((ingredient): ingredient is string => typeof ingredient === "string").join(", ")}
+                  </span>
+                )}
               </span>
               <span className="font-brand font-bold text-charcoal">{formatCurrency(Number(item.totalPrice))}</span>
             </div>

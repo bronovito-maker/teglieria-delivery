@@ -21,6 +21,9 @@ function mapOrder(order: OrderWithItems): UserOrder {
       name: i.productName,
       quantity: i.quantity,
       price: Number(i.unitPrice),
+      ingredients: Array.isArray(i.ingredientSnapshot)
+        ? i.ingredientSnapshot.filter((ingredient): ingredient is string => typeof ingredient === "string")
+        : [],
     })),
     total: Number(order.total),
     subtotal: Number(order.subtotal),

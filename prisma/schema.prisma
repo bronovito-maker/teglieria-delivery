@@ -199,6 +199,7 @@ model ClosedDate {
 
 model OrderItem {
   allergenSnapshot Json?
+  ingredientSnapshot Json?
   id          String  @id @default(cuid())
   orderId     String
   order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)

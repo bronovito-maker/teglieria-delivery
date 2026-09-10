@@ -14,6 +14,7 @@ export type OrderItem = {
   name: string;     // productName
   quantity: number;
   price: number;    // unitPrice
+  ingredients?: string[];
 };
 
 export type UserOrder = {

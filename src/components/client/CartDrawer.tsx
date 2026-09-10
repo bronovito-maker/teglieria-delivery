@@ -53,10 +53,20 @@ export default function CartDrawer({ open, onClose }: Props) {
             <div className="space-y-2">
               {items.map((item) => (
                 <div key={item.id} className="rounded-[1.15rem] border border-charcoal/5 bg-white px-3.5 py-3 shadow-[0_8px_18px_rgba(26,26,26,0.03)]">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
+                  <div className="flex items-start justify-between gap-3">
+                    {item.imageUrl && (
+                      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-charcoal/[.035] p-1.5">
+                        <Image src={item.imageUrl} alt={item.productName} fill className={item.imageFit === "contain" ? "object-contain" : "object-cover"} sizes="64px" />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
                       <p className="font-brand text-sm font-semibold text-charcoal">{item.productName}</p>
                       <AllergenBadges info={item.allergenInfo} />
+                      {item.ingredients && item.ingredients.length > 0 && (
+                        <p className="mt-1 line-clamp-2 text-xs leading-snug text-charcoal/50">
+                          <span className="font-semibold">Ingredienti:</span> {item.ingredients.join(", ")}
+                        </p>
+                      )}
                       {(item.variant || item.additions.length > 0 || item.removals.length > 0) && (
                         <p className="mt-1 line-clamp-2 text-xs leading-snug text-charcoal/45">
                           {[formatPizzaVariant(item.variant), item.additions.length > 0 ? `+ ${item.additions.map((a) => a.name).join(", ")}` : "", item.removals.length > 0 ? `− ${item.removals.map((r) => r.name).join(", ")}` : ""].filter(Boolean).join(" · ")}

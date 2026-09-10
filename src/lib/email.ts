@@ -63,7 +63,7 @@ type OrderConfirmationInput = {
   customerName: string;
   orderNumber: number;
   type: string;
-  items: Array<{ productName: string; quantity: number; totalPrice: number; variant?: string | null }>;
+  items: Array<{ productName: string; quantity: number; totalPrice: number; variant?: string | null; ingredients?: string[] }>;
   subtotal: number;
   total: number;
   deliveryCost?: number | null;
@@ -95,6 +95,7 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmationInput):
       <td style="padding:10px 0;border-bottom:1px solid #f5f0e8;color:#1d1d1f;font-size:14px;">
         <span style="color:#D96A2B;font-weight:700;">${escapeHtml(item.quantity)}×</span> ${escapeHtml(item.productName)}
         ${item.variant ? `<br/><span style="font-size:12px;color:#1d1d1f;opacity:0.4;">${escapeHtml(item.variant)}</span>` : ""}
+        ${item.ingredients && item.ingredients.length > 0 ? `<br/><span style="font-size:12px;color:#1d1d1f;opacity:0.55;">Ingredienti: ${escapeHtml(item.ingredients.join(", "))}</span>` : ""}
       </td>
       <td style="padding:10px 0;border-bottom:1px solid #f5f0e8;text-align:right;font-weight:600;color:#1d1d1f;font-size:14px;white-space:nowrap;">
         ${formatCurrency(Number(item.totalPrice))}

@@ -111,6 +111,9 @@ function MenuContent() {
           id: product.id,
           price: Number(product.price),
           standardPrice: product.standardPrice == null ? null : Number(product.standardPrice),
+          imageUrl: product.imageUrl,
+          imageFit: product.category.name === "Bevande analcoliche" || product.category.name === "Birre" ? "contain" : "cover",
+          ingredients: product.ingredients,
         })));
       } finally {
         setIsLoading(false);
@@ -244,7 +247,7 @@ function MenuContent() {
               </h2>
               {getPizzaFormatByCategory(cat.name) && (
                 <p className="mt-2 text-[10px] font-brand font-bold uppercase tracking-[0.14em] text-terracotta/70">
-                  Formato fisso: {getPizzaFormatByCategory(cat.name)!.dimensions.replace("x", "×")} cm
+                  {getPizzaFormatByCategory(cat.name)!.recommendationLabel}
                 </p>
               )}
             </div>
@@ -290,6 +293,11 @@ function MenuContent() {
                   {product.description && (
                     <p className="text-charcoal/52 text-[13px] sm:text-sm font-body leading-relaxed line-clamp-2 italic pr-2">
                       {product.description}
+                    </p>
+                  )}
+                  {product.ingredients && product.ingredients.length > 0 && (
+                    <p className="mt-1.5 line-clamp-2 pr-2 text-xs leading-relaxed text-charcoal/55">
+                      <span className="font-semibold text-charcoal/70">Ingredienti:</span> {product.ingredients.join(", ")}
                     </p>
                   )}
                   <div className="mt-3">

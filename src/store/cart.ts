@@ -17,7 +17,7 @@ interface CartStore {
   getSubtotal: () => number;
   getClubSavings: () => number;
   getItemCount: () => number;
-  syncPrices: (products: Array<{ id: string; price: number | string; standardPrice?: number | string | null }>) => void;
+  syncPrices: (products: Array<{ id: string; price: number | string; standardPrice?: number | string | null; imageUrl?: string | null; imageFit?: "cover" | "contain"; ingredients?: string[] | null }>) => void;
 }
 
 function normalizeText(value?: string): string {
@@ -47,6 +47,9 @@ function sameCartConfiguration(
   return (
     existing.productId === incoming.productId &&
     JSON.stringify(existing.allergenInfo) === JSON.stringify(incoming.allergenInfo) &&
+    existing.imageUrl === incoming.imageUrl &&
+    existing.imageFit === incoming.imageFit &&
+    JSON.stringify(existing.ingredients ?? []) === JSON.stringify(incoming.ingredients ?? []) &&
     existing.unitPrice === incoming.unitPrice &&
     (existing.variant ?? "") === (incoming.variant ?? "") &&
     existing.variantPriceDelta === incoming.variantPriceDelta &&
@@ -155,6 +158,9 @@ export const useCartStore = create<CartStore>()(
               const standardUnitPrice = Number(product.standardPrice ?? product.price) + item.variantPriceDelta + additionsTotal;
               return {
                 ...item,
+                imageUrl: product.imageUrl,
+                imageFit: product.imageFit,
+                ingredients: product.ingredients ? [...product.ingredients] : undefined,
                 unitPrice,
                 standardUnitPrice,
                 totalPrice: (unitPrice + item.variantPriceDelta + additionsTotal) * item.quantity,

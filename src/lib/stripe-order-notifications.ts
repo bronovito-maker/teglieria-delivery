@@ -70,6 +70,9 @@ async function sendPaidOrderConfirmation(orderId: string): Promise<void> {
       quantity: item.quantity,
       totalPrice: Number(item.totalPrice),
       variant: item.variant,
+      ingredients: Array.isArray(item.ingredientSnapshot)
+        ? item.ingredientSnapshot.filter((ingredient): ingredient is string => typeof ingredient === "string")
+        : [],
     })),
     subtotal: Number(order.subtotal),
     total: Number(order.total),

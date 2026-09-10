@@ -12,6 +12,7 @@ import type { CartItemAddition, CartItemRemoval } from "@/types";
 import { toast } from "sonner";
 import PizzaBuilderModal from "./PizzaBuilderModal";
 import type { PizzaMenuFlavorOption } from "./PizzaBuilderModal";
+import { getPizzaFormatByCategory } from "@/lib/catalog";
 
 interface Props {
   product: ProductWithRelations;
@@ -41,6 +42,8 @@ function ProductModalContent({ product, onClose }: Props) {
   const unitTotal = basePrice + variantDelta + additionsTotal;
   const total = unitTotal * quantity;
   const shouldZoomParma = (product.category?.name === "Teglie" || product.category?.name === "Mezze teglie") && product.name === "La Parma";
+  const isBeverage = product.category?.name === "Bevande analcoliche" || product.category?.name === "Birre";
+  const pizzaFormat = product.category?.name ? getPizzaFormatByCategory(product.category.name) : null;
 
   function toggleAddition(name: string, price: number) {
     setSelectedAdditions((prev) =>
@@ -61,6 +64,9 @@ function ProductModalContent({ product, onClose }: Props) {
   function handleAdd() {
     addItem({
       allergenInfo,
+      imageUrl: product.imageUrl,
+      imageFit: isBeverage ? "contain" : "cover",
+      ingredients: product.ingredients ? [...product.ingredients] : undefined,
       productId: product.id,
       productName: product.name,
       quantity,
@@ -85,12 +91,12 @@ function ProductModalContent({ product, onClose }: Props) {
 
         {/* Immagine hero (se presente) */}
         {product.imageUrl && (
-          <div className="relative w-full h-52 rounded-t-[2.5rem] overflow-hidden">
+          <div className={`relative h-52 w-full overflow-hidden rounded-t-[2.5rem] ${isBeverage ? "bg-white p-4" : ""}`}>
             <Image
               src={product.imageUrl}
               alt={product.name}
               fill
-              className={`object-cover ${shouldZoomParma ? "scale-[1.08]" : ""}`}
+              className={`${isBeverage ? "object-contain" : "object-cover"} ${shouldZoomParma ? "scale-[1.08]" : ""}`}
               sizes="(max-width: 448px) 100vw, 448px"
               priority
             />
@@ -112,19 +118,19 @@ function ProductModalContent({ product, onClose }: Props) {
               {product.description && (
                 <p className="text-base text-charcoal/60 font-body leading-relaxed">{product.description}</p>
               )}
+              {product.ingredients && product.ingredients.length > 0 && (
+                <p className="mt-3 text-sm leading-relaxed text-charcoal/65">
+                  <span className="font-brand font-bold text-charcoal/75">Ingredienti:</span> {product.ingredients.join(", ")}
+                </p>
+              )}
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="text-xs font-medium text-charcoal/60">Allergeni</span>
                 <AllergenBadges info={allergenInfo} />
               </div>
               <AllergenIngredients registry={registry} recipeId={registry?.graph.products[product.id]} />
-              {product.category?.name === "Teglie" && (
+              {pizzaFormat && (
                 <p className="mt-2 text-xs font-brand font-bold uppercase tracking-[0.14em] text-charcoal/45">
-                  Formato: 60×40 cm
-                </p>
-              )}
-              {product.category?.name === "Mezze teglie" && (
-                <p className="mt-2 text-xs font-brand font-bold uppercase tracking-[0.14em] text-charcoal/45">
-                  Formato: 30×40 cm
+                  {pizzaFormat.recommendationLabel}
                 </p>
               )}
               <div className="mt-4 flex items-center gap-3">

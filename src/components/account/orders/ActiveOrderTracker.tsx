@@ -128,10 +128,10 @@ export default function ActiveOrderTracker({ order, onRefresh }: ActiveOrderTrac
           {order.items.slice(0, 4).map((item, index) => (
             <div
               key={`${item.name}-${index}`}
-              className="flex items-center justify-between text-zinc-700"
+              className="flex items-start justify-between gap-3 text-zinc-700"
             >
-              <span>
-                {item.quantity}x {item.name}
+              <span>{item.quantity}x {item.name}
+                {item.ingredients && item.ingredients.length > 0 && <small className="mt-0.5 block text-zinc-400">Ingredienti: {item.ingredients.join(", ")}</small>}
               </span>
               <span className="tabular-nums">{formatCurrency(item.price * item.quantity)}</span>
             </div>

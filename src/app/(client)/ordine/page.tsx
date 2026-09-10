@@ -5,6 +5,7 @@ import AllergenBadges from "@/components/client/AllergenBadges";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import AddressAutocomplete from "@/components/client/AddressAutocomplete";
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
@@ -314,6 +315,7 @@ export default function OrdinePage() {
             additions: item.additions.length > 0 ? item.additions : null,
             removals: item.removals.length > 0 ? item.removals : null,
             notes: item.notes,
+            ingredients: item.ingredients,
           })),
         }),
       });
@@ -384,13 +386,23 @@ export default function OrdinePage() {
           <div className="rounded-[1.5rem] border border-charcoal/5 bg-white p-6 shadow-[0_10px_24px_rgba(26,26,26,0.03)] sm:rounded-[2rem] sm:p-8">
             <div className="space-y-4">
               {items.map((item) => (
-                <div key={item.id} className="flex justify-between items-start">
+                <div key={item.id} className="flex items-start justify-between gap-3">
+                  {item.imageUrl && (
+                    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-charcoal/[.035] p-1">
+                      <Image src={item.imageUrl} alt={item.productName} fill className={item.imageFit === "contain" ? "object-contain" : "object-cover"} sizes="56px" />
+                    </div>
+                  )}
                   <div className="flex-1">
                     <p className="font-brand font-semibold text-charcoal">
                       {item.quantity}x {item.productName}
                     </p>
                     <AllergenBadges info={item.allergenInfo} />
                     {item.variant && <p className="text-sm text-charcoal/45 font-body">{formatPizzaVariant(item.variant)}</p>}
+                    {item.ingredients && item.ingredients.length > 0 && (
+                      <p className="mt-1 text-xs leading-relaxed text-charcoal/50">
+                        <span className="font-semibold">Ingredienti:</span> {item.ingredients.join(", ")}
+                      </p>
+                    )}
                   </div>
                   <span className="font-brand font-semibold">{formatCurrency(item.totalPrice)}</span>
                 </div>

@@ -62,6 +62,9 @@ function toPublicTrackingOrder(order: TrackingOrder | null) {
           variant: typeof value.variant === "string" ? value.variant : null,
           additions: Array.isArray(value.additions) ? value.additions : [],
           removals: Array.isArray(value.removals) ? value.removals : [],
+          ingredientSnapshot: Array.isArray(value.ingredientSnapshot)
+            ? value.ingredientSnapshot.filter((ingredient): ingredient is string => typeof ingredient === "string")
+            : [],
           notes: typeof value.notes === "string" ? value.notes : null,
         };
       })

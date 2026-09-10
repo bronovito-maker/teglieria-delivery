@@ -18,6 +18,7 @@ const orderItems = (items: OrderItem[] = []) => items.map((item) => ({
   removals: item.removals,
   notes: item.notes,
   allergenSnapshot: item.allergenSnapshot,
+  ingredientSnapshot: item.ingredientSnapshot,
 }));
 
 const statusHistory = (history: OrderStatusLog[] = []) => history.map((entry) => ({

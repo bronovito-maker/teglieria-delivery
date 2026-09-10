@@ -1,7 +1,8 @@
 // Bootstrap only: after import the database is the operational source of truth.
-import { PIZZA_BUILDER_CONFIG, PIZZA_MENU_FLAVORS } from "../pizza-builder";
+import { PIZZA_BUILDER_CONFIG, PIZZA_MENU_FLAVORS, SCHIACCIATINA_CATALOG } from "../catalog";
 import type { AllergenGraph, AllergenNode, Verification } from "./core";
 const reference = "La_Teglieria_Specifiche_Sito_Allergeni_v1.0_08-09-2026.pdf";
+const schiacciatineReference = "La_Teglieria_Schiacciatine_Ingredienti_Aggiornato.pdf";
 export function initialGraph(products: Array<{ id: string; name: string; category: { name: string } }>): AllergenGraph {
   const names = ["Cereali contenenti glutine", "Crostacei", "Uova", "Pesce", "Arachidi", "Soia", "Latte", "Frutta a guscio", "Sedano", "Senape", "Sesamo", "Solfiti", "Lupini", "Molluschi"];
   const descriptions = ["Grano, segale, orzo, avena, farro, kamut e derivati", "E prodotti a base di crostacei", "E prodotti a base di uova", "E prodotti a base di pesce", "E prodotti a base di arachidi", "E prodotti a base di soia", "Latte e derivati, incluso lattosio", "Mandorle, nocciole, noci, anacardi, pecan, noci del Brasile, pistacchi, macadamia", "E prodotti a base di sedano", "E prodotti a base di senape", "Semi di sesamo e derivati", "Anidride solforosa e solfiti oltre le soglie di legge", "E prodotti a base di lupini", "E prodotti a base di molluschi"];
@@ -35,13 +36,33 @@ export function initialGraph(products: Array<{ id: string; name: string; categor
     add(id, [], flavor.name === "La Carbonara" ? "TO_VERIFY" : "CONFIRMED", components, flavor.name);
     graph.flavors[flavor.name] = id;
   }
-  const schiacciatine: Record<string, string[]> = {
-    "La Semplice": [], "La Classica": ["Prosciutto cotto", "Fiordilatte"],
-    "La Rustica": ["Salsiccia", "Fiordilatte"], "La Cruda": ["Prosciutto crudo nazionale", "Fiordilatte"],
-    "La Pistacchio": ["Pesto di pistacchio", "Fiordilatte"], "La Parma": ["Prosciutto di Parma DOP", "Fiordilatte"], "La Golosa": ["Nutella"],
+  const ingredientAliases: Record<string, string | null> = {
+    "Base schiacciatina 400 g": "Impasto",
+    "olio EVO": "Olio extravergine",
+    sale: null,
+    "Nutella / crema di nocciole": "Nutella",
   };
-  for (const [name,components] of Object.entries(schiacciatine)) add(`schiacciatina:${name}`, [], "CONFIRMED", ["Impasto", ...components], name);
-  // The specification identifies allergenic components, not complete schiacciatina recipes.
+  const schiacciatine = Object.fromEntries(
+    SCHIACCIATINA_CATALOG
+      .filter((product) => product.active !== false && product.ingredients)
+      .map((product) => [
+        product.name,
+        product.ingredients!
+          .map((ingredient) => {
+            if (ingredientAliases[ingredient] !== undefined) return ingredientAliases[ingredient];
+            return Object.keys(graph.nodes).find(
+              (nodeId) => nodeId.toLocaleLowerCase("it") === ingredient.toLocaleLowerCase("it"),
+            ) ?? ingredient;
+          })
+          .filter((ingredient): ingredient is string => ingredient !== null),
+      ]),
+  );
+  for (const [name,components] of Object.entries(schiacciatine)) {
+    const id = `schiacciatina:${name}`;
+    add(id, [], "CONFIRMED", components, name);
+    graph.nodes[id].sourceRef = schiacciatineReference;
+  }
+  // The recipe is official; individual supplier allergen sheets still require verification.
   for (const name of Object.keys(schiacciatine).filter(n => !["La Semplice", "La Golosa"].includes(n))) graph.nodes[`schiacciatina:${name}`].status = "TO_VERIFY";
   for (const product of products) {
     let id: string;

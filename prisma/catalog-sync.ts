@@ -66,7 +66,7 @@ function productFieldsToUpdate(
   if (numberOrNull(existing.promoPrice) !== (canonical.promoPrice ?? null)) fields.push("promoPrice");
   if (existing.imageUrl !== canonical.imageUrl) fields.push("imageUrl");
   if (existing.sortOrder !== canonical.sortOrder) fields.push("sortOrder");
-  if (!existing.active) fields.push("active");
+  if (existing.active !== (canonical.active ?? true)) fields.push("active");
   if (stableJson(existing.configuration) !== stableJson(canonical.configuration ?? null)) fields.push("configuration");
   return fields;
 }
@@ -189,7 +189,7 @@ function productPayload(product: CatalogProductDefinition) {
     configuration: product.configuration === undefined
       ? Prisma.DbNull
       : product.configuration as Prisma.InputJsonValue,
-    active: true,
+    active: product.active ?? true,
   };
 }
 

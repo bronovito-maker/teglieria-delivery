@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { isOperatorUser } from "@/lib/rbac";
+import { getCanonicalProduct, getCanonicalProductIngredients } from "@/lib/catalog";
 
 export async function GET() {
   const supabase = await createClient();
@@ -58,8 +59,19 @@ export async function GET() {
     : [];
   return NextResponse.json({ isClubMember, categories: categories.map((category) => ({
     ...category,
-    products: category.products.map((product) => ({
+    products: category.products
+      .filter((product) => getCanonicalProduct(category.name, product.name)?.active !== false)
+      .map((product) => ({
       ...product,
+      category: {
+        id: category.id,
+        name: category.name,
+        sortOrder: category.sortOrder,
+        active: category.active,
+        createdAt: category.createdAt,
+        updatedAt: category.updatedAt,
+      },
+      ingredients: getCanonicalProductIngredients(category.name, product.name),
       allergenInfo: snapshot(allergenRegistry, productResult(allergenRegistry.graph, product.id)),
       allergenRegistry,
       standardPrice: product.price,

@@ -136,16 +136,27 @@ export type CatalogProductDefinition = {
   sortOrder: number;
   configuration?: unknown;
   recipe: PizzaMenuFlavor["ingredients"] | null;
+  ingredients?: readonly string[] | null;
+  active?: boolean;
 };
 
-const schiacciatine = [
-  ["La Semplice", "Base intera da 400 g", 2.5, null],
-  ["La Classica", "Base intera da 400 g", 8, null],
-  ["La Rustica", "Base intera da 400 g", 10, null],
-  ["La Cruda", "Base intera da 400 g", 10.5, null],
-  ["La Pistacchio", "Base intera da 400 g", 12, "/menu/pizza_teglia_la_pistacchio.jpg"],
-  ["La Parma", "Base intera da 400 g", 12.5, "/menu/pizza_teglia_la_parma_closeup.jpg"],
-  ["La Golosa", "Base intera da 400 g", 7, null],
+export type SchiacciatinaCatalogProduct = {
+  name: string;
+  description: string;
+  price: number;
+  imageUrl: string | null;
+  ingredients: readonly string[] | null;
+  active?: boolean;
+};
+
+export const SCHIACCIATINA_CATALOG: readonly SchiacciatinaCatalogProduct[] = [
+  { name: "La Semplice", description: "Base intera da 400 g", price: 2.5, imageUrl: null, ingredients: ["Base schiacciatina 400 g", "olio EVO", "sale"] },
+  { name: "La Classica", description: "Base intera da 400 g", price: 8, imageUrl: null, ingredients: ["Base schiacciatina 400 g", "prosciutto cotto", "fiordilatte"] },
+  { name: "La Rustica", description: "Base intera da 400 g", price: 10, imageUrl: null, ingredients: ["Base schiacciatina 400 g", "salsiccia", "scamorza affumicata", "cipolla"] },
+  { name: "La Cruda", description: "Base intera da 400 g", price: 10.5, imageUrl: null, ingredients: null, active: false },
+  { name: "La Pistacchio", description: "Base intera da 400 g", price: 12, imageUrl: "/menu/pizza_teglia_la_pistacchio.jpg", ingredients: ["Base schiacciatina 400 g", "prosciutto cotto", "stracciatella", "pesto di pistacchio", "granella di pistacchio"] },
+  { name: "La Parma", description: "Base intera da 400 g", price: 12.5, imageUrl: "/menu/pizza_teglia_la_parma_closeup.jpg", ingredients: ["Base schiacciatina 400 g", "prosciutto di Parma DOP", "stracciatella", "rucola", "Grana Padano"] },
+  { name: "La Golosa", description: "Base intera da 400 g", price: 7, imageUrl: null, ingredients: ["Base schiacciatina 400 g", "Nutella / crema di nocciole"] },
 ] as const;
 
 const ceci = [
@@ -166,7 +177,7 @@ const fried = [
 const softDrinks = [
   ["Acqua naturale S. Antonio", "50 cl", 1, "/menu/bevanda_acqua_naturale.jpg"],
   ["Acqua gassata S. Antonio", "50 cl", 1, "/menu/bevanda_acqua_frizzante.jpg"],
-  ["Acqua Valmora naturale", "1,5 L", 1.5, "/menu/bevanda_acqua_naturale.jpg"],
+  ["Acqua Valmora naturale", "1,5 L", 1.5, "/menu/bevanda_acqua_valmora_15l.jpg"],
   ["Estathé pesca o limone - brick", "20 cl", 1.2, "/menu/bevanda_estate_pesca_brick.jpg"],
   ["Coca-Cola, Coca-Cola Zero o Fanta - lattina", "33 cl", 2.3, "/menu/bevanda_coca_cola_lattina.jpg"],
   ["Coca-Cola, Coca-Cola Zero o Fanta Lemon - PET", "45 cl", 3.5, "/menu/bevanda_coca_cola_bottiglia.jpg"],
@@ -178,8 +189,8 @@ const beers = [
   ["Bitburger Drive analcolica", "33 cl", 3, "/menu/bevanda_birra_analcolica_bitburger.jpg"],
   ["Bitburger Pils", "50 cl", 3.5, "/menu/bevanda_birra_bitburger.jpg"],
   ["Corona Extra", "33 cl", 4, "/menu/bevanda_birra_corona_extra.jpg"],
-  ["Theresianer Lager", "33 cl", 4, "/menu/bevanda_birra_theresianer.jpg"],
-  ["Theresianer Vienna Rossa", "33 cl", 4.5, "/menu/bevanda_birra_theresianer.jpg"],
+  ["Theresianer Lager", "33 cl", 4, "/menu/bevanda_birra_theresianer_lager.webp"],
+  ["Theresianer Vienna Rossa", "33 cl", 4.5, "/menu/bevanda_birra_theresianer_vienna_rossa.jpg"],
   ["Ichnusa Non Filtrata", "50 cl", 5, "/menu/bevanda_birra_ichnusa_non_filtrata.jpg"],
   ["Lauterbacher Weizen", "50 cl", 4.5, "/menu/bevanda_birra_lauterbacher.jpg"],
   ["BrewDog Punk IPA", "33 cl", 5.5, "/menu/bevanda_birra_brewdog_punk_ipa.jpg"],
@@ -203,7 +214,13 @@ export const CATALOG_PRODUCTS: readonly CatalogProductDefinition[] = [
     recipe: null,
   },
   ...pizzaProducts,
-  ...schiacciatine.map<CatalogProductDefinition>(([name, description, price, imageUrl], sortOrder) => ({ categoryKey: "schiacciatine", name, description, price, imageUrl: imageUrl ?? "/menu/placeholder-food.svg", sortOrder, recipe: null })),
+  ...SCHIACCIATINA_CATALOG.map<CatalogProductDefinition>((product, sortOrder) => ({
+    categoryKey: "schiacciatine",
+    ...product,
+    imageUrl: product.imageUrl ?? "/menu/placeholder-food.svg",
+    sortOrder,
+    recipe: null,
+  })),
   ...ceci.map<CatalogProductDefinition>(([name, description, price, imageUrl], sortOrder) => ({ categoryKey: "ceci", name, description, price, imageUrl, sortOrder, recipe: null })),
   ...fried.map<CatalogProductDefinition>(([name, description, price], sortOrder) => ({ categoryKey: "fried", name, description, price, imageUrl: "/menu/placeholder-food.svg", sortOrder, recipe: null })),
   ...softDrinks.map<CatalogProductDefinition>(([name, description, price, imageUrl], sortOrder) => ({ categoryKey: "soft-drinks", name, description, price, imageUrl, sortOrder, recipe: null })),
@@ -217,6 +234,19 @@ export const CATALOG_EXPECTED_COUNTS = {
 
 export function getPizzaFormatByCategory(categoryName: string) {
   return Object.values(PIZZA_FORMATS).find((format) => format.categoryName === categoryName) ?? null;
+}
+
+const CATEGORY_KEY_BY_NAME = new Map(CATALOG_CATEGORIES.map((category) => [category.name, category.key]));
+const PRODUCT_BY_KEY = new Map(CATALOG_PRODUCTS.map((product) => [`${product.categoryKey}:${product.name}`, product]));
+
+export function getCanonicalProduct(categoryName: string, productName: string) {
+  const categoryKey = CATEGORY_KEY_BY_NAME.get(categoryName);
+  return categoryKey ? PRODUCT_BY_KEY.get(`${categoryKey}:${productName}`) ?? null : null;
+}
+
+export function getCanonicalProductIngredients(categoryName: string, productName: string): string[] | null {
+  const ingredients = getCanonicalProduct(categoryName, productName)?.ingredients;
+  return ingredients ? [...ingredients] : null;
 }
 
 export function assertCanonicalCatalog(

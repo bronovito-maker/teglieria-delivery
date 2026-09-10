@@ -15,6 +15,7 @@ import { getStripe, getStripeErrorContext, getStripeSiteUrl } from "@/lib/stripe
 import { calculateDeliveryFee, getItalianTimeSlot, isOrderTimeAllowed, MIN_ORDER_SUBTOTAL } from "@/lib/constants";
 import { calculatePizzaConfiguration, type PizzaBuilderSelection } from "@/lib/pizza-builder";
 import { toCustomerOrderView } from "@/lib/order-views";
+import { getCanonicalProductIngredients } from "@/lib/catalog";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -202,7 +203,7 @@ export async function POST(request: Request) {
           try { calculated = calculatePizzaConfiguration(selection); } catch { throw new Error("INVALID_CART_PRICE"); }
           const priceMismatch = Math.abs(item.unitPrice - calculated.total) > 0.01 || Math.abs(item.totalPrice - calculated.total * item.quantity) > 0.01;
           if (priceMismatch) throw new Error("INVALID_CART_PRICE");
-          return { ...item, allergenSnapshot: snapshot(allergenRegistry, pizzaAllergens(allergenRegistry.graph, selection)), productName: product.name, unitPrice: calculated.total, totalPrice: calculated.total * item.quantity, additions: calculated.additions, variant: JSON.stringify(selection) };
+          return { ...item, allergenSnapshot: snapshot(allergenRegistry, pizzaAllergens(allergenRegistry.graph, selection)), ingredientSnapshot: null, productName: product.name, unitPrice: calculated.total, totalPrice: calculated.total * item.quantity, additions: calculated.additions, variant: JSON.stringify(selection) };
         }
         const basePrice = pricingAuthUserId && product.clubPrice != null ? Number(product.clubPrice) : Number(product.price);
         const variant = item.variant ? product.variants.find((candidate) => candidate.name === item.variant) : null;
@@ -218,7 +219,11 @@ export async function POST(request: Request) {
         if (priceMismatch && !pricingAuthUserId) {
           throw new Error("INVALID_CART_PRICE");
         }
-        return { ...item, allergenSnapshot: snapshot(allergenRegistry, productResult(allergenRegistry.graph, product.id, authoritativeAdditions.map(a => a.name), (item.removals ?? []).map(r => r.name), item.variant)), productName: product.name, unitPrice: expectedUnitPrice, totalPrice: expectedUnitPrice * item.quantity, additions: authoritativeAdditions };
+        const canonicalIngredients = getCanonicalProductIngredients(product.category.name, product.name);
+        if (canonicalIngredients && JSON.stringify(item.ingredients ?? []) !== JSON.stringify(canonicalIngredients)) {
+          throw new Error("STALE_CART");
+        }
+        return { ...item, allergenSnapshot: snapshot(allergenRegistry, productResult(allergenRegistry.graph, product.id, authoritativeAdditions.map(a => a.name), (item.removals ?? []).map(r => r.name), item.variant)), ingredientSnapshot: canonicalIngredients, productName: product.name, unitPrice: expectedUnitPrice, totalPrice: expectedUnitPrice * item.quantity, additions: authoritativeAdditions };
       });
       const authoritativeSubtotal = authoritativeItems.reduce((sum, item) => sum + item.totalPrice, 0);
       if (authoritativeSubtotal < MIN_ORDER_SUBTOTAL) throw new Error("MIN_ORDER_NOT_REACHED");
@@ -249,6 +254,9 @@ export async function POST(request: Request) {
             createMany: {
               data: authoritativeItems.map((item) => ({
                 allergenSnapshot: item.allergenSnapshot as unknown as Prisma.InputJsonValue,
+                ingredientSnapshot: item.ingredientSnapshot === null
+                  ? Prisma.JsonNull
+                  : item.ingredientSnapshot as Prisma.InputJsonValue,
                 productId: item.productId,
                 productName: item.productName,
                 quantity: item.quantity,
@@ -342,6 +350,9 @@ export async function POST(request: Request) {
         quantity: i.quantity,
         totalPrice: Number(i.totalPrice),
         variant: i.variant,
+        ingredients: Array.isArray(i.ingredientSnapshot)
+          ? i.ingredientSnapshot.filter((ingredient): ingredient is string => typeof ingredient === "string")
+          : [],
       })),
       subtotal: Number(order.subtotal),
       total: Number(order.total),

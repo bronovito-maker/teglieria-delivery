@@ -41,6 +41,7 @@ export type {
 
 // Product with relations
 export type ProductWithRelations = Product & {
+  ingredients?: string[] | null;
   allergenInfo?: AllergenSnapshot;
   allergenRegistry?: PublicRegistry;
   category: Category;
@@ -80,6 +81,9 @@ export type CartItemRemoval = {
 
 export type CartItem = {
   allergenInfo?: AllergenSnapshot;
+  imageUrl?: string | null;
+  imageFit?: "cover" | "contain";
+  ingredients?: string[];
   id: string; // unique cart item id
   productId: string;
   productName: string;

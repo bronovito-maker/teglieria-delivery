@@ -33,7 +33,7 @@ export default function PizzaBuilderModal({
   onClose,
   menuFlavors,
 }: {
-  product: { id: string; name: string; allergenRegistry?: PublicRegistry };
+  product: { id: string; name: string; imageUrl?: string | null; allergenRegistry?: PublicRegistry };
   onClose: () => void;
   menuFlavors: PizzaMenuFlavorOption[];
 }) {
@@ -96,6 +96,8 @@ export default function PizzaBuilderModal({
   function handleAdd() {
     addItem({
       allergenInfo,
+      imageUrl: product.imageUrl,
+      imageFit: "cover",
       productId: product.id,
       productName: product.name,
       quantity,

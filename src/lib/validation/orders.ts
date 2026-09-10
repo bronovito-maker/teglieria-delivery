@@ -35,6 +35,7 @@ export const orderItemSchema = z
     additions: z.array(z.object({ name: z.string(), price: z.number() }).passthrough()).nullable().optional(),
     removals: z.array(z.object({ name: z.string() }).passthrough()).nullable().optional(),
     notes: optionalTextSchema,
+    ingredients: z.array(z.string().trim().min(1).max(200)).max(30).optional(),
   })
   .strict();
 

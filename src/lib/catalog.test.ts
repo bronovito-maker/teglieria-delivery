@@ -9,6 +9,7 @@ import {
   PIZZA_CATALOG,
   PIZZA_FORMATS,
   PIZZA_MENU_FLAVORS,
+  SCHIACCIATINA_CATALOG,
 } from "./catalog";
 
 describe("canonical catalog", () => {
@@ -64,8 +65,30 @@ describe("canonical catalog", () => {
   });
 
   it("keeps format dimensions and recommendations in one definition", () => {
-    expect(PIZZA_FORMATS.INTERA).toMatchObject({ dimensions: "60x40", recommendedPeople: 4 });
-    expect(PIZZA_FORMATS.MEZZA).toMatchObject({ dimensions: "30x40", recommendedPeople: 2 });
+    expect(PIZZA_FORMATS.INTERA).toMatchObject({ dimensions: "60x40", recommendedPeople: 4, recommendationLabel: "Teglia intera - consigliata per 4 persone" });
+    expect(PIZZA_FORMATS.MEZZA).toMatchObject({ dimensions: "30x40", recommendedPeople: 2, recommendationLabel: "Mezza teglia - consigliata per 2 persone" });
+  });
+
+  it("contains the official schiacciatina ingredients and deactivates La Cruda", () => {
+    expect(SCHIACCIATINA_CATALOG).toEqual([
+      expect.objectContaining({ name: "La Semplice", ingredients: ["Base schiacciatina 400 g", "olio EVO", "sale"] }),
+      expect.objectContaining({ name: "La Classica", ingredients: ["Base schiacciatina 400 g", "prosciutto cotto", "fiordilatte"] }),
+      expect.objectContaining({ name: "La Rustica", ingredients: ["Base schiacciatina 400 g", "salsiccia", "scamorza affumicata", "cipolla"] }),
+      expect.objectContaining({ name: "La Cruda", ingredients: null, active: false }),
+      expect.objectContaining({ name: "La Pistacchio", ingredients: ["Base schiacciatina 400 g", "prosciutto cotto", "stracciatella", "pesto di pistacchio", "granella di pistacchio"] }),
+      expect.objectContaining({ name: "La Parma", ingredients: ["Base schiacciatina 400 g", "prosciutto di Parma DOP", "stracciatella", "rucola", "Grana Padano"] }),
+      expect.objectContaining({ name: "La Golosa", ingredients: ["Base schiacciatina 400 g", "Nutella / crema di nocciole"] }),
+    ]);
+  });
+
+  it("uses the supplied distinct beverage images", () => {
+    const valmora = CATALOG_PRODUCTS.find((product) => product.name === "Acqua Valmora naturale");
+    const lager = CATALOG_PRODUCTS.find((product) => product.name === "Theresianer Lager");
+    const vienna = CATALOG_PRODUCTS.find((product) => product.name === "Theresianer Vienna Rossa");
+    expect(valmora?.imageUrl).toBe("/menu/bevanda_acqua_valmora_15l.jpg");
+    expect(lager?.imageUrl).toBe("/menu/bevanda_birra_theresianer_lager.webp");
+    expect(vienna?.imageUrl).toBe("/menu/bevanda_birra_theresianer_vienna_rossa.jpg");
+    expect(lager?.imageUrl).not.toBe(vienna?.imageUrl);
   });
 
   it("allows a zero base price only for the configurable product", () => {

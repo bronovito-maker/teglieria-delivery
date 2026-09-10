@@ -45,6 +45,32 @@ describe("order API views", () => {
     expect(view.rider).toEqual({ name: "Rider" });
   });
 
+  it("preserves the ingredient snapshot in customer order history", () => {
+    const withSnapshot = {
+      ...order,
+      items: [{
+        id: "item-1",
+        productId: "schiacciatina-1",
+        productName: "La Classica",
+        quantity: 1,
+        unitPrice: 8,
+        totalPrice: 8,
+        variant: null,
+        additions: null,
+        removals: null,
+        notes: null,
+        allergenSnapshot: null,
+        ingredientSnapshot: ["Base schiacciatina 400 g", "prosciutto cotto", "fiordilatte"],
+      }],
+    } as unknown as LoadedOrder;
+
+    expect(toCustomerOrderView(withSnapshot).items[0].ingredientSnapshot).toEqual([
+      "Base schiacciatina 400 g",
+      "prosciutto cotto",
+      "fiordilatte",
+    ]);
+  });
+
   it("does not expose customer identity or payment internals to riders", () => {
     const view = toRiderOrderView(order);
     expect(view.customerPhone).toBe("3331234567");
