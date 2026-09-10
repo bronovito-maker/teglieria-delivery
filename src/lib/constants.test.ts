@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { calculateDeliveryFee, isOrderTimeAllowed } from "./constants";
+import {
+  calculateDeliveryFee,
+  canTransitionDeliveryStatus,
+  canTransitionOrderStatus,
+  isOrderTimeAllowed,
+} from "./constants";
 
 describe("calculateDeliveryFee", () => {
   it("keeps the 2 euro base fee within the first kilometer", () => {
@@ -26,5 +31,21 @@ describe("order service hours", () => {
     expect(isOrderTimeAllowed("DELIVERY", "19:00")).toBe(true);
     expect(isOrderTimeAllowed("DELIVERY", "21:30")).toBe(true);
     expect(isOrderTimeAllowed("DELIVERY", "22:00")).toBe(false);
+  });
+});
+
+describe("server-side order transitions", () => {
+  it("allows only the configured order status transitions", () => {
+    expect(canTransitionOrderStatus("DELIVERY", "OUT", "DELIVERED")).toBe(true);
+    expect(canTransitionOrderStatus("DELIVERY", "RECEIVED", "DELIVERED")).toBe(false);
+    expect(canTransitionOrderStatus("ASPORTO", "READY", "OUT")).toBe(false);
+    expect(canTransitionOrderStatus("DELIVERY", "CONFIRMED", "PREPARING")).toBe(true);
+  });
+
+  it("allows delivery status progression without skipping from an assigned order", () => {
+    expect(canTransitionDeliveryStatus(null, "ASSIGNED")).toBe(true);
+    expect(canTransitionDeliveryStatus("ASSIGNED", "EN_ROUTE")).toBe(true);
+    expect(canTransitionDeliveryStatus("ASSIGNED", "DELIVERED")).toBe(false);
+    expect(canTransitionDeliveryStatus("EN_ROUTE", "DELIVERED")).toBe(true);
   });
 });

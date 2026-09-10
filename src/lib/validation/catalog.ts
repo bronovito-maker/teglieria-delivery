@@ -128,22 +128,9 @@ export const customerWelcomeSchema = z
 
 export const riderSetupSchema = z
   .object({
-    authUserId: z.string().min(1).optional(),
-    name: z.string().trim().min(1).max(120),
-    email: z.string().trim().email(),
     phone: z.string().trim().max(30).nullable().optional(),
-    checkOnly: z.boolean().optional(),
   })
-  .strict()
-  .superRefine((data, ctx) => {
-    if (!data.checkOnly && !data.authUserId) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["authUserId"],
-        message: "authUserId richiesto per completare il setup",
-      });
-    }
-  });
+  .strict();
 
 export const reportQuerySchema = z
   .object({

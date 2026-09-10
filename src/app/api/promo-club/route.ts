@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
-import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
+import { isOperatorUser } from "@/lib/rbac";
 import { clubPromotionCreateSchema, clubPromotionPatchSchema } from "@/lib/validation/catalog";
 import { enforceSameOrigin } from "@/lib/request-security";
 
@@ -10,7 +10,7 @@ const include = { items: { include: { product: { select: { id: true, name: true 
 async function operator(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  return user && (!isAdminRbacStrictEnabled() || isOperatorUser(user)) ? user : null;
+  return user && isOperatorUser(user) ? user : null;
 }
 
 async function customer(request: Request) {

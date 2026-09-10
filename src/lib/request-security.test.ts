@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { enforceSameOrigin, sanitizeInternalPath, safeEqual } from "./request-security";
+import { enforceSameOrigin, getTrustedSiteOrigin, sanitizeInternalPath, safeEqual } from "./request-security";
 
 describe("enforceSameOrigin", () => {
   it("allows mutating requests with matching origin", () => {
@@ -40,6 +40,25 @@ describe("enforceSameOrigin", () => {
     });
     const result = enforceSameOrigin(req);
     expect(result).toBeNull();
+  });
+
+  it("does not trust the Host header when no static origin is configured", () => {
+    const previousSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    const previousTrustedOrigins = process.env.TRUSTED_ORIGINS;
+    delete process.env.NEXT_PUBLIC_SITE_URL;
+    delete process.env.TRUSTED_ORIGINS;
+
+    const req = new Request("https://attacker.example/api/orders", {
+      method: "POST",
+      headers: { origin: "https://attacker.example", host: "attacker.example" },
+    });
+    expect(enforceSameOrigin(req)).not.toBeNull();
+    expect(getTrustedSiteOrigin(req)).toBeNull();
+
+    if (previousSiteUrl === undefined) delete process.env.NEXT_PUBLIC_SITE_URL;
+    else process.env.NEXT_PUBLIC_SITE_URL = previousSiteUrl;
+    if (previousTrustedOrigins === undefined) delete process.env.TRUSTED_ORIGINS;
+    else process.env.TRUSTED_ORIGINS = previousTrustedOrigins;
   });
 });
 

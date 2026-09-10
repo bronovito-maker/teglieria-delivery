@@ -1,4 +1,6 @@
 "use client";
+import { formatPizzaVariant } from "@/lib/pizza-builder";
+import AllergenBadges from "@/components/client/AllergenBadges";
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -354,7 +356,7 @@ export default function OrdinePage() {
       }
 
       const trackingUrl = order.statusAccessToken
-        ? `/stato-ordine/${order.id}?token=${encodeURIComponent(order.statusAccessToken)}`
+        ? `/stato-ordine/${order.id}#token=${encodeURIComponent(order.statusAccessToken)}`
         : `/stato-ordine/${order.id}`;
       router.push(trackingUrl);
     } catch (err) {
@@ -387,7 +389,8 @@ export default function OrdinePage() {
                     <p className="font-brand font-semibold text-charcoal">
                       {item.quantity}x {item.productName}
                     </p>
-                    {item.variant && <p className="text-sm text-charcoal/45 font-body">{item.variant}</p>}
+                    <AllergenBadges info={item.allergenInfo} />
+                    {item.variant && <p className="text-sm text-charcoal/45 font-body">{formatPizzaVariant(item.variant)}</p>}
                   </div>
                   <span className="font-brand font-semibold">{formatCurrency(item.totalPrice)}</span>
                 </div>

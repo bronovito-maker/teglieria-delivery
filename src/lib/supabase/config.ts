@@ -6,6 +6,9 @@ import type { CookieOptions } from "@supabase/ssr";
 export const SUPABASE_COOKIE_OPTIONS: CookieOptions = {
   path: "/",
   sameSite: "lax",
+  secure: process.env.NODE_ENV === "production",
+  // The browser Supabase client must read its session cookie in this shared
+  // configuration. Sensitive mutations are protected by strict Origin checks.
   httpOnly: false,
 };
 

@@ -1,22 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
+import { enforceSameOrigin } from "@/lib/request-security";
 
 export async function POST(request: Request) {
-  const requestOrigin = request.headers.get("origin");
-  const requestUrl = new URL(request.url);
-  let sameOrigin = false;
-  try {
-    sameOrigin = Boolean(requestOrigin && new URL(requestOrigin).origin === requestUrl.origin);
-  } catch {
-    sameOrigin = false;
-  }
-  if (!sameOrigin) {
-    return NextResponse.json(
-      { error: "invalid_origin" },
-      { status: 403, headers: { "Cache-Control": "private, no-store" } },
-    );
-  }
+  const sameOriginError = enforceSameOrigin(request);
+  if (sameOriginError) return sameOriginError;
 
   const ip = getClientIp(request.headers);
   const limit = await rateLimit(`auth-password:${ip}`, 10, 60_000);

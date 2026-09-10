@@ -97,6 +97,11 @@ const FloatingIngredients = () => {
   const [scrollY, setScrollY] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(900);
   const [viewportWidth, setViewportWidth] = useState(1280);
+  const [cspNonce, setCspNonce] = useState<string | null>(null);
+
+  useEffect(() => {
+    setCspNonce(document.querySelector<HTMLScriptElement>("script[nonce]")?.nonce ?? null);
+  }, []);
 
   useEffect(() => {
     let ticking = false;
@@ -145,35 +150,35 @@ const FloatingIngredients = () => {
 
   if (containerOpacity <= 0) return null;
 
-  return (
-    <div
-      className="absolute inset-0 overflow-hidden pointer-events-none z-0"
-      style={{ opacity: containerOpacity }}
-    >
-      {ingredients.map((ing) => {
-        if (isMobile && ![1, 2].includes(ing.id)) {
-          return null;
-        }
-
+  const dynamicStyles = [
+    `.floating-ingredients-container{opacity:${containerOpacity}}`,
+    ...ingredients
+      .filter((ing) => !(isMobile && ![1, 2].includes(ing.id)))
+      .map((ing) => {
         const override = isMobile ? mobileOverrides[ing.id] : undefined;
+        const left = override?.left ?? ing.left;
+        const top = override?.top ?? ing.top;
+        const size = override?.size ?? ing.size;
+        const opacity = override?.opacity ?? ing.opacity;
+        const transform = `translate3d(${easedProgress * ing.xDepth * depthScale}px, ${easedProgress * ing.yDepth * depthScale}px, 0) rotate(${easedProgress * ing.rotateDepth * rotationScale}deg) scale(${1 + easedProgress * scaleBoost})`;
+        return `.floating-ingredient-${ing.id}{left:${left};top:${top};font-size:${size};opacity:${opacity};transform:${transform}}`;
+      }),
+  ].join("\n");
 
-        return (
-          <div
-            key={ing.id}
-            className="absolute ingredient-parallax will-change-transform"
-            style={{
-              left: override?.left ?? ing.left,
-              top: override?.top ?? ing.top,
-              fontSize: override?.size ?? ing.size,
-              opacity: override?.opacity ?? ing.opacity,
-              transform: `translate3d(${easedProgress * ing.xDepth * depthScale}px, ${easedProgress * ing.yDepth * depthScale}px, 0) rotate(${easedProgress * ing.rotateDepth * rotationScale}deg) scale(${1 + easedProgress * scaleBoost})`,
-            }}
-          >
-            {ing.icon}
-          </div>
-        );
-      })}
-    </div>
+  return (
+    <>
+      {cspNonce && <style nonce={cspNonce}>{dynamicStyles}</style>}
+      <div className="floating-ingredients-container absolute inset-0 overflow-hidden pointer-events-none z-0">
+        {ingredients.map((ing) => {
+          if (isMobile && ![1, 2].includes(ing.id)) return null;
+          return (
+            <div key={ing.id} className={`absolute ingredient-parallax floating-ingredient-${ing.id} will-change-transform`}>
+              {ing.icon}
+            </div>
+          );
+        })}
+      </div>
+    </>
   );
 };
 

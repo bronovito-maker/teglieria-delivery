@@ -19,24 +19,12 @@ export default function RiderRegisterPage() {
     setLoading(true);
     setError(null);
 
-    // 1. Verifica che l'email sia stata pre-approvata dall'admin
-    const checkRes = await fetch("/api/rider/setup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, checkOnly: true }),
-    });
-    if (!checkRes.ok) {
-      const data = await checkRes.json().catch(() => ({}));
-      setError(data.error ?? "Email non autorizzata. Contatta lo staff.");
-      setLoading(false);
-      return;
-    }
-
-    // 2. Crea account Supabase
+    // The server validates the authenticated email against the pre-approved
+    // rider record when setup is completed. No identity is sent in the body.
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { role: "rider", full_name: name } },
+      options: { data: { full_name: name } },
     });
 
     if (authError) {
@@ -45,12 +33,11 @@ export default function RiderRegisterPage() {
       return;
     }
 
-    // 3. Collega authUserId al record rider esistente
-    if (authData.user) {
+    if (authData.session) {
       const res = await fetch("/api/rider/setup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ authUserId: authData.user.id, name, email, phone }),
+        body: JSON.stringify({ phone }),
       });
 
       if (res.ok) {
@@ -60,6 +47,8 @@ export default function RiderRegisterPage() {
         setError(data.error ?? "Errore durante la creazione del profilo.");
         await supabase.auth.signOut();
       }
+    } else {
+      router.push("/rider/login?message=Controlla la tua email per confermare l\u2019account, poi accedi per completare la registrazione.");
     }
     setLoading(false);
   }

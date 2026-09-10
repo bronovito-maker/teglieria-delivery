@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/constants";
 import { formatCurrency, formatTime, formatOrderCode } from "@/lib/utils";
 import { useCustomerAuth } from "@/components/client/CustomerAuthProvider";
@@ -12,7 +12,6 @@ const STATUS_STEPS = ["RECEIVED", "CONFIRMED", "READY", "OUT", "DELIVERED"];
 
 export default function StatoOrdinePage() {
   const { id } = useParams();
-  const searchParams = useSearchParams();
   const { user, loading: authLoading } = useCustomerAuth();
   const [order, setOrder] = useState<OrderWithItems | null>(null);
   const [error, setError] = useState(false);
@@ -49,9 +48,12 @@ export default function StatoOrdinePage() {
     async function fetchOrder() {
       try {
         setRefreshing(true);
-        const token = searchParams.get("token");
-        const qs = token ? `?token=${encodeURIComponent(token)}` : "";
-        const res = await fetch(`/api/ordini/${id}${qs}`);
+        const currentUrl = new URL(window.location.href);
+        const hashParams = new URLSearchParams(currentUrl.hash.replace(/^#/, ""));
+        const token = hashParams.get("token");
+        const res = await fetch(`/api/ordini/${id}`, {
+          headers: token ? { "X-Order-Status-Token": token } : undefined,
+        });
         if (!res.ok) {
           setError(true);
           scheduleNext();
@@ -59,6 +61,9 @@ export default function StatoOrdinePage() {
         }
         const data = await res.json();
         setOrder(data);
+        if (token) {
+          window.history.replaceState(null, "", window.location.pathname);
+        }
         setLastUpdatedAt(new Date());
         setError(false);
 
@@ -76,14 +81,18 @@ export default function StatoOrdinePage() {
       cancelled = true;
       clearTimeout(timeout);
     };
-  }, [id, searchParams]);
+  }, [id]);
 
   async function retryPayment() {
     setRetryingPayment(true);
     setPaymentError("");
-    const token = searchParams.get("token");
-    const query = token ? `?token=${encodeURIComponent(token)}` : "";
-    const response = await fetch(`/api/ordini/${id}/checkout${query}`, { method: "POST" });
+    const currentUrl = new URL(window.location.href);
+    const hashParams = new URLSearchParams(currentUrl.hash.replace(/^#/, ""));
+    const token = hashParams.get("token");
+    const response = await fetch(`/api/ordini/${id}/checkout`, {
+      method: "POST",
+      headers: token ? { "X-Order-Status-Token": token } : undefined,
+    });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || !data.checkoutUrl) {
       setPaymentError(data.error || "Impossibile riavviare il pagamento");
@@ -229,8 +238,8 @@ export default function StatoOrdinePage() {
         </div>
 
         <div className="border-t border-charcoal/5 pt-8 space-y-4">
-          {order.items.map((item) => (
-            <div key={item.id} className="flex justify-between items-center text-sm">
+          {order.items.map((item, index) => (
+            <div key={item.id || `${item.productName}-${index}`} className="flex justify-between items-center text-sm">
               <span className="font-brand font-bold uppercase tracking-tight text-charcoal/70">
                 <span className="text-terracotta text-xs mr-2">{item.quantity}×</span>
                 {item.productName}
@@ -252,8 +261,8 @@ export default function StatoOrdinePage() {
         <div className="border-t border-charcoal/5 pt-8">
           <p className="text-[10px] font-brand font-bold uppercase tracking-widest text-charcoal/30 mb-6">Cronologia Stati</p>
           <div className="space-y-4">
-            {order.statusHistory.map((log) => (
-              <div key={log.id} className="flex items-center justify-between">
+            {order.statusHistory.map((log, index) => (
+              <div key={log.id || `${log.status}-${log.createdAt}-${index}`} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-1.5 h-1.5 rounded-full bg-charcoal/10" />
                   <span className={`px-2.5 py-1 rounded-full text-[9px] font-brand font-bold uppercase tracking-widest ${ORDER_STATUS_COLORS[log.status]}`}>

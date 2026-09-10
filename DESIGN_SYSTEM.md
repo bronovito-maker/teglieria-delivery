@@ -1,6 +1,6 @@
 # La Teglieria - Design System
 
-Versione: 2026-04-29
+Versione: 2026-09-03
 
 Questo documento descrive il sistema visivo attualmente in uso su landing, menu, checkout, account cliente, admin e rider.
 
@@ -87,6 +87,34 @@ Il lockup top bar mobile e overlay hamburger devono restare allineati tra loro:
 - stesso padding
 - stesso offset verticale
 
+## Popup e layout mobile
+
+Le card popup di prodotto, carrello e configuratore devono seguire lo stesso
+pattern responsive:
+
+- overlay sopra la top bar pubblica, con z-index coerente;
+- pannello `flex` a colonna con altezza basata su `100dvh`;
+- contenuto centrale in scroll interno e footer separato;
+- footer e CTA sempre visibili, con rispetto della safe area iOS;
+- su desktop altezza massima pari al viewport meno il margine esterno;
+- nessun contenuto deve fuoriuscire o sovrapporsi alla CTA.
+
+Il configuratore “Crea la tua pizza” usa questo pattern per tutte le combinazioni
+di formato e numero di gusti. La sezione degli ingredienti gratuiti non fa più
+parte dell’interfaccia.
+
+## Menu, prezzi e immagini
+
+- per un visitatore non autenticato la card mostra il prezzo normale e, quando
+  presente, il prezzo Club in piccolo sotto al prezzo principale;
+- per un cliente Club il prezzo Club è il prezzo principale;
+- il menu non deve dedurre lo stato Club solo da dati locali: la sessione viene
+  verificata dal server e il menu viene ricaricato dopo i cambi di auth;
+- le card di La Parma nelle categorie Teglie e Mezze teglie usano un crop
+  leggermente zoomato per eliminare il bordo della teglia;
+- il prodotto Fritto Teglieria è disattivato e non deve essere mostrato nel
+  menu.
+
 ## Logo E Favicon
 
 Logo testuale:
@@ -171,9 +199,16 @@ Motion operativa:
 | `/` | Landing pubblica |
 | `/menu` | Menu prodotti |
 | `/ordine` | Checkout |
+| `/accedi` / `/registrati` | Autenticazione cliente |
 | `/account/orders` | Dashboard ordini cliente |
+| `/stato-ordine/[id]` | Tracking ordine |
+| `/servizi` | Orari, asporto e delivery |
+| `/feedback/[token]` | Feedback post-consegna |
 | `/admin/dashboard` | Dashboard gestionale |
+| `/admin/ordini` | Kanban ordini |
 | `/admin/logistica` | Rider, mappa, assegnazioni |
+| `/admin/promo-club` | Promozioni Club |
+| `/admin/report` | Report vendite |
 | `/rider/dashboard` | Dashboard rider |
 | `/rider/ordine/[id]` | Dettaglio operativo rider |
 
@@ -183,5 +218,10 @@ Motion operativa:
 - `src/app/globals.css`: variabili, utility, classi DS
 - `tailwind.config.ts`: token Tailwind
 - `src/components/client/MobileTopBar.tsx`: top bar pubblica
+- `src/components/client/ProductModal.tsx`: popup prodotto e crop immagini
+- `src/components/client/PizzaBuilderModal.tsx`: popup configuratore pizza
+- `src/components/client/CartDrawer.tsx`: carrello e CTA sticky
 - `src/app/page.tsx`: landing e hero principale
+- `src/lib/constants.ts`: orari, minimo ordine e costo delivery
+- `src/lib/pizza-builder.ts`: formati, ricette e calcolo configuratore
 - `BRAND_TOKENS.md`: fonte compatta per colori/font/regole

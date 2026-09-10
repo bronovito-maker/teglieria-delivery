@@ -132,6 +132,28 @@
   transform: translate3d(0, 0, 0);
 }
 
+/* Reveal delays are class-based so the strict CSP never needs inline style attributes. */
+.menu-reveal-delay-0,
+.rider-card-delay-0 { transition-delay: 0ms; }
+.menu-reveal-delay-1 { transition-delay: 50ms; }
+.menu-reveal-delay-2 { transition-delay: 100ms; }
+.menu-reveal-delay-3 { transition-delay: 150ms; }
+.menu-reveal-delay-4 { transition-delay: 200ms; }
+.menu-reveal-delay-5 { transition-delay: 250ms; }
+.menu-reveal-delay-6 { transition-delay: 300ms; }
+.menu-reveal-delay-7 { transition-delay: 350ms; }
+.menu-reveal-delay-8 { transition-delay: 400ms; }
+.menu-reveal-delay-9 { transition-delay: 450ms; }
+.rider-card-delay-1 { transition-delay: 40ms; }
+.rider-card-delay-2 { transition-delay: 80ms; }
+.rider-card-delay-3 { transition-delay: 120ms; }
+.rider-card-delay-4 { transition-delay: 160ms; }
+.rider-card-delay-5 { transition-delay: 200ms; }
+.rider-card-delay-6 { transition-delay: 240ms; }
+.rider-card-delay-7 { transition-delay: 280ms; }
+.rider-card-delay-8 { transition-delay: 320ms; }
+.rider-card-delay-9 { transition-delay: 360ms; }
+
 .glass-morphism {
   background: rgba(255, 251, 245, 0.84);
   backdrop-filter: blur(20px);
@@ -171,6 +193,149 @@
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+.cart-open-lock {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* Google Maps marker and InfoWindow styles. Keep these in the trusted stylesheet
+ * instead of putting style attributes into HTML assembled from order data. */
+.map-store-pin-admin,
+.map-store-pin-rider,
+.map-store-pin-route {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .25);
+}
+
+.map-store-pin-admin { width: 36px; height: 36px; font-size: 16px; border-width: 2.5px; }
+.map-store-pin-rider { width: 32px; height: 32px; font-size: 14px; }
+.map-store-pin-route { width: 28px; height: 28px; font-size: 13px; }
+.map-route-destination-pin { width: 32px; height: 32px; border-radius: 50%; background: #fff; border: 2.5px solid #d96a2b; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 2px 8px rgba(0, 0, 0, .2); }
+
+.map-order-pin-admin,
+.map-order-pin-rider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .18);
+}
+
+.map-order-pin-admin { width: 40px; height: 40px; font-size: 20px; }
+.map-order-pin-rider { width: 38px; height: 38px; font-size: 18px; }
+.map-order-pin-admin.map-status-received,
+.map-order-pin-rider.map-status-received { border: 2.5px solid #f59e0b; }
+.map-order-pin-admin.map-status-confirmed,
+.map-order-pin-rider.map-status-confirmed { border: 2.5px solid #ef4444; }
+.map-order-pin-admin.map-status-ready,
+.map-order-pin-rider.map-status-ready { border: 2.5px solid #22c55e; }
+.map-order-pin-admin.map-status-out,
+.map-order-pin-rider.map-status-out { border: 2.5px solid #0ea5e9; }
+.map-order-pin-admin.map-status-delivered,
+.map-order-pin-rider.map-status-delivered { border: 2.5px solid #6b7280; }
+.map-order-pin-admin.map-status-default,
+.map-order-pin-rider.map-status-default { border: 2.5px solid #9ca3af; }
+
+.map-rider-location-pin {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #3b82f6;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, .3), 0 2px 6px rgba(0, 0, 0, .2);
+}
+
+.map-pin-next {
+  box-shadow: 0 0 0 4px rgba(230, 106, 38, .4), 0 2px 8px rgba(0, 0, 0, .18);
+  transform: scale(1.15);
+}
+
+.map-step-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #d96a2b;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border: 1.5px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+}
+
+@keyframes pin-late-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, .55), 0 2px 8px rgba(0, 0, 0, .18); }
+  50% { box-shadow: 0 0 0 7px rgba(239, 68, 68, 0), 0 2px 8px rgba(0, 0, 0, .18); }
+}
+
+.map-pin-late {
+  animation: pin-late-pulse 1.3s ease-in-out infinite;
+  border-color: #ef4444 !important;
+  border-width: 3px !important;
+}
+
+.map-iw-root { font-family: system-ui, sans-serif; width: 260px; padding: 2px 0; box-sizing: border-box; }
+.map-iw-root-rider { width: 220px; }
+.map-iw-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
+.map-iw-header-rider { gap: 6px; margin-bottom: 4px; }
+.map-iw-order-link { font-size: 16px; font-weight: 700; color: #1a1a1a; text-decoration: none; border-bottom: 2px solid #d96a2b40; line-height: 1; }
+.map-iw-order-code { font-size: 15px; font-weight: 700; color: #1a1a1a; }
+.map-iw-status { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; padding: 3px 7px; border-radius: 99px; white-space: nowrap; }
+.map-iw-status-received { background: #fef3c7; color: #b45309; }
+.map-iw-status-confirmed { background: #fee2e2; color: #b91c1c; }
+.map-iw-status-ready { background: #dcfce7; color: #15803d; }
+.map-iw-status-out { background: #e0f2fe; color: #0369a1; }
+.map-iw-status-delivered { background: #f3f4f6; color: #4b5563; }
+.map-iw-status-default { background: #f3f4f6; color: #4b5563; }
+.map-iw-customer { font-size: 13px; font-weight: 600; color: #1a1a1a; margin: 0; }
+.map-iw-customer-rider { font-size: 12px; }
+.map-iw-address { font-size: 11px; color: #777; margin: 3px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; }
+.map-iw-address-rider { max-width: 210px; }
+.map-iw-meta { display: flex; align-items: center; gap: 10px; margin-top: 4px; flex-wrap: wrap; }
+.map-iw-meta a,
+.map-iw-phone { font-size: 11px; color: #555; text-decoration: none; }
+.map-iw-route { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
+.map-iw-route-distance { font-size: 12px; font-weight: 700; color: #d96a2b; }
+.map-iw-route-duration { font-size: 11px; color: #888; }
+.map-iw-rider { font-size: 11px; color: #555; margin: 3px 0 0; }
+.map-iw-eta { font-size: 11px; color: #d96a2b; font-weight: 600; margin: 4px 0 0; }
+.map-iw-notes { font-size: 10px; color: #e6a52e; font-weight: 600; margin: 4px 0 0; }
+.map-iw-loading { font-size: 10px; color: #bbb; margin: 4px 0 0; font-style: italic; }
+.map-iw-late { margin-bottom: 6px; padding: 4px 8px; border-radius: 6px; background: #fef2f2; border: 1px solid #fecaca; display: flex; align-items: center; gap: 5px; }
+.map-iw-late-icon { font-size: 12px; }
+.map-iw-late-label { font-size: 10px; font-weight: 700; color: #dc2626; text-transform: uppercase; letter-spacing: .05em; }
+.map-iw-action { margin-top: 8px; width: 100%; padding: 7px 0; border-radius: 7px; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border: 0; cursor: pointer; }
+.map-iw-action-ready { background: #22c55e; }
+.map-iw-action-out { background: #d96a2b; }
+
+/* Floating ingredients use trusted static defaults; scroll-dependent values are
+ * emitted in a nonce-protected <style> element by the component. */
+.floating-ingredients-container { opacity: .96; }
+.floating-ingredient-1 { left: 10%; top: 15%; font-size: 2.7rem; opacity: .62; }
+.floating-ingredient-2 { left: 80%; top: 25%; font-size: 3.8rem; opacity: .74; }
+.floating-ingredient-3 { left: 16%; top: 66%; font-size: 2.4rem; opacity: .56; }
+.floating-ingredient-4 { left: 74%; top: 76%; font-size: 3.2rem; opacity: .65; }
+.floating-ingredient-5 { left: 45%; top: 10%; font-size: 2rem; opacity: .58; }
+.floating-ingredient-6 { left: 90%; top: 60%; font-size: 1.7rem; opacity: .54; }
+.floating-ingredient-7 { left: 6%; top: 42%; font-size: 2.2rem; opacity: .6; }
+.floating-ingredient-8 { left: 40%; top: 84%; font-size: 3rem; opacity: .7; }
+@media (max-width: 639px) {
+  .floating-ingredients-container { opacity: .74; }
 }
 
 @media (prefers-reduced-motion: reduce) {

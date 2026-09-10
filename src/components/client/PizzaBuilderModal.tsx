@@ -1,5 +1,8 @@
 "use client";
 
+import AllergenIngredients from "./AllergenIngredients";
+import AllergenBadges from "./AllergenBadges";
+import { pizzaAllergens, resolveIngredient, snapshot, type PublicRegistry } from "@/lib/allergens/core";
 import { useMemo, useState } from "react";
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
@@ -30,7 +33,7 @@ export default function PizzaBuilderModal({
   onClose,
   menuFlavors,
 }: {
-  product: { id: string; name: string };
+  product: { id: string; name: string; allergenRegistry?: PublicRegistry };
   onClose: () => void;
   menuFlavors: PizzaMenuFlavorOption[];
 }) {
@@ -41,6 +44,9 @@ export default function PizzaBuilderModal({
   const [slots, setSlots] = useState<PizzaBuilderSlot[]>([createEmptySlot()]);
 
   const selection: PizzaBuilderSelection = { format, gusti, slots };
+  const registry = product.allergenRegistry;
+  const allergenResult = registry ? pizzaAllergens(registry.graph, selection) : undefined;
+  const allergenInfo = registry && allergenResult ? snapshot(registry, allergenResult) : undefined;
   const calculated = useMemo(
     () => calculatePizzaConfiguration({ format, gusti, slots }),
     [format, gusti, slots],
@@ -89,6 +95,7 @@ export default function PizzaBuilderModal({
 
   function handleAdd() {
     addItem({
+      allergenInfo,
       productId: product.id,
       productName: product.name,
       quantity,
@@ -160,7 +167,7 @@ export default function PizzaBuilderModal({
               return (
                 <section key={index} className="rounded-3xl border border-charcoal/8 bg-white p-4 sm:p-5">
                   <div className="mb-3 flex items-center justify-between gap-3">
-                    <h3 className="font-display text-2xl">Gusto {index + 1}</h3>
+                    <div><h3 className="font-display text-2xl">Gusto {index + 1}</h3><AllergenBadges info={registry && allergenResult ? snapshot(registry, allergenResult.containers[index]) : undefined} /></div>
                     <span className="text-sm font-bold text-terracotta">{formatCurrency(slotCalculation.total)}</span>
                   </div>
 
@@ -183,6 +190,7 @@ export default function PizzaBuilderModal({
                   {flavor ? (
                     <div className="mt-3 rounded-2xl border border-terracotta/15 bg-terracotta/[.05] p-3">
                       <p className="text-sm font-bold text-terracotta">{flavor.name}</p>
+                      <AllergenIngredients registry={registry} recipeId={registry?.graph.flavors[flavor.name]} />
                       {flavorOptions.find((option) => option.name === flavor.name)?.description && (
                         <p className="mt-1 text-xs italic leading-relaxed text-charcoal/55">{flavorOptions.find((option) => option.name === flavor.name)?.description}</p>
                       )}
@@ -232,7 +240,8 @@ export default function PizzaBuilderModal({
                             className={`rounded-xl border p-2 text-left text-xs ${checked ? "border-terracotta bg-terracotta/10" : "border-charcoal/8 bg-charcoal/[.02]"}`}
                           >
                             <span className="block font-bold">{row[0]}</span>
-                            <span className="text-charcoal/45">+{formatCurrency(item.price)}</span>
+                            <AllergenBadges interactive={false} info={registry ? snapshot(registry, resolveIngredient(registry.graph, row[0])) : undefined} />
+                            <span className="mt-1 block text-charcoal/60">+{formatCurrency(item.price)}</span>
                           </button>
                         );
                       })}
@@ -247,6 +256,7 @@ export default function PizzaBuilderModal({
         </div>
 
         <div className="shrink-0 border-t border-charcoal/8 bg-warm-light px-6 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-8">
+          <div className="mb-2" aria-live="polite"><span className="text-xs font-bold">Allergeni della pizza: </span><AllergenBadges info={allergenInfo} /></div>
           <div className="flex items-center gap-3">
             <div className="flex items-center rounded-full bg-charcoal/5 p-1">
               <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="h-9 w-9 text-lg">−</button>

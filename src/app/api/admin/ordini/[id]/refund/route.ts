@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
-import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
+import { isOperatorUser } from "@/lib/rbac";
 import { enforceSameOrigin } from "@/lib/request-security";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { getStripe } from "@/lib/stripe";
@@ -21,7 +21,7 @@ export async function POST(
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
-  if (isAdminRbacStrictEnabled() && !isOperatorUser(user)) {
+  if (!isOperatorUser(user)) {
     return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
   }
 

@@ -21,11 +21,6 @@ type CustomerAuthContextValue = {
 const CustomerAuthContext = createContext<CustomerAuthContextValue | null>(null);
 
 function getRole(user: User | null) {
-  const metadataRole = user?.user_metadata?.role;
-  if (typeof metadataRole === "string" && metadataRole.trim()) {
-    return metadataRole.trim().toLowerCase();
-  }
-
   const appRole = user?.app_metadata?.role;
   if (typeof appRole === "string" && appRole.trim()) {
     return appRole.trim().toLowerCase();

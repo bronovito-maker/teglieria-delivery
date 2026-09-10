@@ -1,4 +1,6 @@
 "use client";
+import { formatPizzaVariant } from "@/lib/pizza-builder";
+import AllergenBadges from "@/components/client/AllergenBadges";
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -25,14 +27,10 @@ export default function CartDrawer({ open, onClose }: Props) {
   useEffect(() => {
     if (!open) return;
 
-    const previousOverflow = document.body.style.overflow;
-    const previousOverscrollBehavior = document.body.style.overscrollBehavior;
-    document.body.style.overflow = "hidden";
-    document.body.style.overscrollBehavior = "none";
+    document.body.classList.add("cart-open-lock");
 
     return () => {
-      document.body.style.overflow = previousOverflow;
-      document.body.style.overscrollBehavior = previousOverscrollBehavior;
+      document.body.classList.remove("cart-open-lock");
     };
   }, [open]);
 
@@ -58,17 +56,18 @@ export default function CartDrawer({ open, onClose }: Props) {
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
                       <p className="font-brand text-sm font-semibold text-charcoal">{item.productName}</p>
+                      <AllergenBadges info={item.allergenInfo} />
                       {(item.variant || item.additions.length > 0 || item.removals.length > 0) && (
                         <p className="mt-1 line-clamp-2 text-xs leading-snug text-charcoal/45">
-                          {[item.variant, item.additions.length > 0 ? `+ ${item.additions.map((a) => a.name).join(", ")}` : "", item.removals.length > 0 ? `− ${item.removals.map((r) => r.name).join(", ")}` : ""].filter(Boolean).join(" · ")}
+                          {[formatPizzaVariant(item.variant), item.additions.length > 0 ? `+ ${item.additions.map((a) => a.name).join(", ")}` : "", item.removals.length > 0 ? `− ${item.removals.map((r) => r.name).join(", ")}` : ""].filter(Boolean).join(" · ")}
                         </p>
                       )}
                     </div>
                     <p className="shrink-0 font-brand text-sm font-semibold">{formatCurrency(item.totalPrice)}</p>
                   </div>
-                  {(item.standardUnitPrice ?? item.unitPrice) > item.unitPrice && (
+                  {(item.standardUnitPrice ?? item.unitPrice) * item.quantity > item.totalPrice && (
                     <p className="mt-1 text-right text-[10px] font-brand font-semibold text-green-700">
-                      Risparmi {formatCurrency(((item.standardUnitPrice ?? item.unitPrice) - item.unitPrice) * item.quantity)} con Club
+                      Risparmi {formatCurrency((item.standardUnitPrice ?? item.unitPrice) * item.quantity - item.totalPrice)} con Club
                     </p>
                   )}
                   <div className="mt-2.5 flex items-center justify-between">

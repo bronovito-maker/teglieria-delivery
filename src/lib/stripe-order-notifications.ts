@@ -39,13 +39,13 @@ async function createGuestAccountLink(order: StripeOrderWithItems): Promise<stri
   }
 }
 
-function getTrackingUrl(order: StripeOrderWithItems): string | null {
+async function getTrackingUrl(order: StripeOrderWithItems): Promise<string | null> {
   const siteUrl = getStripeSiteUrl();
   if (!siteUrl) return null;
 
   try {
-    const token = createOrderStatusToken(order.id, order.createdAt);
-    return `${siteUrl}/stato-ordine/${order.id}?token=${encodeURIComponent(token)}`;
+    const token = await createOrderStatusToken(order.id);
+    return `${siteUrl}/stato-ordine/${order.id}#token=${encodeURIComponent(token)}`;
   } catch (error) {
     console.error("[STRIPE EMAIL] Link tracking non generato", {
       orderId: order.id,
@@ -92,7 +92,7 @@ async function sendFailedOrderPaymentEmail(orderId: string): Promise<void> {
     customerName: order.customerName,
     orderNumber: order.orderNumber,
     total: Number(order.total),
-    retryUrl: getTrackingUrl(order),
+    retryUrl: await getTrackingUrl(order),
   });
 }
 

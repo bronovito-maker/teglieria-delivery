@@ -9,6 +9,10 @@
 # testing
 /coverage
 /test-results
+/tmp/
+
+# local AI/tool scratch
+/.deepseek/
 
 # next.js
 /.next/

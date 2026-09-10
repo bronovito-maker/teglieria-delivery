@@ -7,6 +7,7 @@ import CustomerAuthProvider from "@/components/client/CustomerAuthProvider";
 import ZirelWidgetHomeOnly from "@/components/client/ZirelWidgetHomeOnly";
 import { Analytics } from "@vercel/analytics/react";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { headers } from "next/headers";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -119,15 +120,16 @@ export const viewport: Viewport = {
   themeColor: "#D96A2B",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html lang="it">
       <body className={`${manrope.className} ${manrope.variable} ${epilogue.variable} ${epilogueLogo.variable} antialiased`} data-gramm="false" data-gramm_editor="false">
-        <Script id="facebook-pixel" strategy="afterInteractive">
+        <Script id="facebook-pixel" strategy="afterInteractive" nonce={nonce}>
           {`
             !function(f,b,e,v,n,t,s)
             {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -145,7 +147,7 @@ export default function RootLayout({
           <img
             height="1"
             width="1"
-            style={{ display: "none" }}
+            className="hidden"
             src="https://www.facebook.com/tr?id=955909697258843&ev=PageView&noscript=1"
             alt=""
           />

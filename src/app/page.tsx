@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 import MobileTopBar from "@/components/client/MobileTopBar";
 import { SITE_CONFIG, toPhoneHref } from "@/lib/site-config";
+import { safeJsonLd } from "@/lib/json-ld";
 
 const reviews = [
   {
@@ -61,8 +62,8 @@ export default function LandingPage() {
   return (
     <main className="min-h-screen bg-warm-light text-charcoal selection:bg-marigold/30">
       <MobileTopBar />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(restaurantSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(restaurantSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
 
       <section id="ordina" className="mx-auto flex min-h-[32rem] max-w-3xl flex-col items-center px-5 pb-16 pt-28 text-center sm:min-h-[36rem] sm:pt-36">
         <span className="ds-micro-label rounded-full border border-terracotta/15 bg-white/40 px-4 py-2 text-terracotta/70">Livorno · Scopaia</span>
@@ -169,6 +170,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-4">
             {SITE_CONFIG.social.instagram && <a href={SITE_CONFIG.social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="font-bold transition-colors hover:text-terracotta">IG</a>}
             {SITE_CONFIG.social.facebook && <a href={SITE_CONFIG.social.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="font-bold transition-colors hover:text-terracotta">FB</a>}
+            <Link href="/allergeni" className="transition-colors hover:text-terracotta">Allergeni</Link>
             <Link href="/privacy" className="transition-colors hover:text-terracotta">Privacy</Link>
             <Link href="/cookie-policy" className="transition-colors hover:text-terracotta">Cookie</Link>
           </div>

@@ -1,17 +1,20 @@
+import { readRegistry } from "@/lib/allergens/server";
+import { productResult, pizzaAllergens, snapshot } from "@/lib/allergens/core";
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getUserRole, isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
+import { isOperatorUser } from "@/lib/rbac";
 import { createOrderSchema, generateOrderCode, orderStatusSchema, orderTypeSchema, toNullableJson } from "@/lib/validation/orders";
 import { createOrderStatusToken } from "@/lib/order-status-token";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
-import { enforceSameOrigin } from "@/lib/request-security";
+import { enforceSameOrigin, getTrustedSiteOrigin } from "@/lib/request-security";
 import { getStripe, getStripeErrorContext, getStripeSiteUrl } from "@/lib/stripe";
 import { calculateDeliveryFee, getItalianTimeSlot, isOrderTimeAllowed, MIN_ORDER_SUBTOTAL } from "@/lib/constants";
 import { calculatePizzaConfiguration, type PizzaBuilderSelection } from "@/lib/pizza-builder";
+import { toCustomerOrderView } from "@/lib/order-views";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -34,17 +37,17 @@ export async function GET(request: Request) {
     where.createdAt = { gte: start, lt: end };
   }
 
-  // Lightweight count-only query (used for repeat customer check) — public
-  if (countOnly) {
-    const count = await prisma.order.count({ where });
-    return NextResponse.json({ count });
-  }
-
-  // Full order list requires admin auth
+  // Both full order lists and repeat-customer counts contain operational data
+  // and require operator authorization.
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
-  if (isAdminRbacStrictEnabled() && !isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
+  if (!isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
+
+  if (countOnly) {
+    const count = await prisma.order.count({ where });
+    return NextResponse.json({ count }, { headers: { "Cache-Control": "private, no-store" } });
+  }
 
   const orders = await prisma.order.findMany({
     where,
@@ -55,7 +58,7 @@ export async function GET(request: Request) {
       statusHistory: { orderBy: { createdAt: "asc" } },
     },
   });
-  return NextResponse.json(orders);
+  return NextResponse.json(orders, { headers: { "Cache-Control": "private, no-store" } });
 }
 
 export async function POST(request: Request) {
@@ -100,8 +103,7 @@ export async function POST(request: Request) {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    const role = getUserRole(user);
-    isOperator = Boolean(user && (role === "rider" || isOperatorUser(user)));
+    isOperator = Boolean(user && isOperatorUser(user));
     if (user && !isOperator) {
       authUserId = user.id;
       pricingAuthUserId = user.id;
@@ -186,6 +188,7 @@ export async function POST(request: Request) {
           validPizzaFlavorKeys.add(`${flavorProduct.category.name}:${flavorProduct.name}`);
         }
       }
+      const allergenRegistry = await readRegistry(tx);
       const authoritativeItems = body.items.map((item) => {
         const product = productsById.get(item.productId)!;
         if (product.configuration) {
@@ -199,7 +202,7 @@ export async function POST(request: Request) {
           try { calculated = calculatePizzaConfiguration(selection); } catch { throw new Error("INVALID_CART_PRICE"); }
           const priceMismatch = Math.abs(item.unitPrice - calculated.total) > 0.01 || Math.abs(item.totalPrice - calculated.total * item.quantity) > 0.01;
           if (priceMismatch) throw new Error("INVALID_CART_PRICE");
-          return { ...item, productName: product.name, unitPrice: calculated.total, totalPrice: calculated.total * item.quantity, additions: calculated.additions, variant: JSON.stringify(selection) };
+          return { ...item, allergenSnapshot: snapshot(allergenRegistry, pizzaAllergens(allergenRegistry.graph, selection)), productName: product.name, unitPrice: calculated.total, totalPrice: calculated.total * item.quantity, additions: calculated.additions, variant: JSON.stringify(selection) };
         }
         const basePrice = pricingAuthUserId && product.clubPrice != null ? Number(product.clubPrice) : Number(product.price);
         const variant = item.variant ? product.variants.find((candidate) => candidate.name === item.variant) : null;
@@ -215,7 +218,7 @@ export async function POST(request: Request) {
         if (priceMismatch && !pricingAuthUserId) {
           throw new Error("INVALID_CART_PRICE");
         }
-        return { ...item, productName: product.name, unitPrice: expectedUnitPrice, totalPrice: expectedUnitPrice * item.quantity, additions: authoritativeAdditions };
+        return { ...item, allergenSnapshot: snapshot(allergenRegistry, productResult(allergenRegistry.graph, product.id, authoritativeAdditions.map(a => a.name), (item.removals ?? []).map(r => r.name), item.variant)), productName: product.name, unitPrice: expectedUnitPrice, totalPrice: expectedUnitPrice * item.quantity, additions: authoritativeAdditions };
       });
       const authoritativeSubtotal = authoritativeItems.reduce((sum, item) => sum + item.totalPrice, 0);
       if (authoritativeSubtotal < MIN_ORDER_SUBTOTAL) throw new Error("MIN_ORDER_NOT_REACHED");
@@ -245,6 +248,7 @@ export async function POST(request: Request) {
           items: {
             createMany: {
               data: authoritativeItems.map((item) => ({
+                allergenSnapshot: item.allergenSnapshot as unknown as Prisma.InputJsonValue,
                 productId: item.productId,
                 productName: item.productName,
                 quantity: item.quantity,
@@ -358,13 +362,20 @@ export async function POST(request: Request) {
         if (existingSession.status === "open" && existingSession.url) checkoutUrl = existingSession.url;
       }
       if (checkoutUrl) {
-        return NextResponse.json({ ...order, checkoutUrl, statusAccessToken: createOrderStatusToken(order.id, order.createdAt) }, { status: 200 });
+        return NextResponse.json({
+          ...toCustomerOrderView(order),
+          checkoutUrl,
+          statusAccessToken: await createOrderStatusToken(order.id),
+        }, { status: 200, headers: { "Cache-Control": "private, no-store" } });
       }
       if (orderWasReused && order.paymentStatus === "FAILED") {
         await prisma.order.update({ where: { id: order.id }, data: { paymentStatus: "PENDING" } });
       }
-      const siteUrl = getStripeSiteUrl(new URL(request.url).origin);
-      const statusToken = createOrderStatusToken(order.id, order.createdAt);
+      const siteUrl = getStripeSiteUrl(getTrustedSiteOrigin(request) ?? undefined);
+      if (!siteUrl) {
+        return NextResponse.json({ error: "URL del sito non configurato" }, { status: 500 });
+      }
+      const statusToken = await createOrderStatusToken(order.id);
       const session = await getStripe().checkout.sessions.create({
         mode: "payment",
         managed_payments: { enabled: false },
@@ -393,8 +404,8 @@ export async function POST(request: Request) {
           : {}),
         metadata: { orderId: order.id },
         payment_intent_data: { metadata: { orderId: order.id } },
-        success_url: `${siteUrl}/stato-ordine/${order.id}?token=${encodeURIComponent(statusToken)}&payment=success`,
-        cancel_url: `${siteUrl}/stato-ordine/${order.id}?token=${encodeURIComponent(statusToken)}&payment=cancelled`,
+        success_url: `${siteUrl}/stato-ordine/${order.id}#token=${encodeURIComponent(statusToken)}`,
+        cancel_url: `${siteUrl}/stato-ordine/${order.id}#token=${encodeURIComponent(statusToken)}`,
       });
       checkoutUrl = session.url;
       await prisma.order.update({
@@ -409,10 +420,10 @@ export async function POST(request: Request) {
 
   return NextResponse.json(
     {
-      ...order,
+      ...toCustomerOrderView(order),
       checkoutUrl,
-      statusAccessToken: createOrderStatusToken(order.id, order.createdAt),
+      statusAccessToken: await createOrderStatusToken(order.id),
     },
-    { status: 201 }
+    { status: 201, headers: { "Cache-Control": "private, no-store" } }
   );
 }

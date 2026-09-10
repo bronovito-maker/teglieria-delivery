@@ -84,7 +84,8 @@ export const DELIVERY_STATUS_LABELS: Record<string, string> = {
 export const ORDER_STATUS_TRANSITIONS: Record<string, Record<string, string[]>> = {
   DELIVERY: {
     RECEIVED: ["CONFIRMED", "CANCELLED"],
-    CONFIRMED: ["READY", "CANCELLED"],
+    CONFIRMED: ["PREPARING", "READY", "CANCELLED"],
+    PREPARING: ["READY", "CANCELLED"],
     READY: ["OUT", "CANCELLED"],
     OUT: ["DELIVERED"],
     DELIVERED: [],
@@ -92,13 +93,31 @@ export const ORDER_STATUS_TRANSITIONS: Record<string, Record<string, string[]>> 
   },
   ASPORTO: {
     RECEIVED: ["CONFIRMED", "CANCELLED"],
-    CONFIRMED: ["READY", "CANCELLED"],
+    CONFIRMED: ["PREPARING", "READY", "CANCELLED"],
+    PREPARING: ["READY", "CANCELLED"],
     READY: ["DELIVERED", "CANCELLED"],
     DELIVERED: [],
     CANCELLED: [],
   },
 };
 
+export const DELIVERY_STATUS_TRANSITIONS: Record<string, string[]> = {
+  ASSIGNED: ["PICKED_UP", "EN_ROUTE"],
+  PICKED_UP: ["EN_ROUTE"],
+  EN_ROUTE: ["DELIVERED"],
+  DELIVERED: [],
+};
+
 export function getStatusTransitions(type: string, status: string): string[] {
   return ORDER_STATUS_TRANSITIONS[type]?.[status] ?? ORDER_STATUS_TRANSITIONS.DELIVERY[status] ?? [];
+}
+
+export function canTransitionOrderStatus(type: string, current: string, requested: string): boolean {
+  return current === requested || getStatusTransitions(type, current).includes(requested);
+}
+
+export function canTransitionDeliveryStatus(current: string | null, requested: string): boolean {
+  if (current === requested) return true;
+  if (current === null) return requested === "ASSIGNED" || requested === "EN_ROUTE";
+  return DELIVERY_STATUS_TRANSITIONS[current]?.includes(requested) ?? false;
 }

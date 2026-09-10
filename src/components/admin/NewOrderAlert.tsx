@@ -125,9 +125,9 @@ export default function NewOrderAlert() {
     setIsRepeatCustomer(false);
 
     if (order.customerPhone) {
-      fetch(`/api/ordini?phone=${encodeURIComponent(order.customerPhone)}&countOnly=1`)
-        .then((r) => r.json())
-        .then(({ count }: { count: number }) => setIsRepeatCustomer(count > 1))
+      fetch(`/api/ordini?phone=${encodeURIComponent(order.customerPhone)}`)
+        .then((r) => r.ok ? r.json() : [])
+        .then((orders: OrderWithItems[]) => setIsRepeatCustomer(orders.length > 1))
         .catch(() => {});
     }
   }

@@ -75,7 +75,10 @@ export async function rateLimit(key: string, max: number, windowMs: number) {
     if (current > max) return { ok: false, remaining: 0 };
     return { ok: true, remaining: Math.max(0, max - current) };
   } catch {
-    // Fail-safe: fallback in-memory to avoid taking down requests.
-    return rateLimitInMemory(key, max, windowMs);
+    // A configured distributed limiter must fail closed. Falling back to a
+    // per-process bucket would let an attacker bypass the limit by reaching
+    // another application instance. Without Upstash configured, the explicit
+    // development fallback above is still used.
+    return { ok: false, remaining: 0 };
   }
 }

@@ -10,26 +10,22 @@ export async function GET() {
     return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
   }
 
-  let rider = await prisma.rider.findUnique({
-    where: { authUserId: user.id },
+  const rider = await prisma.rider.findFirst({
+    where: { authUserId: user.id, active: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      vehicle: true,
+      zone: true,
+      active: true,
+    },
   });
-
-  // Fallback: cerca per email e lega authUserId se mancante
-  if (!rider && user.email) {
-    const byEmail = await prisma.rider.findFirst({
-      where: { email: user.email, authUserId: null },
-    });
-    if (byEmail) {
-      rider = await prisma.rider.update({
-        where: { id: byEmail.id },
-        data: { authUserId: user.id },
-      });
-    }
-  }
 
   if (!rider) {
     return NextResponse.json({ error: "Rider not found" }, { status: 404 });
   }
 
-  return NextResponse.json(rider);
+  return NextResponse.json(rider, { headers: { "Cache-Control": "private, no-store" } });
 }

@@ -4,6 +4,7 @@ const BASE_URL = "https://www.lateglieria.it";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
+    { url: `${BASE_URL}/allergeni`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     {
       url: BASE_URL,
       lastModified: new Date(),

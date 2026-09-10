@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
+import { safeJsonLd } from "@/lib/json-ld";
 import CartDrawer from "@/components/client/CartDrawer";
 import ProductModal from "@/components/client/ProductModal";
 import type { PizzaMenuFlavorOption } from "@/components/client/PizzaBuilderModal";
@@ -176,7 +177,7 @@ function MenuContent() {
   return (
     <div className="mx-auto min-h-screen max-w-4xl bg-warm-light pb-32">
       {categories.length > 0 && (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(menuSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(menuSchema) }} />
       )}
       {/* HEADER SECTION */}
       <div className="flex flex-col items-center px-6 pb-12 pt-10 text-center sm:pb-14 sm:pt-16">
@@ -211,7 +212,6 @@ function MenuContent() {
           <div
             ref={navRef}
             className="flex justify-start gap-2 overflow-x-auto px-4 py-3 no-scrollbar snap-x snap-mandatory"
-            style={{ scrollbarWidth: "none" }}
           >
             {categories.map((cat) => {
               const isActive = activeCategory === `cat-${cat.id}`;
@@ -255,16 +255,15 @@ function MenuContent() {
               const isBeverageCategory = cat.name === "Bevande analcoliche" || cat.name === "Birre";
               const isZoomedParma = (cat.name === "Teglie" || cat.name === "Mezze teglie") && product.name === "La Parma";
               return (
-                <button
+                <article
                 key={product.id}
                 onClick={() => setSelectedProduct(product)}
-                className="reveal group relative flex min-h-[7.5rem] items-center justify-between rounded-[1.5rem] border border-charcoal/5 bg-white px-5 py-5 text-left shadow-[0_8px_20px_rgba(26,26,26,0.025)] transition-all hover:border-terracotta/20 hover:shadow-lg sm:px-6 sm:py-6"
-                style={{ transitionDelay: `${pIdx * 50}ms` }}
+                className={`reveal menu-reveal-delay-${Math.min(pIdx, 9)} group relative flex min-h-[7.5rem] items-center justify-between rounded-[1.5rem] border border-charcoal/5 bg-white px-5 py-5 text-left shadow-[0_8px_20px_rgba(26,26,26,0.025)] transition-all hover:border-terracotta/20 hover:shadow-lg sm:px-6 sm:py-6`}
               >
                 {/* Subtle Hover Gradient */}
                 <div className="absolute inset-0 bg-gradient-to-br from-terracotta/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                 {product.imageUrl && (
-                  <div className={`relative mr-4 h-24 w-24 shrink-0 overflow-hidden rounded-2xl sm:h-28 sm:w-28 ${isBeverageCategory ? "bg-charcoal/[.04] p-1.5" : ""}`}>
+                  <div className={`relative mr-3 h-16 w-16 shrink-0 overflow-hidden rounded-2xl sm:h-28 sm:w-28 ${isBeverageCategory ? "bg-charcoal/[.04] p-1.5" : ""}`}>
                     <Image
                       src={product.imageUrl}
                       alt=""
@@ -274,10 +273,10 @@ function MenuContent() {
                     />
                   </div>
                 )}
-                <div className="flex-1 relative z-10 pr-3">
-                  <div className="mb-1.5 flex items-center gap-2.5">
+                <div className="min-w-0 flex-1 relative z-10 pr-1 sm:pr-3">
+                  <div className="mb-1.5 flex flex-wrap items-center gap-2.5">
                     <h3 className="font-display text-[1.45rem] leading-[.96] tracking-tight text-charcoal transition-colors group-hover:text-terracotta sm:text-[1.85rem]">
-                      {product.name}
+                      <button type="button" aria-label={`Apri ${product.name}`} onClick={() => setSelectedProduct(product)} className="text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-terracotta">{product.name}</button>
                     </h3>
                     {pIdx === 0 && (
                       <span className="px-2 py-0.5 rounded-full bg-marigold/10 text-marigold text-[8px] font-brand font-bold uppercase tracking-widest border border-marigold/20">
@@ -304,18 +303,19 @@ function MenuContent() {
                   </div>
                 </div>
 
-                <div className="relative z-10 flex shrink-0 flex-col items-end justify-center gap-2.5 pl-3">
+                <div className="relative z-10 flex shrink-0 flex-col items-end justify-center gap-2.5 pl-1 sm:pl-3">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-charcoal/5 text-charcoal/40 shadow-sm transition-all group-hover:bg-terracotta group-hover:text-white active:scale-90 sm:h-10 sm:w-10">
                     <span className="text-xl font-light">+</span>
                   </div>
                 </div>
-                </button>
+                </article>
               );
             })}
           </div>
         </div>
       ))}
 
+      <div className="px-6 py-4"><a href="/allergeni" className="underline">Legenda e registro allergeni · Stampa / Salva PDF</a></div>
       {isLoading && (
         <div className="px-6 pb-20">
           <div className="grid gap-6">

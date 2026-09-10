@@ -46,6 +46,7 @@ function sameCartConfiguration(
 ): boolean {
   return (
     existing.productId === incoming.productId &&
+    JSON.stringify(existing.allergenInfo) === JSON.stringify(incoming.allergenInfo) &&
     existing.unitPrice === incoming.unitPrice &&
     (existing.variant ?? "") === (incoming.variant ?? "") &&
     existing.variantPriceDelta === incoming.variantPriceDelta &&
@@ -136,7 +137,7 @@ export const useCartStore = create<CartStore>()(
       getClubSavings: () =>
         get().items.reduce((sum, item) => {
           const standardPrice = item.standardUnitPrice ?? item.unitPrice;
-          return sum + Math.max(0, standardPrice - item.unitPrice) * item.quantity;
+          return sum + Math.max(0, standardPrice * item.quantity - item.totalPrice);
         }, 0),
 
       getItemCount: () =>

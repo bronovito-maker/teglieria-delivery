@@ -50,5 +50,5 @@ export async function GET() {
     include: { items: true },
   });
 
-  return NextResponse.json(orders.map(mapOrder));
+  return NextResponse.json(orders.map(mapOrder), { headers: { "Cache-Control": "private, no-store" } });
 }

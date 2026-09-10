@@ -13,8 +13,10 @@ export default function RiderOrderPage() {
   const supabase = useMemo(() => createClient(), []);
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [riderId, setRiderId] = useState<string | null>(null);
   const [riderVehicle, setRiderVehicle] = useState<"BIKE" | "SCOOTER" | "CAR" | null>(null);
   const [eventNote, setEventNote] = useState("");
   const [eventLoading, setEventLoading] = useState(false);
@@ -32,6 +34,9 @@ export default function RiderOrderPage() {
     if (res.ok) {
       const data = await res.json();
       setOrder(data);
+      setLoadError(false);
+    } else {
+      setLoadError(true);
     }
     setLoading(false);
   }, [id]);
@@ -49,6 +54,7 @@ export default function RiderOrderPage() {
           const profileRes = await fetch("/api/rider/profile");
           if (profileRes.ok) {
             const profile = await profileRes.json();
+            if (profile?.id) setRiderId(profile.id);
             if (profile?.vehicle) setRiderVehicle(profile.vehicle);
           }
         } catch {}
@@ -62,43 +68,6 @@ export default function RiderOrderPage() {
       if (interval) clearInterval(interval);
     };
   }, [fetchOrder, id, router, supabase]);
-
-  async function handleAssign() {
-    if (!user) return;
-    setAssigning(true);
-    
-    const riderRes = await fetch("/api/rider/profile");
-    if (!riderRes.ok) {
-      alert("Profilo rider non trovato.");
-      setAssigning(false);
-      return;
-    }
-    const rider = await riderRes.json();
-
-    const payload: Record<string, string> = {
-      riderId: rider.id,
-      statusNote: "[RIDER] Presa in carico ordine",
-    };
-    if (order.status === "READY") {
-      payload.status = "OUT";
-      payload.deliveryStatus = "EN_ROUTE";
-    } else {
-      payload.deliveryStatus = "ASSIGNED";
-    }
-
-    const res = await fetch(`/api/ordini/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (res.ok) {
-      fetchOrder();
-    } else {
-      alert("Errore durante l'assegnazione.");
-    }
-    setAssigning(false);
-  }
 
   async function handleStartDelivery() {
     setAssigning(true);
@@ -156,7 +125,7 @@ export default function RiderOrderPage() {
   }
 
   if (loading) return <div className="p-8 text-center text-gray-500 font-brand uppercase tracking-widest text-xs">Caricamento ordine...</div>;
-  if (!order) return <div className="p-8 text-center text-terracotta font-brand font-semibold uppercase tracking-widest text-xs">Ordine non trovato o non disponibile.</div>;
+  if (!order) return <div className="p-8 text-center text-terracotta font-brand font-semibold uppercase tracking-widest text-xs">{loadError ? "Ordine non disponibile o non assegnato a questo rider." : "Ordine non trovato o non disponibile."}</div>;
 
   return (
     <div className="rider-layout min-h-screen bg-warm-light pb-28 pt-8 px-4 animate-in fade-in duration-700">
@@ -241,22 +210,14 @@ export default function RiderOrderPage() {
           {order.riderId ? (
             <div className="bg-white/50 backdrop-blur-xl rounded-[2.5rem] p-8 text-center border border-charcoal/5 shadow-sm">
               <p className="text-[10px] font-brand font-semibold uppercase tracking-[0.2em] text-charcoal/60">
-                {order.rider?.authUserId === user?.id 
+                {order.riderId === riderId
                   ? "Consegna correttamente assegnata a te" 
                   : `In carico a: ${order.rider?.name}`}
               </p>
             </div>
-          ) : (
-            <button
-              onClick={handleAssign}
-              disabled={assigning}
-              className="w-full py-8 bg-charcoal text-white rounded-[2.5rem] font-brand font-semibold uppercase tracking-[0.24em] text-xs shadow-2xl shadow-charcoal/30 active:scale-95 transition-all disabled:opacity-50"
-            >
-              {assigning ? "Registrazione..." : "Accetta Consegna"}
-            </button>
-          )}
+          ) : null}
 
-          {order.rider?.authUserId === user?.id && order.status === "READY" && (
+          {order.riderId === riderId && order.status === "READY" && (
             <button
               onClick={handleStartDelivery}
               disabled={assigning}
@@ -266,7 +227,7 @@ export default function RiderOrderPage() {
             </button>
           )}
 
-          {order.rider?.authUserId === user?.id && order.status === "OUT" && (
+          {order.riderId === riderId && order.status === "OUT" && (
             <button
               onClick={handleDelivered}
               disabled={assigning}
@@ -277,7 +238,7 @@ export default function RiderOrderPage() {
           )}
         </div>
 
-        {order.rider?.authUserId === user?.id && order.status !== "DELIVERED" && (
+        {order.riderId === riderId && order.status !== "DELIVERED" && (
           <div className="bg-white/70 backdrop-blur-2xl rounded-[3rem] border border-charcoal/5 shadow-2xl overflow-hidden reveal active">
              <div className="px-10 py-6 border-b border-charcoal/5 bg-warm-light/20">
                 <h2 className="text-[9px] font-brand font-semibold uppercase tracking-[0.2em] text-charcoal">Report Operativo</h2>

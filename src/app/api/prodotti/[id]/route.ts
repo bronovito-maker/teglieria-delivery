@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
-import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
+import { isOperatorUser } from "@/lib/rbac";
 import { productPatchSchema } from "@/lib/validation/catalog";
 import { enforceSameOrigin } from "@/lib/request-security";
 import { syncStripeCatalogProduct } from "@/lib/stripe-catalog";
@@ -11,6 +11,11 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
+  if (!isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
+
   const { id } = await params;
   const product = await prisma.product.findUnique({
     where: { id },
@@ -37,7 +42,7 @@ export async function PATCH(
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
-  if (isAdminRbacStrictEnabled() && !isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
+  if (!isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
 
   const parsed = productPatchSchema.safeParse(await request.json());
   if (!parsed.success) {
@@ -110,7 +115,7 @@ export async function DELETE(
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
-  if (isAdminRbacStrictEnabled() && !isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
+  if (!isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
 
   const product = await prisma.product.findUnique({
     where: { id },

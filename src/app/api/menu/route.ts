@@ -1,13 +1,18 @@
+import { readRegistry } from "@/lib/allergens/server";
+import { productResult, snapshot } from "@/lib/allergens/core";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
-import { getUserRole, isOperatorUser } from "@/lib/rbac";
+import { isOperatorUser } from "@/lib/rbac";
 
 export async function GET() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const role = getUserRole(user);
-  const isClubMember = Boolean(user && role !== "rider" && !isOperatorUser(user));
+  const rider = user
+    ? await prisma.rider.findFirst({ where: { authUserId: user.id, active: true }, select: { id: true } })
+    : null;
+  const isClubMember = Boolean(user && !rider && !isOperatorUser(user));
+  const allergenRegistry = await readRegistry();
   const categories = await prisma.category.findMany({
     where: { active: true },
     orderBy: { sortOrder: "asc" },
@@ -55,6 +60,8 @@ export async function GET() {
     ...category,
     products: category.products.map((product) => ({
       ...product,
+      allergenInfo: snapshot(allergenRegistry, productResult(allergenRegistry.graph, product.id)),
+      allergenRegistry,
       standardPrice: product.price,
       isClubPrice: isClubMember && product.clubPrice != null,
       price: isClubMember && product.clubPrice != null ? product.clubPrice : product.price,

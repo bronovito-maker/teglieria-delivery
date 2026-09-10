@@ -12,22 +12,9 @@ export async function GET() {
     return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
   }
 
-  let rider = await prisma.rider.findUnique({
-    where: { authUserId: user.id },
+  const rider = await prisma.rider.findFirst({
+    where: { authUserId: user.id, active: true },
   });
-
-  // Fallback: se authUserId non è ancora collegato, cerca per email e lo lega
-  if (!rider && user.email) {
-    const byEmail = await prisma.rider.findFirst({
-      where: { email: user.email, authUserId: null },
-    });
-    if (byEmail) {
-      rider = await prisma.rider.update({
-        where: { id: byEmail.id },
-        data: { authUserId: user.id },
-      });
-    }
-  }
 
   if (!rider) {
     return NextResponse.json({ error: "Rider not found" }, { status: 404 });
@@ -57,8 +44,28 @@ export async function GET() {
       ],
     },
     orderBy: [{ pickupTime: "asc" }, { createdAt: "asc" }],
-    include: { rider: true },
+    select: {
+      id: true,
+      orderNumber: true,
+      orderCode: true,
+      type: true,
+      status: true,
+      deliveryStatus: true,
+      address: true,
+      addressDetail: true,
+      deliveryZone: true,
+      customerName: true,
+      customerPhone: true,
+      estimatedTime: true,
+      actualTime: true,
+      pickupTime: true,
+      total: true,
+      notes: true,
+      riderId: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
 
-  return NextResponse.json(orders);
+  return NextResponse.json(orders, { headers: { "Cache-Control": "private, no-store" } });
 }

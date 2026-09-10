@@ -1,4 +1,5 @@
 import { BrevoClient, BrevoEnvironment } from "@getbrevo/brevo";
+import { escapeHtml, safeHttpUrl } from "@/lib/html";
 
 const FROM_EMAIL = "ordini@lateglieria.it";
 const FROM_NAME = "La Teglieria";
@@ -87,12 +88,13 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmationInput):
   const paymentLabel = order.paymentMethod === "STRIPE"
     ? "Carta online (Stripe)"
     : order.paymentMethod === "POS" ? "Carta / POS" : "Contanti";
+  const accountLink = safeHttpUrl(order.accountLink);
 
   const itemsHtml = order.items.map((item) => `
     <tr>
       <td style="padding:10px 0;border-bottom:1px solid #f5f0e8;color:#1d1d1f;font-size:14px;">
-        <span style="color:#D96A2B;font-weight:700;">${item.quantity}×</span> ${item.productName}
-        ${item.variant ? `<br/><span style="font-size:12px;color:#1d1d1f;opacity:0.4;">${item.variant}</span>` : ""}
+        <span style="color:#D96A2B;font-weight:700;">${escapeHtml(item.quantity)}×</span> ${escapeHtml(item.productName)}
+        ${item.variant ? `<br/><span style="font-size:12px;color:#1d1d1f;opacity:0.4;">${escapeHtml(item.variant)}</span>` : ""}
       </td>
       <td style="padding:10px 0;border-bottom:1px solid #f5f0e8;text-align:right;font-weight:600;color:#1d1d1f;font-size:14px;white-space:nowrap;">
         ${formatCurrency(Number(item.totalPrice))}
@@ -102,7 +104,7 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmationInput):
 
   const content = `
     <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">${paymentConfirmed ? "Pagamento Ricevuto" : "Ordine Ricevuto"}</p>
-    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Grazie, ${order.customerName}!</h1>
+    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Grazie, ${escapeHtml(order.customerName)}!</h1>
     <p style="margin:0 0 24px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">${paymentConfirmed ? "Il pagamento è andato a buon fine e il tuo ordine è confermato. Ecco il riepilogo:" : "Abbiamo ricevuto il tuo ordine — ti confermiamo a breve. Ecco il riepilogo:"}</p>
 
     <div style="background:#f5f0e8;border-radius:16px;padding:16px 20px;margin-bottom:24px;text-align:center;">
@@ -144,7 +146,7 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmationInput):
         ${isDelivery && order.address ? `
         <tr>
           <td style="padding:5px 0;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Indirizzo</td>
-          <td style="padding:5px 0;font-size:13px;font-weight:600;color:#1d1d1f;">${order.address}</td>
+          <td style="padding:5px 0;font-size:13px;font-weight:600;color:#1d1d1f;">${escapeHtml(order.address)}</td>
         </tr>` : ""}
         <tr>
           <td style="padding:5px 0;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Pagamento</td>
@@ -157,11 +159,11 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmationInput):
       ${paymentConfirmed ? "Ti invieremo un aggiornamento quando il tuo ordine sarà in preparazione." : "Ti invieremo un aggiornamento quando il tuo ordine sarà in consegna."}
     </p>
 
-    ${order.accountLink ? `
+    ${accountLink ? `
     <div style="margin-top:28px;padding-top:24px;border-top:1px solid #f5f0e8;text-align:center;">
       <p style="margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;color:#1d1d1f;opacity:0.35;">Riordina in 10 secondi la prossima volta</p>
       <p style="margin:0 0 16px;font-size:13px;color:#1d1d1f;opacity:0.5;">I tuoi dati sono già salvati — clicca e sei dentro.</p>
-      <a href="${order.accountLink}" style="display:inline-block;padding:14px 32px;background:#D96A2B;color:#ffffff;text-decoration:none;border-radius:99px;font-size:12px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;">
+      <a href="${accountLink}" style="display:inline-block;padding:14px 32px;background:#D96A2B;color:#ffffff;text-decoration:none;border-radius:99px;font-size:12px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;">
         Attiva il tuo account →
       </a>
       <p style="margin:12px 0 0;font-size:11px;color:#1d1d1f;opacity:0.25;">Nessuna password richiesta. Un solo click.</p>
@@ -200,6 +202,7 @@ export async function sendOrderPaymentFailedEmail(order: OrderPaymentFailedInput
     return;
   }
 
+  const retryUrl = safeHttpUrl(order.retryUrl);
   const content = `
     <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">Pagamento non riuscito</p>
     <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Non siamo riusciti a completare il pagamento</h1>
@@ -212,9 +215,9 @@ export async function sendOrderPaymentFailedEmail(order: OrderPaymentFailedInput
       <p style="margin:6px 0 0;font-size:32px;font-weight:700;color:#D96A2B;">${formatCurrency(order.total)}</p>
     </div>
 
-    ${order.retryUrl ? `
+    ${retryUrl ? `
     <div style="text-align:center;margin:30px 0 28px;">
-      <a href="${order.retryUrl}" style="display:inline-block;padding:16px 34px;background:#D96A2B;color:#ffffff;text-decoration:none;border-radius:99px;font-size:13px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;">
+      <a href="${retryUrl}" style="display:inline-block;padding:16px 34px;background:#D96A2B;color:#ffffff;text-decoration:none;border-radius:99px;font-size:13px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;">
         Riprova il pagamento →
       </a>
     </div>
@@ -252,24 +255,25 @@ export async function sendRiderInviteEmail({ email, name, registerUrl }: RiderIn
     return;
   }
 
+  const safeRegisterUrl = safeHttpUrl(registerUrl);
   const content = `
     <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">Benvenuto nel Team</p>
-    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Ciao, ${name}! 🛵</h1>
+    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Ciao, ${escapeHtml(name)}! 🛵</h1>
     <p style="margin:0 0 24px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">
       Sei stato aggiunto come rider de <strong>La Teglieria</strong>. Completa la registrazione per accedere alla tua dashboard e iniziare le consegne.
     </p>
 
     <div style="text-align:center;margin-bottom:28px;">
-      <a href="${registerUrl}" style="display:inline-block;padding:16px 36px;background:#D96A2B;color:#ffffff;text-decoration:none;border-radius:99px;font-size:13px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;">
+      ${safeRegisterUrl ? `<a href="${safeRegisterUrl}" style="display:inline-block;padding:16px 36px;background:#D96A2B;color:#ffffff;text-decoration:none;border-radius:99px;font-size:13px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;">
         Completa la registrazione →
-      </a>
+      </a>` : ""}
     </div>
 
     <div style="background:#f5f0e8;border-radius:16px;padding:20px;margin-bottom:24px;">
       <p style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Come accedere</p>
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr><td style="padding:5px 0;font-size:14px;color:#1d1d1f;">1. Clicca il tasto qui sopra</td></tr>
-        <tr><td style="padding:5px 0;font-size:14px;color:#1d1d1f;">2. Inserisci <strong>${email}</strong> come email</td></tr>
+        <tr><td style="padding:5px 0;font-size:14px;color:#1d1d1f;">2. Inserisci <strong>${escapeHtml(email)}</strong> come email</td></tr>
         <tr><td style="padding:5px 0;font-size:14px;color:#1d1d1f;">3. Scegli una password</td></tr>
         <tr><td style="padding:5px 0;font-size:14px;color:#1d1d1f;">4. Accedi alla tua dashboard rider</td></tr>
       </table>
@@ -343,7 +347,7 @@ export async function sendOrderConfirmedEmail(order: OrderConfirmedInput): Promi
         ${isDelivery && order.address ? `
         <tr>
           <td style="padding:5px 0;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Indirizzo</td>
-          <td style="padding:5px 0;font-size:13px;font-weight:600;color:#1d1d1f;">${order.address}</td>
+          <td style="padding:5px 0;font-size:13px;font-weight:600;color:#1d1d1f;">${escapeHtml(order.address)}</td>
         </tr>` : ""}
       </table>
     </div>
@@ -524,18 +528,19 @@ export async function sendOrderFeedbackEmail(order: OrderFeedbackInput): Promise
   const client = getClient();
   if (!client) return;
 
+  const feedbackUrl = safeHttpUrl(order.feedbackUrl);
   const content = `
     <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">Un minuto per noi</p>
-    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Com'è andata, ${order.customerName}?</h1>
+    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Com'è andata, ${escapeHtml(order.customerName)}?</h1>
     <p style="margin:0 0 24px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">
       Ora che hai avuto modo di gustare il tuo ordine <strong>#${order.orderNumber}</strong>, ci farebbe piacere sapere com'è andata. Bastano 30 secondi: il tuo feedback ci aiuta a migliorare ogni teglia.
     </p>
 
-    <div style="text-align:center;margin:30px 0 28px;">
-      <a href="${order.feedbackUrl}" style="display:inline-block;padding:16px 34px;background:#D96A2B;color:#ffffff;text-decoration:none;border-radius:99px;font-size:13px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;">
+    ${feedbackUrl ? `<div style="text-align:center;margin:30px 0 28px;">
+      <a href="${feedbackUrl}" style="display:inline-block;padding:16px 34px;background:#D96A2B;color:#ffffff;text-decoration:none;border-radius:99px;font-size:13px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;">
         Valuta il tuo ordine →
       </a>
-    </div>
+    </div>` : ""}
 
     <p style="margin:0;font-size:12px;color:#1d1d1f;opacity:0.4;text-align:center;line-height:1.6;">
       La valutazione viene usata per le nostre statistiche interne. Se ti sei trovato bene, potrai anche lasciarci una recensione su Google.
@@ -568,7 +573,7 @@ export async function sendRiderWelcomeEmail({ email, name }: RiderWelcomeInput):
 
   const content = `
     <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">Benvenuto nel Team</p>
-    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Ciao, ${name}! 🛵</h1>
+    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Ciao, ${escapeHtml(name)}! 🛵</h1>
     <p style="margin:0 0 20px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">
       La tua registrazione come rider de La Teglieria è andata a buon fine. Sei ora parte del nostro team di consegne.
     </p>
@@ -612,7 +617,7 @@ export async function sendCustomerWelcomeEmail({ email, name }: CustomerWelcomeI
 
   const content = `
     <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">Registrazione Completata</p>
-    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Benvenuto, ${name}! 🍕</h1>
+    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Benvenuto, ${escapeHtml(name)}! 🍕</h1>
     <p style="margin:0 0 20px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">
       Il tuo account La Teglieria è pronto. Ora puoi ordinare più velocemente con i tuoi dati salvati.
     </p>
@@ -677,7 +682,7 @@ export async function sendRiderDepartedEmail(order: RiderDepartedInput): Promise
         ${order.riderName ? `
         <tr>
           <td style="padding:5px 0;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;width:40%;">Rider</td>
-          <td style="padding:5px 0;font-size:13px;font-weight:600;color:#1d1d1f;">${order.riderName}</td>
+          <td style="padding:5px 0;font-size:13px;font-weight:600;color:#1d1d1f;">${escapeHtml(order.riderName)}</td>
         </tr>` : ""}
         ${timeLabel ? `
         <tr>
@@ -687,7 +692,7 @@ export async function sendRiderDepartedEmail(order: RiderDepartedInput): Promise
         ${order.address ? `
         <tr>
           <td style="padding:5px 0;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Indirizzo</td>
-          <td style="padding:5px 0;font-size:13px;font-weight:600;color:#1d1d1f;">${order.address}</td>
+          <td style="padding:5px 0;font-size:13px;font-weight:600;color:#1d1d1f;">${escapeHtml(order.address)}</td>
         </tr>` : ""}
       </table>
     </div>

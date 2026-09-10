@@ -327,7 +327,10 @@ export default function LogisticaPage() {
     if (!riderId) return;
     setSavingOrderId(order.id);
 
-    const payload: Record<string, string> = { riderId, deliveryStatus: "ASSIGNED" };
+    const payload: Record<string, string> = {
+      riderId,
+      deliveryStatus: order.status === "READY" ? "EN_ROUTE" : "ASSIGNED",
+    };
     if (order.status === "READY") {
       payload.status = "OUT";
     }

@@ -189,7 +189,7 @@ export default function DashboardPage() {
 
                       <div className="flex items-center justify-between pt-3 border-t border-charcoal/5">
                         <span className="font-brand font-semibold text-charcoal text-sm">{formatCurrency(Number(order.total))}</span>
-                        <div className="flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+                        <div className="no-scrollbar flex gap-1.5 overflow-x-auto">
                           {status === "RECEIVED" ? (
                             <button
                               onClick={(e) => {

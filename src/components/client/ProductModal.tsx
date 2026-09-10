@@ -1,5 +1,8 @@
 "use client";
 
+import AllergenIngredients from "./AllergenIngredients";
+import AllergenBadges from "./AllergenBadges";
+import { productResult, snapshot } from "@/lib/allergens/core";
 import { useState } from "react";
 import Image from "next/image";
 import { useCartStore } from "@/store/cart";
@@ -30,6 +33,8 @@ function ProductModalContent({ product, onClose }: Props) {
   const [selectedRemovals, setSelectedRemovals] = useState<CartItemRemoval[]>([]);
   const [notes, setNotes] = useState("");
 
+  const registry = product.allergenRegistry;
+  const allergenInfo = registry ? snapshot(registry, productResult(registry.graph, product.id, selectedAdditions.map(a => a.name), selectedRemovals.map(r => r.name), selectedVariant)) : product.allergenInfo;
   const basePrice = Number(product.price);
   const standardBasePrice = Number(product.standardPrice ?? product.price);
   const additionsTotal = selectedAdditions.reduce((s, a) => s + a.price, 0);
@@ -55,6 +60,7 @@ function ProductModalContent({ product, onClose }: Props) {
 
   function handleAdd() {
     addItem({
+      allergenInfo,
       productId: product.id,
       productName: product.name,
       quantity,
@@ -90,6 +96,7 @@ function ProductModalContent({ product, onClose }: Props) {
             />
             <button
               onClick={onClose}
+              aria-label="Chiudi dettaglio prodotto"
               className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-sm text-charcoal/60 hover:text-terracotta transition-colors text-xl shadow-sm"
             >
               &times;
@@ -105,6 +112,11 @@ function ProductModalContent({ product, onClose }: Props) {
               {product.description && (
                 <p className="text-base text-charcoal/60 font-body leading-relaxed">{product.description}</p>
               )}
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span className="text-xs font-medium text-charcoal/60">Allergeni</span>
+                <AllergenBadges info={allergenInfo} />
+              </div>
+              <AllergenIngredients registry={registry} recipeId={registry?.graph.products[product.id]} />
               {product.category?.name === "Teglie" && (
                 <p className="mt-2 text-xs font-brand font-bold uppercase tracking-[0.14em] text-charcoal/45">
                   Formato: 60×40 cm
@@ -125,6 +137,7 @@ function ProductModalContent({ product, onClose }: Props) {
             {!product.imageUrl && (
               <button
                 onClick={onClose}
+              aria-label="Chiudi dettaglio prodotto"
                 className="ml-4 w-10 h-10 flex items-center justify-center rounded-full bg-charcoal/5 text-charcoal/40 hover:text-terracotta transition-colors text-2xl"
               >
                 &times;

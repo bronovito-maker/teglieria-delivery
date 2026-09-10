@@ -2,12 +2,24 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import QRCode from "qrcode";
 import { formatPizzaVariant } from "@/lib/pizza-builder";
+import { createClient } from "@/lib/supabase/server";
+import { isOperatorUser } from "@/lib/rbac";
+import { getClientIp, rateLimit } from "@/lib/rate-limit";
+import { escapeHtml } from "@/lib/html";
+import { getTrustedSiteOrigin } from "@/lib/request-security";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const limit = await rateLimit(`order-print:${getClientIp(request.headers)}`, 30, 60_000);
+  if (!limit.ok) return NextResponse.json({ error: "Troppe richieste" }, { status: 429 });
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
+
   const order = await prisma.order.findUnique({
     where: { id },
     include: { items: true, rider: true },
@@ -17,24 +29,35 @@ export async function GET(
     return NextResponse.json({ error: "Non trovato" }, { status: 404 });
   }
 
+  const isOperator = isOperatorUser(user);
+  if (!isOperator) {
+    const rider = await prisma.rider.findFirst({
+      where: { active: true, authUserId: user.id },
+      select: { id: true },
+    });
+    if (!rider || order.riderId !== rider.id) {
+      return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
+    }
+  }
+
   const date = new Date(order.createdAt).toLocaleDateString("it-IT");
   const time = new Date(order.createdAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
   const displayCode = order.orderCode ?? `${order.type === "ASPORTO" ? "A" : "D"}${String(order.orderNumber).padStart(3, "0")}`;
 
   const itemsHtml = order.items
     .map((item) => {
-      let line = `<tr><td>${item.quantity}x ${item.productName}`;
-      if (item.variant) line += ` <small>(${formatPizzaVariant(item.variant)})</small>`;
+      let line = `<tr><td>${escapeHtml(item.quantity)}x ${escapeHtml(item.productName)}`;
+      if (item.variant) line += ` <small>(${escapeHtml(formatPizzaVariant(item.variant))})</small>`;
       line += `</td><td class="r">${fmt(Number(item.totalPrice))}</td></tr>`;
 
       const extras: string[] = [];
       if (item.additions) {
-        (item.additions as any[]).forEach((a: any) => extras.push(`+ ${a.name}`));
+        (item.additions as any[]).forEach((a: any) => extras.push(`+ ${escapeHtml(a.name)}`));
       }
       if (item.removals) {
-        (item.removals as any[]).forEach((r: any) => extras.push(`- ${r.name}`));
+        (item.removals as any[]).forEach((r: any) => extras.push(`- ${escapeHtml(r.name)}`));
       }
-      if (item.notes) extras.push(`"${item.notes}"`);
+      if (item.notes) extras.push(`&quot;${escapeHtml(item.notes)}&quot;`);
       if (extras.length > 0) {
         line += `<tr><td colspan="2" class="mod">${extras.join(", ")}</td></tr>`;
       }
@@ -43,17 +66,21 @@ export async function GET(
     .join("");
 
   // QR Code generation
-  const host = request.headers.get("host");
-  const protocol = host?.includes("localhost") ? "http" : "https";
-  const riderUrl = `${protocol}://${host}/rider/ordine/${order.id}`;
+  const siteUrl = getTrustedSiteOrigin(request);
+  if (!siteUrl) {
+    return NextResponse.json({ error: "Origine del sito non configurata" }, { status: 500 });
+  }
+  const riderUrl = `${siteUrl.replace(/\/$/, "")}/rider/ordine/${encodeURIComponent(order.id)}`;
   const qrCodeDataUrl = await QRCode.toDataURL(riderUrl, { margin: 1, width: 200 });
+  const styleNonce = request.headers.get("x-nonce");
+  const styleNonceAttribute = styleNonce ? ` nonce="${escapeHtml(styleNonce)}"` : "";
 
   const html = `<!DOCTYPE html>
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Ordine #${displayCode}</title>
-<style>
+<title>Ordine #${escapeHtml(displayCode)}</title>
+<style${styleNonceAttribute}>
   @page { size: 80mm auto; margin: 0; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Courier New', monospace; font-size: 12px; width: 80mm; padding: 4mm; }
@@ -68,6 +95,8 @@ export async function GET(
   .total { font-size: 16px; font-weight: bold; }
   .qr { margin-top: 10px; text-align: center; }
   .qr img { width: 100px; height: 100px; }
+  .qr-caption { font-size: 8px; }
+  .thank-you { margin-top: 8px; font-size: 10px; }
   @media print { body { width: 80mm; } }
 </style>
 </head>
@@ -77,40 +106,43 @@ export async function GET(
   </div>
   <div class="sep"></div>
   <table>
-    <tr><td class="bold">Ordine #${displayCode}</td><td class="r">${date} ${time}</td></tr>
-    <tr><td>Tipo: ${order.type === "ASPORTO" ? "ASPORTO" : "DELIVERY"}</td><td class="r">${order.channel}</td></tr>
+    <tr><td class="bold">Ordine #${escapeHtml(displayCode)}</td><td class="r">${escapeHtml(date)} ${escapeHtml(time)}</td></tr>
+    <tr><td>Tipo: ${escapeHtml(order.type === "ASPORTO" ? "ASPORTO" : "DELIVERY")}</td><td class="r">${escapeHtml(order.channel)}</td></tr>
   </table>
   <div class="sep"></div>
   <div>
-    <div class="bold">${order.customerName} - ${order.customerPhone}</div>
-    ${order.address ? `<div>${order.address}</div>` : ""}
-    ${order.addressDetail ? `<div>${order.addressDetail}</div>` : ""}
-    ${order.deliveryZone ? `<div>Zona: ${order.deliveryZone}</div>` : ""}
+    <div class="bold">${escapeHtml(order.customerName)} - ${escapeHtml(order.customerPhone)}</div>
+    ${order.address ? `<div>${escapeHtml(order.address)}</div>` : ""}
+    ${order.addressDetail ? `<div>${escapeHtml(order.addressDetail)}</div>` : ""}
+    ${order.deliveryZone ? `<div>Zona: ${escapeHtml(order.deliveryZone)}</div>` : ""}
   </div>
   <div class="sep"></div>
   <table>${itemsHtml}</table>
   <div class="sep"></div>
   <table>
     <tr><td>Subtotale</td><td class="r">${fmt(Number(order.subtotal))}</td></tr>
-    ${order.deliveryCost && Number(order.deliveryCost) > 0 ? `<tr><td>Consegna</td><td class="r">${fmt(Number(order.deliveryCost))}</td></tr>` : ""}
+    ${order.deliveryCost && Number(order.deliveryCost) > 0 ? `<tr><td>Consegna</td><td class="r">${escapeHtml(fmt(Number(order.deliveryCost)))}</td></tr>` : ""}
     <tr><td class="total">TOTALE</td><td class="r total">${fmt(Number(order.total))}</td></tr>
   </table>
-  ${order.notes ? `<div class="sep"></div><div>Note: ${order.notes}</div>` : ""}
+  ${order.notes ? `<div class="sep"></div><div>Note: ${escapeHtml(order.notes)}</div>` : ""}
   
   <div class="sep"></div>
   <div class="qr">
     <img src="${qrCodeDataUrl}" alt="Rider QR" />
-    <p style="font-size: 8px;">Scansiona per gestire consegna</p>
+    <p class="qr-caption">Scansiona per gestire consegna</p>
   </div>
 
   <div class="sep"></div>
-  <div class="center" style="margin-top:8px;font-size:10px;">Grazie e buon appetito!</div>
-  <script>window.onload=function(){window.print();}</script>
+  <div class="center thank-you">Grazie e buon appetito!</div>
+  ${request.headers.get("x-nonce") ? `<script nonce="${escapeHtml(request.headers.get("x-nonce"))}">window.onload=function(){window.print();}</script>` : ""}
 </body>
 </html>`;
 
   return new NextResponse(html, {
-    headers: { "Content-Type": "text/html; charset=utf-8" },
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "private, no-store",
+    },
   });
 }
 

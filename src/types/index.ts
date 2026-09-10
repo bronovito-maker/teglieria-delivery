@@ -1,3 +1,4 @@
+import type { AllergenSnapshot, PublicRegistry } from "@/lib/allergens/core";
 import type {
   Order,
   OrderItem,
@@ -40,6 +41,8 @@ export type {
 
 // Product with relations
 export type ProductWithRelations = Product & {
+  allergenInfo?: AllergenSnapshot;
+  allergenRegistry?: PublicRegistry;
   category: Category;
   variants: ProductVariant[];
   additions: ProductAddition[];
@@ -76,6 +79,7 @@ export type CartItemRemoval = {
 };
 
 export type CartItem = {
+  allergenInfo?: AllergenSnapshot;
   id: string; // unique cart item id
   productId: string;
   productName: string;

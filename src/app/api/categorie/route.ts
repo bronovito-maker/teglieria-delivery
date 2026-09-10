@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
-import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
+import { isOperatorUser } from "@/lib/rbac";
 import { categoryCreateSchema, categoryPatchSchema } from "@/lib/validation/catalog";
 import { enforceSameOrigin } from "@/lib/request-security";
 
 export async function GET() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
+  if (!isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
+
   const categories = await prisma.category.findMany({
     orderBy: { sortOrder: "asc" },
     include: { _count: { select: { products: true } } },
@@ -20,7 +25,7 @@ export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
-  if (isAdminRbacStrictEnabled() && !isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
+  if (!isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
 
   const parsed = categoryCreateSchema.safeParse(await request.json());
   if (!parsed.success) {
@@ -45,7 +50,7 @@ export async function PATCH(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
-  if (isAdminRbacStrictEnabled() && !isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
+  if (!isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
 
   const parsed = categoryPatchSchema.safeParse(await request.json());
   if (!parsed.success) {
@@ -71,7 +76,7 @@ export async function DELETE(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
-  if (isAdminRbacStrictEnabled() && !isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
+  if (!isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");

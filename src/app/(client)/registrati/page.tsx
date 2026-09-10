@@ -46,11 +46,11 @@ function RegisterForm() {
     setLoading(true);
     setError(null);
 
-    const { error: authError } = await supabase.auth.signUp({
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { role: "customer", full_name: name, phone },
+        data: { full_name: name, phone },
       },
     });
 
@@ -66,12 +66,15 @@ function RegisterForm() {
     }
 
 
-    // Send branded welcome email
-    fetch("/api/customer/welcome", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, name }),
-    }).catch(() => {});
+    // Only an authenticated session may trigger the welcome email. If email
+    // confirmation is enabled, the callback can be used for that follow-up.
+    if (authData.session) {
+      fetch("/api/customer/welcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, name }),
+      }).catch(() => {});
+    }
 
     setDone(true);
     setLoading(false);

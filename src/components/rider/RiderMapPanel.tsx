@@ -9,6 +9,7 @@ import {
 } from "@/hooks/useRouteOptimization";
 import { ORDER_STATUS_LABELS } from "@/lib/constants";
 import { formatOrderCode } from "@/lib/utils";
+import { escapeHtml } from "@/lib/html";
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -56,17 +57,8 @@ const STORE_POSITION: GeoPosition = {
 
 // ── Pure helpers ─────────────────────────────────────────────────────────
 
-function markerColor(status: string): string {
-  switch (status) {
-    case "READY":
-      return "#22c55e";
-    case "OUT":
-      return "#D96A2B";
-    case "DELIVERED":
-      return "#6b7280";
-    default:
-      return "#E6A52E";
-  }
+function markerStatusClass(status: string): string {
+  return `map-status-${["RECEIVED", "CONFIRMED", "READY", "OUT", "DELIVERED"].includes(status) ? status.toLowerCase() : "default"}`;
 }
 
 function markerEmoji(status: string): string {
@@ -172,6 +164,8 @@ function loadGoogleMaps(apiKey: string): Promise<any> {
   return new Promise((resolve, reject) => {
     const script = document.createElement("script");
     script.id = MAP_SCRIPT_ID;
+    const nonce = document.querySelector<HTMLScriptElement>("script[nonce]")?.nonce;
+    if (nonce) script.nonce = nonce;
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker&loading=async`;
     script.async = true;
     script.defer = true;
@@ -293,8 +287,7 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
 
         // Store marker (always visible)
         const storePin = document.createElement("div");
-        storePin.style.cssText =
-          "width:32px;height:32px;border-radius:50%;background:#ef4444;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,.25)";
+        storePin.className = "map-store-pin-rider";
         storePin.textContent = "🏠";
         storeMarkerRef.current = new maps.marker.AdvancedMarkerElement({
           map: mapRef.current,
@@ -327,8 +320,7 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
 
     if (!riderDotRef.current) {
       const dot = document.createElement("div");
-      dot.style.cssText =
-        "width:18px;height:18px;border-radius:50%;background:#3b82f6;border:3px solid white;box-shadow:0 0 0 4px rgba(59,130,246,.3),0 2px 6px rgba(0,0,0,.2)";
+      dot.className = "map-rider-location-pin";
       riderDotRef.current = new maps.marker.AdvancedMarkerElement({
         map: mapRef.current,
         position: riderPosition,
@@ -367,7 +359,8 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
       // Update existing marker style if status changed
       if (existing) {
         if (existing.status !== order.status) {
-          existing.pinEl.style.borderColor = markerColor(order.status);
+          existing.pinEl.classList.remove(markerStatusClass(existing.status));
+          existing.pinEl.classList.add(markerStatusClass(order.status));
           existing.pinEl.textContent = markerEmoji(order.status);
           existing.status = order.status;
         }
@@ -384,9 +377,8 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
         new Promise<GeocodedStop | null>((resolve) => {
           const cached = geocodeCacheRef.current.get(address);
           const placeAt = (pos: GeoPosition) => {
-            const color = markerColor(order.status);
             const pinEl = document.createElement("div");
-            pinEl.style.cssText = `width:38px;height:38px;border-radius:50%;background:white;border:2.5px solid ${color};display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.18);cursor:pointer`;
+            pinEl.className = `map-order-pin-rider ${markerStatusClass(order.status)}`;
             pinEl.textContent = markerEmoji(order.status);
 
             const marker = new maps.marker.AdvancedMarkerElement({
@@ -485,17 +477,14 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
     if (nextStop) {
       const entry = markersMapRef.current.get(nextStop.order.id);
       if (entry) {
-        entry.pinEl.style.boxShadow =
-          "0 0 0 4px rgba(230,106,38,.4), 0 2px 8px rgba(0,0,0,.18)";
-        entry.pinEl.style.transform = "scale(1.15)";
+        entry.pinEl.classList.add("map-pin-next");
       }
     }
 
     // Clean up highlight on other markers
     markersMapRef.current.forEach((entry, id) => {
       if (id !== nextStop?.order.id) {
-        entry.pinEl.style.boxShadow = "0 2px 8px rgba(0,0,0,.18)";
-        entry.pinEl.style.transform = "scale(1)";
+        entry.pinEl.classList.remove("map-pin-next");
       }
     });
   }, [mapReady, optimizedRoute, nextStop]);
@@ -517,9 +506,7 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
         const badge = document.createElement("span");
         badge.setAttribute("data-step-badge", "true");
         badge.textContent = String(stepIdx + 1);
-        badge.style.cssText =
-          "position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#D96A2B;color:white;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.2)";
-        entry.pinEl.style.position = "relative";
+        badge.className = "map-step-badge";
         entry.pinEl.appendChild(badge);
       }
     });
@@ -676,16 +663,16 @@ function buildInfoContent(
   statusLabel: string,
   eta: string | null
 ): string {
-  const color = markerColor(order.status);
-  return `<div style="font-family:system-ui,sans-serif;width:220px;padding:2px 0">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px">
-      <span style="font-size:15px;font-weight:700;color:#1A1A1A">${code}</span>
-      <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:2px 7px;border-radius:99px;background:${color}22;color:${color}">${statusLabel}</span>
+  const statusClass = `map-iw-status-${["RECEIVED", "CONFIRMED", "READY", "OUT", "DELIVERED"].includes(order.status) ? order.status.toLowerCase() : "default"}`;
+  return `<div class="map-iw-root map-iw-root-rider">
+    <div class="map-iw-header map-iw-header-rider">
+      <span class="map-iw-order-code">${escapeHtml(code)}</span>
+      <span class="map-iw-status ${statusClass}">${escapeHtml(statusLabel)}</span>
     </div>
-    <p style="font-size:12px;font-weight:600;color:#1A1A1A;margin:0">${order.customerName}</p>
-    <p style="font-size:11px;color:#777;margin:3px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:210px">📍 ${order.address ?? ""}</p>
-    ${eta ? `<p style="font-size:11px;color:#D96A2B;font-weight:600;margin:4px 0 0">⏱ ${eta}</p>` : ""}
-    ${order.notes ? `<p style="font-size:10px;color:#E6A52E;font-weight:600;margin:4px 0 0">📝 ${order.notes}</p>` : ""}
-    ${order.customerPhone ? `<a href="tel:${order.customerPhone}" style="font-size:10px;color:#555;text-decoration:none;display:block;margin-top:4px">📞 ${order.customerPhone}</a>` : ""}
+    <p class="map-iw-customer map-iw-customer-rider">${escapeHtml(order.customerName)}</p>
+    <p class="map-iw-address map-iw-address-rider">📍 ${escapeHtml(order.address ?? "")}</p>
+    ${eta ? `<p class="map-iw-eta">⏱ ${escapeHtml(eta)}</p>` : ""}
+    ${order.notes ? `<p class="map-iw-notes">📝 ${escapeHtml(order.notes)}</p>` : ""}
+    ${order.customerPhone ? `<a class="map-iw-phone" href="tel:${escapeHtml(order.customerPhone)}">📞 ${escapeHtml(order.customerPhone)}</a>` : ""}
   </div>`;
 }

@@ -137,11 +137,24 @@ model Order {
   refunds               PaymentRefund[]
   feedbackRequest       FeedbackRequest?
   feedback              OrderFeedback?
+  statusTokens          OrderStatusToken[]
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @updatedAt
 
   @@index([pickupTime, status, timeSlot])
   @@index([clubCardId])
+}
+
+model OrderStatusToken {
+  id         String   @id @default(cuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime @default(now())
+
+  @@index([orderId, expiresAt])
 }
 
 model ClubCard {
@@ -185,6 +198,7 @@ model ClosedDate {
 }
 
 model OrderItem {
+  allergenSnapshot Json?
   id          String  @id @default(cuid())
   orderId     String
   order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -326,4 +340,22 @@ enum RefundStatus {
   SUCCEEDED
   FAILED
   CANCELED
+}
+
+// One atomically versioned graph shared by the site and management UI.
+model AllergenRegistry {
+  id        String   @id @default("current")
+  version   Int      @default(1)
+  data      Json
+  updatedAt DateTime @updatedAt
+}
+
+model AllergenAudit {
+  id        String   @id @default(cuid())
+  version   Int      @unique
+  actorId   String
+  reason    String
+  before    Json
+  after     Json
+  createdAt DateTime @default(now())
 }

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ORDER_STATUS_LABELS } from "@/lib/constants";
 import { formatOrderCode } from "@/lib/utils";
+import { escapeHtml } from "@/lib/html";
 
 type OrderMapItem = {
   id: string;
@@ -74,7 +75,6 @@ function buildInfoWindowContent(
   customerPhone: string | null | undefined,
   address: string | null | undefined,
   status: string,
-  color: string,
   statusLabel: string,
   createdTime: string | null,
   etaTime: string | null,
@@ -83,28 +83,31 @@ function buildInfoWindowContent(
   isLate = false,
   riderName: string | null | undefined = null,
 ): string {
+  const safeOrderId = escapeHtml(orderId);
+  const safeOrderPath = encodeURIComponent(orderId);
+  const statusClass = `map-iw-status-${statusClassSuffix(status)}`;
   // Route row — inline, no card
   const routeHtml = route
-    ? `<div style="display:flex;align-items:center;gap:6px;margin-top:5px">
-        <span style="font-size:13px">🛵</span>
-        <span style="font-size:12px;font-weight:700;color:#D96A2B">${route.distance}</span>
-        <span style="font-size:11px;color:#888">· ${route.duration}</span>
-        ${riderName ? `<span style="font-size:11px;color:#555">· ${riderName}</span>` : ""}
+    ? `<div class="map-iw-route">
+        <span>🛵</span>
+        <span class="map-iw-route-distance">${escapeHtml(route.distance)}</span>
+        <span class="map-iw-route-duration">· ${escapeHtml(route.duration)}</span>
+        ${riderName ? `<span class="map-iw-route-rider">· ${escapeHtml(riderName)}</span>` : ""}
       </div>`
     : routeLoading
-    ? `<p style="font-size:10px;color:#bbb;margin:4px 0 0;font-style:italic">Calcolo percorso…</p>`
+    ? `<p class="map-iw-loading">Calcolo percorso…</p>`
     : "";
 
   // Rider row — shown when assigned but no route yet computed
   const riderHtml = riderName && !route && !routeLoading
-    ? `<p style="font-size:11px;color:#555;margin:3px 0 0">🧑‍🍳 ${riderName}</p>`
+    ? `<p class="map-iw-rider">🧑‍🍳 ${escapeHtml(riderName)}</p>`
     : "";
 
   // Time row — phone + created + eta on one line
-  const metaHtml = `<div style="display:flex;align-items:center;gap:10px;margin-top:4px;flex-wrap:wrap">
-    ${customerPhone ? `<a href="tel:${customerPhone}" style="font-size:11px;color:#555;text-decoration:none">📞 ${customerPhone}</a>` : ""}
-    ${createdTime ? `<span style="font-size:11px;color:#999">🕐 ${createdTime}</span>` : ""}
-    ${etaTime ? `<span style="font-size:11px;color:#D96A2B;font-weight:600">⏱ ${etaTime}</span>` : ""}
+  const metaHtml = `<div class="map-iw-meta">
+    ${customerPhone ? `<a class="map-iw-phone" href="tel:${escapeHtml(customerPhone)}">📞 ${escapeHtml(customerPhone)}</a>` : ""}
+    ${createdTime ? `<span class="map-iw-created">🕐 ${escapeHtml(createdTime)}</span>` : ""}
+    ${etaTime ? `<span class="map-iw-eta">⏱ ${escapeHtml(etaTime)}</span>` : ""}
   </div>`;
 
   // Admin advances CONFIRMED → READY and READY → OUT from the map.
@@ -112,35 +115,35 @@ function buildInfoWindowContent(
   let actionHtml = "";
   if (status === "CONFIRMED") {
     actionHtml = `<button
-      onclick="document.dispatchEvent(new CustomEvent('iw-action',{detail:{orderId:'${orderId}',action:'READY'}}))"
-      style="margin-top:8px;width:100%;padding:7px 0;border-radius:7px;background:#22c55e;color:white;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:none;cursor:pointer"
+      data-iw-order-id="${safeOrderId}" data-iw-action="READY"
+      class="map-iw-action map-iw-action-ready"
     >✓ Segna Pronto</button>`;
   } else if (status === "READY") {
     actionHtml = `<button
-      onclick="document.dispatchEvent(new CustomEvent('iw-action',{detail:{orderId:'${orderId}',action:'OUT'}}))"
-      style="margin-top:8px;width:100%;padding:7px 0;border-radius:7px;background:#D96A2B;color:white;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:none;cursor:pointer"
+      data-iw-order-id="${safeOrderId}" data-iw-action="OUT"
+      class="map-iw-action map-iw-action-out"
     >🛵 Segna Spedito</button>`;
   }
 
   // Truncate address to one line
   const addressHtml = address
-    ? `<p style="font-size:11px;color:#777;margin:3px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px">📍 ${address}</p>`
+    ? `<p class="map-iw-address">📍 ${escapeHtml(address)}</p>`
     : "";
 
   const lateHtml = isLate
-    ? `<div style="margin-bottom:6px;padding:4px 8px;border-radius:6px;background:#fef2f2;border:1px solid #fecaca;display:flex;align-items:center;gap:5px">
-        <span style="font-size:12px">⚠️</span>
-        <span style="font-size:10px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.05em">In ritardo</span>
+    ? `<div class="map-iw-late">
+        <span class="map-iw-late-icon">⚠️</span>
+        <span class="map-iw-late-label">In ritardo</span>
       </div>`
     : "";
 
-  return `<div style="font-family:system-ui,sans-serif;width:260px;padding:2px 0;box-sizing:border-box">
+  return `<div class="map-iw-root">
     ${lateHtml}
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px">
-      <a href="/admin/ordini/${orderId}" target="_blank" style="font-size:16px;font-weight:700;color:#1A1A1A;text-decoration:none;border-bottom:2px solid #D96A2B40;line-height:1">${orderCode}</a>
-      <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:3px 7px;border-radius:99px;background:${color}22;color:${color};white-space:nowrap">${statusLabel}</span>
+    <div class="map-iw-header">
+      <a href="/admin/ordini/${safeOrderPath}" target="_blank" rel="noopener noreferrer" class="map-iw-order-link">${escapeHtml(orderCode)}</a>
+      <span class="map-iw-status ${statusClass}">${escapeHtml(statusLabel)}</span>
     </div>
-    <p style="font-size:13px;font-weight:600;color:#1A1A1A;margin:0">${customerName}</p>
+    <p class="map-iw-customer">${escapeHtml(customerName)}</p>
     ${addressHtml}
     ${metaHtml}
     ${riderHtml}
@@ -179,6 +182,8 @@ function loadGoogleMaps(apiKey: string): Promise<any> {
   return new Promise((resolve, reject) => {
     const script = document.createElement("script");
     script.id = MAP_SCRIPT_ID;
+    const nonce = document.querySelector<HTMLScriptElement>("script[nonce]")?.nonce;
+    if (nonce) script.nonce = nonce;
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker&loading=async`;
     script.async = true;
     script.defer = true;
@@ -188,13 +193,9 @@ function loadGoogleMaps(apiKey: string): Promise<any> {
   });
 }
 
-function statusColor(status: string) {
-  if (status === "RECEIVED") return "#f59e0b";
-  if (status === "CONFIRMED") return "#ef4444";
-  if (status === "READY") return "#22c55e";
-  if (status === "OUT") return "#0ea5e9";
-  if (status === "DELIVERED") return "#6b7280";
-  return "#9ca3af";
+function statusClassSuffix(status: string) {
+  if (["RECEIVED", "CONFIRMED", "READY", "OUT", "DELIVERED"].includes(status)) return status.toLowerCase();
+  return "default";
 }
 
 function parseNumber(value?: string) {
@@ -208,21 +209,6 @@ function isOrderLate(order: OrderMapItem): boolean {
   if (order.status === "OUT" || order.status === "DELIVERED" || order.status === "CANCELLED") return false;
   if (!order.estimatedTime) return false;
   return new Date(order.estimatedTime).getTime() < Date.now();
-}
-
-/** Inject pulse keyframe once — idempotent. */
-function ensureLateStyle() {
-  if (document.getElementById("map-late-style")) return;
-  const s = document.createElement("style");
-  s.id = "map-late-style";
-  s.textContent = `
-    @keyframes pin-late-pulse {
-      0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,.55), 0 2px 8px rgba(0,0,0,.18); }
-      50%      { box-shadow: 0 0 0 7px rgba(239,68,68,0),  0 2px 8px rgba(0,0,0,.18); }
-    }
-    .map-pin-late { animation: pin-late-pulse 1.3s ease-in-out infinite; border-color: #ef4444 !important; border-width: 3px !important; }
-  `;
-  document.head.appendChild(s);
 }
 
 type MarkerEntry = {
@@ -289,10 +275,17 @@ export default function LogisticsMap({ orders, onStatusChange }: Props) {
     }, 50);
   }
 
-  // Listen for InfoWindow action button clicks (iw-action CustomEvent)
+  // Google InfoWindow content is rendered outside React. Delegate clicks from
+  // the document instead of embedding inline onclick handlers in HTML.
   useEffect(() => {
-    async function handler(e: Event) {
-      const { orderId, action } = (e as CustomEvent<{ orderId: string; action: string }>).detail;
+    async function handler(e: MouseEvent) {
+      const target = e.target instanceof Element
+        ? e.target.closest<HTMLButtonElement>("button[data-iw-order-id][data-iw-action]")
+        : null;
+      const orderId = target?.dataset.iwOrderId;
+      const action = target?.dataset.iwAction;
+      if (!orderId || (action !== "READY" && action !== "OUT")) return;
+      e.preventDefault();
       const body: Record<string, string> = { status: action };
       if (action === "READY") {
         body.statusNote = "[ADMIN] Ordine pronto dalla mappa";
@@ -300,15 +293,15 @@ export default function LogisticsMap({ orders, onStatusChange }: Props) {
         body.deliveryStatus = "EN_ROUTE";
         body.statusNote = "[ADMIN] Ordine spedito dalla mappa";
       }
-      await fetch(`/api/ordini/${orderId}`, {
+      const response = await fetch(`/api/ordini/${encodeURIComponent(orderId)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      onStatusChange?.();
+      if (response.ok) onStatusChange?.();
     }
-    document.addEventListener("iw-action", handler);
-    return () => document.removeEventListener("iw-action", handler);
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
   }, [onStatusChange]);
 
   // Close fullscreen on Escape
@@ -363,7 +356,7 @@ export default function LogisticsMap({ orders, onStatusChange }: Props) {
 
         // Create the store marker once — it never needs to be recreated
         const storePin = document.createElement("div");
-        storePin.style.cssText = "width:36px;height:36px;border-radius:50%;background:#ef4444;border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 6px rgba(0,0,0,.25)";
+        storePin.className = "map-store-pin-admin";
         storePin.textContent = "🏠";
         storeMarkerRef.current = new maps.marker.AdvancedMarkerElement({
           map: mapRef.current,
@@ -427,7 +420,6 @@ export default function LogisticsMap({ orders, onStatusChange }: Props) {
         if (!o) return;
 
         const code = o.orderCode ?? formatOrderCode({ orderCode: o.orderCode, orderNumber: o.orderNumber, type: o.type ?? "DELIVERY" });
-        const col = statusColor(o.status);
         const statusLabel = ORDER_STATUS_LABELS[o.status] || o.status;
         const createdTime = o.createdAt
           ? new Date(o.createdAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })
@@ -438,7 +430,7 @@ export default function LogisticsMap({ orders, onStatusChange }: Props) {
 
         infoWindowRef.current?.setContent(buildInfoWindowContent(
           o.id, code, o.customerName, o.customerPhone, o.address,
-          o.status, col, statusLabel, createdTime, etaTime, null, true, isOrderLate(o), o.riderName
+          o.status, statusLabel, createdTime, etaTime, null, true, isOrderLate(o), o.riderName
         ));
         infoWindowRef.current?.open({ map, anchor: marker });
         activeMarkerRef.current = { orderId: o.id, content: "", anchor: marker };
@@ -487,7 +479,6 @@ export default function LogisticsMap({ orders, onStatusChange }: Props) {
 
             // Re-read latest order so route popup reflects current status
             const oNow = currentOrdersRef.current.find((x) => x.id === orderId) ?? o;
-            const colNow = statusColor(oNow.status);
             const labelNow = ORDER_STATUS_LABELS[oNow.status] || oNow.status;
 
             const ri = {
@@ -501,7 +492,7 @@ export default function LogisticsMap({ orders, onStatusChange }: Props) {
 
             const content = buildInfoWindowContent(
               oNow.id, code, oNow.customerName, oNow.customerPhone, oNow.address,
-              oNow.status, colNow, labelNow, createdTime, etaTime,
+              oNow.status, labelNow, createdTime, etaTime,
               { distance: distanceText, duration: durationText }, false, isOrderLate(oNow), oNow.riderName
             );
             infoWindowRef.current?.setContent(content);
@@ -513,9 +504,6 @@ export default function LogisticsMap({ orders, onStatusChange }: Props) {
       });
     };
 
-    // Ensure late-pulse CSS is available
-    ensureLateStyle();
-
     // ── 3. Diff existing markers vs new orders ──────────────────────────────
     const geocodePromises: Promise<void>[] = [];
 
@@ -526,7 +514,8 @@ export default function LogisticsMap({ orders, onStatusChange }: Props) {
         // Already on map — update pin if status or late state changed
         const nowLate = isOrderLate(order);
         if (existing.status !== order.status || existing.isLate !== nowLate) {
-          existing.pinEl.style.border = `2.5px solid ${statusColor(order.status)}`;
+          existing.pinEl.classList.remove(`map-status-${statusClassSuffix(existing.status)}`);
+          existing.pinEl.classList.add(`map-status-${statusClassSuffix(order.status)}`);
           existing.status = order.status;
           existing.isLate = nowLate;
           if (nowLate) {
@@ -537,7 +526,6 @@ export default function LogisticsMap({ orders, onStatusChange }: Props) {
 
           // If this order's popup is open, refresh its content immediately
           if (activeMarkerRef.current?.orderId === order.id) {
-            const col = statusColor(order.status);
             const label = ORDER_STATUS_LABELS[order.status] || order.status;
             const code = order.orderCode ?? formatOrderCode({ orderCode: order.orderCode, orderNumber: order.orderNumber, type: order.type ?? "DELIVERY" });
             const createdTime = order.createdAt ? new Date(order.createdAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) : null;
@@ -545,7 +533,7 @@ export default function LogisticsMap({ orders, onStatusChange }: Props) {
             const ri = routeInfoRef.current;
             const newContent = buildInfoWindowContent(
               order.id, code, order.customerName, order.customerPhone, order.address,
-              order.status, col, label, createdTime, etaTime,
+              order.status, label, createdTime, etaTime,
               ri ? { distance: ri.distance, duration: ri.duration } : null, false, nowLate, order.riderName
             );
             infoWindowRef.current?.setContent(newContent);
@@ -562,12 +550,11 @@ export default function LogisticsMap({ orders, onStatusChange }: Props) {
 
       geocodePromises.push(new Promise<void>((resolve) => {
         const placeAt = (position: { lat: number; lng: number }) => {
-          const color = statusColor(order.status);
           const late = isOrderLate(order);
           const orderCode = order.orderCode ?? formatOrderCode({ orderCode: order.orderCode, orderNumber: order.orderNumber, type: order.type ?? "DELIVERY" });
 
           const pinEl = document.createElement("div");
-          pinEl.style.cssText = `width:40px;height:40px;border-radius:50%;background:white;border:2.5px solid ${color};display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,.18);cursor:pointer`;
+          pinEl.className = `map-order-pin-admin map-status-${statusClassSuffix(order.status)}`;
           pinEl.textContent = "🍕";
           if (late) pinEl.classList.add("map-pin-late");
 

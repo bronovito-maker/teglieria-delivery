@@ -341,8 +341,7 @@ function OrderCard({
 
   return (
     <div
-      style={{ transitionDelay: `${idx * 40}ms` }}
-      className="reveal active bg-white rounded-2xl border border-charcoal/5 shadow-sm overflow-hidden"
+      className={`reveal active rider-card-delay-${Math.min(idx, 9)} bg-white rounded-2xl border border-charcoal/5 shadow-sm overflow-hidden`}
     >
       {/* Info row — tappable → detail */}
       <div

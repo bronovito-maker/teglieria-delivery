@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { getStripe, getStripeErrorContext, getStripeSiteUrl } from "@/lib/stripe";
-import { createOrderStatusToken, verifyOrderStatusToken } from "@/lib/order-status-token";
+import { createOrderStatusToken, getOrderStatusCookieName, getOrderStatusTokenFromRequest, verifyOrderStatusToken } from "@/lib/order-status-token";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
-import { enforceSameOrigin } from "@/lib/request-security";
+import { enforceSameOrigin, getTrustedSiteOrigin } from "@/lib/request-security";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -22,12 +23,22 @@ export async function POST(
   const order = await prisma.order.findUnique({ where: { id }, include: { items: true } });
   if (!order) return NextResponse.json({ error: "Ordine non trovato" }, { status: 404 });
 
-  const token = new URL(request.url).searchParams.get("token");
-  let authorized = Boolean(token && verifyOrderStatusToken(token, id));
+  const token = getOrderStatusTokenFromRequest(request);
+  const cookieToken = (await cookies()).get(getOrderStatusCookieName(id))?.value ?? null;
+  let authorized = false;
+  for (const candidate of [token, cookieToken]) {
+    if (candidate && await verifyOrderStatusToken(candidate, id)) {
+      authorized = true;
+      break;
+    }
+  }
   if (!authorized) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    authorized = Boolean(user && (order.authUserId === user.id || user.email?.toLowerCase() === order.customerEmail?.toLowerCase()));
+    authorized = Boolean(user && (
+      order.authUserId === user.id ||
+      (Boolean(user.email_confirmed_at) && user.email?.toLowerCase() === order.customerEmail?.toLowerCase())
+    ));
   }
   if (!authorized) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
   if (order.paymentMethod !== "STRIPE" || ["PAID", "REFUNDED"].includes(order.paymentStatus)) {
@@ -36,9 +47,13 @@ export async function POST(
   if (!process.env.STRIPE_SECRET_KEY) {
     return NextResponse.json({ error: "Pagamento con carta temporaneamente non disponibile" }, { status: 503 });
   }
+  const siteUrl = getStripeSiteUrl(getTrustedSiteOrigin(request) ?? undefined);
+  if (!siteUrl) {
+    return NextResponse.json({ error: "URL del sito non configurato" }, { status: 500 });
+  }
 
   try {
-    const statusToken = createOrderStatusToken(order.id, order.createdAt);
+    const statusToken = await createOrderStatusToken(order.id);
     const session = await getStripe().checkout.sessions.create({
       mode: "payment",
       managed_payments: { enabled: false },
@@ -59,8 +74,8 @@ export async function POST(
         : {}),
       metadata: { orderId: order.id },
       payment_intent_data: { metadata: { orderId: order.id } },
-      success_url: `${getStripeSiteUrl(new URL(request.url).origin)}/stato-ordine/${order.id}?token=${encodeURIComponent(statusToken)}&payment=success`,
-      cancel_url: `${getStripeSiteUrl(new URL(request.url).origin)}/stato-ordine/${order.id}?token=${encodeURIComponent(statusToken)}&payment=cancelled`,
+      success_url: `${siteUrl}/stato-ordine/${order.id}#token=${encodeURIComponent(statusToken)}`,
+      cancel_url: `${siteUrl}/stato-ordine/${order.id}#token=${encodeURIComponent(statusToken)}`,
     });
     await prisma.order.update({ where: { id: order.id }, data: { stripeSessionId: session.id, paymentStatus: "PENDING" } });
     return NextResponse.json({ checkoutUrl: session.url });

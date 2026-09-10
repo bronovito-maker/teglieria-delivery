@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
+import { enforceSameOrigin } from "@/lib/request-security";
 
 const feedbackSchema = z.object({
   overallRating: z.number().int().min(1).max(5),
@@ -34,6 +35,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ token: string }> }) {
+  const sameOriginError = enforceSameOrigin(request);
+  if (sameOriginError) return sameOriginError;
+
   const limit = await rateLimit(`feedback-submit:${getClientIp(request.headers)}`, 10, 60_000);
   if (!limit.ok) return NextResponse.json({ error: "Troppe richieste" }, { status: 429 });
 

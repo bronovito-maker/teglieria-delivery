@@ -5,6 +5,7 @@ import {
   closureUpsertSchema,
   logisticsSlotsQuerySchema,
   productCreateSchema,
+  riderSetupSchema,
   scheduleDaysSchema,
 } from "./catalog";
 
@@ -56,5 +57,13 @@ describe("admin schemas", () => {
   it("accepts the service type for slot availability", () => {
     expect(logisticsSlotsQuerySchema.safeParse({ date: "2026-04-29", type: "DELIVERY" }).success).toBe(true);
     expect(logisticsSlotsQuerySchema.safeParse({ date: "2026-04-29", type: "INVALID" }).success).toBe(false);
+  });
+});
+
+describe("riderSetupSchema", () => {
+  it("accepts only profile data and rejects client-supplied identity", () => {
+    expect(riderSetupSchema.safeParse({ phone: "3331234567" }).success).toBe(true);
+    expect(riderSetupSchema.safeParse({ authUserId: "attacker-id" }).success).toBe(false);
+    expect(riderSetupSchema.safeParse({ email: "rider@example.com" }).success).toBe(false);
   });
 });

@@ -1,176 +1,194 @@
-# La Teglieria — Design System & Regole Codebase
+# La Teglieria — Regole operative della codebase
 
-Ultimo aggiornamento: 2026-04-29
+Questo file contiene le regole da seguire quando si modifica il progetto.
+La documentazione funzionale estesa è in [`README.md`](README.md); le regole
+visuali sono in [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) e
+[`BRAND_TOKENS.md`](BRAND_TOKENS.md).
 
-## Stack
-- **Framework**: Next.js App Router (TypeScript)
-- **Database**: Supabase (PostgreSQL) + Prisma ORM
-- **Stile**: Tailwind CSS + globals.css
-- **Auth**: Supabase Auth (email/password + Google OAuth)
-- **Email**: Brevo (`@getbrevo/brevo`) — FROM: `ordini@lateglieria.it`
-- **Mappe**: Google Maps API (`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`)
+Ultimo aggiornamento: **2026-09-03**.
 
----
+## Baseline tecnica
 
-## Design System
+- Next.js 16 App Router, React 19 e TypeScript;
+- PostgreSQL/Supabase con Prisma 5;
+- Supabase Auth con client SSR e browser;
+- Tailwind CSS, `globals.css` e Zustand;
+- Brevo per le email transazionali;
+- Stripe Checkout con webhook firmato;
+- Google Maps/Places per indirizzi, coordinate e logistica;
+- Vercel per il deploy.
 
-### Colori
-| Token Tailwind | Hex | Uso |
-|---|---|---|
-| `charcoal` | `#1A1A1A` | Testo primario, sfondi scuri |
-| `warm-light` | `#F7F2E8` | Sfondo pagina (crema caldo) |
-| `terracotta` | `#D96A2B` | Accento brand, CTA primario |
-| `marigold` | `#E6A52E` | Accento secondario, badge, warning |
-| `royal` | `#2F5FAE` | Accento informativo/freddo, mappe e contrasto |
+Prima di usare API o convenzioni di Next.js, leggere la guida della versione
+installata in `node_modules/next/dist/docs/`.
 
-### Font
-| Classe | Font | Uso |
-|---|---|---|
-| `font-display` | **Epilogue** | Headline, hero, titoli sezione |
-| `font-logo` | **Epilogue** | Lockup/logo testo `LA TEGLIERIA` |
-| `font-brand` | **Manrope** | UI, bottoni, dati, card, nav |
-| `font-body` | **Manrope** | Corpo testo, descrizioni, form |
-| `font-subtitle` | **Manrope** | Alias di font-body |
-| *(admin/rider)* | **Manrope** | Sempre preferito per massima leggibilità operativa |
+## Struttura del progetto
 
-**Regola assoluta**:
-- `Epilogue` per hero, heading e lockup
-- `Manrope` per tutto ciò che è operativo o leggibile a colpo d'occhio
-- in `admin` e `rider`, anche i titoli devono restare tendenzialmente su `Manrope` se l'uso è funzionale e non editoriale
-- il lockup pubblico deve essere sempre `LA TEGLIERIA`, tutto maiuscolo
+- `src/app`: pagine, layout e route API;
+- `src/components`: componenti UI divisi per area cliente, admin e rider;
+- `src/lib`: regole condivise, validazione, auth, pricing, email e Stripe;
+- `src/store`: stato client, incluso il carrello;
+- `src/types`: tipi condivisi;
+- `prisma/schema.prisma`: modello dati;
+- `prisma/seed.ts`: inizializzazione database;
+- `prisma/sync-catalog.ts`: catalogo applicativo e stato prodotti;
+- `scripts/sync-stripe-catalog.ts`: allineamento catalogo Stripe;
+- `scripts/reconcile-stripe-payments.ts`: riconciliazione pagamenti;
+- `e2e/`: test Playwright;
+- `src/**/*.test.ts`: test unitari Vitest.
 
-### Logo, Top Bar E Icone
+## Regole non negoziabili
 
-- Top bar pubblica: glassmorphism caldo, crema/bianco, blur marcato, bordo chiaro e ombra breve.
-- Logo top bar: `LA` in `charcoal`, `TEGLIERIA` in `terracotta`.
-- Overlay hamburger: deve mantenere stessa dimensione, padding e allineamento del logo della top bar chiusa.
-- Favicon/app icon: tile terracotta con `LT` bianca, asset unico in `public/icons/LT_icon_tile.webp`.
-- Non usare piu favicon Vercel o icone generiche.
+### Prezzi e ordini
 
-### Regole Tipografia
+Il browser non è una fonte attendibile per prezzi, sconti, prodotti attivi,
+varianti, aggiunte o costi delivery.
 
-#### ✅ `uppercase` — SOLO per testo piccolo (≤ 12px / text-xs)
-```
-micro-label overline → "IL NOSTRO ORGOGLIO", "DAL 2026"
-badge → "HIGH HYDRATION", "ASPORTO"
-nav footer → "ADMIN AREA", "RIDER ACCESS"
-copyright → "© 2026 LA TEGLIERIA"
-```
+- `GET /api/menu` determina il prezzo esposto in base alla sessione;
+- un guest riceve prezzo normale e `clubPrice` quando presente;
+- un cliente autenticato riceve in `price` il prezzo Club e in `standardPrice`
+  il prezzo normale;
+- rider e operatori non sono clienti Club;
+- `POST /api/ordini` rilegge il catalogo da Prisma e ricalcola ogni importo;
+- i prodotti o le categorie inattivi devono essere rifiutati anche da carrelli
+  vecchi;
+- le configurazioni pizza devono essere calcolate con le funzioni in
+  `src/lib/pizza-builder.ts`, mai replicate in modo divergente nella UI o nelle
+  API;
+- gli ordini Web devono avere canale `WEB` e costo delivery ricalcolato dal
+  server;
+- usare e preservare `Idempotency-Key` quando si crea un ordine.
 
-#### ❌ Mai `uppercase` su titoli grandi
-```
-h1, h2, h3 → sentence case o title case
-testo su immagini → sentence case
-bottoni CTA → sentence case o title case
-```
+Regole commerciali attuali:
 
-#### Peso font
-- Titoli h1/h2/h3 → `font-semibold`
-- Micro-label → `font-bold` (uppercase piccolo regge il bold)
-- Bottoni → `font-semibold`
-- Corpo testo → `font-normal` o `font-medium`
+- minimo ordine: €12, esclusa la consegna;
+- asporto dalle 16:00;
+- delivery dalle 19:00 alle 22:00;
+- delivery: €2 entro 1 km, poi €0,33/km arrotondato per eccesso al decimo.
 
-#### Tracking (letter-spacing)
-- Micro-label uppercase → `tracking-[0.2em]` a `tracking-[0.4em]`
-- Titoli → `tracking-tight` o default (mai `tracking-widest`)
-- Bottoni → `tracking-wide` (mai `tracking-widest`)
+Le costanti condivise sono in `src/lib/constants.ts`. Se cambia una regola,
+aggiornare anche i test e i testi pubblici in `copy.md` e nelle pagine servizio.
 
-### Classi Componente (globals.css)
-```
-.ds-heading-hero    → h1 hero mobile
-.ds-heading-section → h2 sezioni
-.ds-heading-card    → h3 card
-.ds-micro-label     → overline piccola uppercase
-.ds-cta-primary     → bottone CTA principale
-.ds-cta-secondary   → bottone CTA secondario
-```
+### Configuratore pizza
 
-### Border Radius
-| Elemento | Classe |
+Il configuratore supporta teglia intera 60×40 da 1 a 4 gusti e mezza teglia
+30×40 da 1 a 2 gusti.
+
+- ogni slot può usare una ricetta attiva di Teglie/Mezze teglie oppure essere
+  creato da zero;
+- gli extra sono sempre a pagamento;
+- gli ingredienti della ricetta vengono deduplicati se aggiunti di nuovo;
+- la sezione degli ingredienti gratuiti non deve essere reintrodotta;
+- le ricette e i relativi nomi canonici sono in `PIZZA_MENU_FLAVORS`;
+- l’API deve verificare che la ricetta sia attiva nella categoria compatibile
+  con il formato scelto.
+
+### Autenticazione
+
+Usare i client già presenti in `src/lib/supabase/server.ts`,
+`src/lib/supabase/client.ts` e `src/lib/supabase/admin.ts`.
+
+- verificare l’utente con `auth.getUser()`, non fidarsi del solo stato React;
+- mantenere `proxy.ts` attivo sulle pagine cliente e sulle API per aggiornare i
+  cookie SSR;
+- il login cliente legge `FormData`, conserva `autocomplete="username"` e
+  `autocomplete="current-password"`, verifica la sessione dopo il login e usa
+  una navigazione completa per evitare loop mobile;
+- il provider OAuth cliente attivo è Google;
+- Apple Passwords e Google Password Manager sono supportati solo come sistemi di
+  autofill, non implicano l’attivazione di Apple OAuth;
+- il callback deve sanitizzare sempre `next` con
+  `sanitizeInternalPath`/equivalente;
+- il callback cliente collega gli ordini guest con la stessa email;
+- leggere i ruoli da `user_metadata.role` o `app_metadata.role` tramite
+  `getUserRole`.
+
+Non inserire token, password, service role key o secret nei componenti client,
+nei log o nei commit.
+
+### Stripe
+
+Il redirect di Stripe non certifica il pagamento.
+
+- creare l’ordine Stripe in `PENDING`;
+- usare metadata con `orderId` su Checkout Session e PaymentIntent;
+- confermare solo dal webhook firmato;
+- verificare `orderId`, importo in centesimi e valuta `eur`;
+- rendere idempotenti gli eventi `succeeded` e le email;
+- inviare la conferma di pagamento solo dopo `PAID`;
+- portare i fallimenti/scadenze a `FAILED` e inviare l’email di rifiuto;
+- consentire il retry solo tramite token tracking o account autorizzato;
+- aggiornare rimborsi totali/parziali tramite `PaymentRefund` e webhook.
+
+Eventi Stripe gestiti e configurazione sono documentati in `README.md`.
+
+### Email
+
+Le email partono da `ordini@lateglieria.it` tramite Brevo.
+
+- gli ordini non Stripe possono ricevere la conferma dopo la creazione;
+- gli ordini Stripe non devono ricevere conferma prima di `PAID`;
+- i pagamenti falliti devono usare `sendOrderPaymentFailedEmail`;
+- se `BREVO_API_KEY` manca, saltare l’invio senza bloccare l’ordine e lasciare
+  un log diagnostico.
+
+### Catalogo
+
+`prisma/sync-catalog.ts` è la fonte del catalogo iniziale e deve mantenere:
+
+- categorie attive e ordinate;
+- prezzi standard, Club e promo;
+- immagini prodotto;
+- configurazione di “Crea la tua pizza”;
+- `Fritto Teglieria` disattivato.
+
+Quando si modifica il catalogo, aggiornare anche il controllo delle ricette in
+`src/app/api/ordini/route.ts` e i test pertinenti.
+
+## UI e responsive
+
+- pubblico: `Epilogue` per titoli e `Manrope` per body/UI;
+- admin e rider: priorità a leggibilità, contrasto e touch target;
+- logo sempre `LA TEGLIERIA`, con `LA` charcoal e `TEGLIERIA` terracotta;
+- usare i token documentati, evitando colori o gradienti non di sistema;
+- i popup prodotto, carrello e configuratore devono avere altezza dinamica,
+  scroll interno e footer separato;
+- il contenuto non deve essere coperto da top bar, pulsanti sticky o safe area
+  mobile;
+- verificare sempre almeno una viewport mobile e una desktop dopo modifiche a
+  popup, carrello, checkout o top bar;
+- le immagini di La Parma nelle card Teglie/Mezze teglie usano il crop zoomato
+  previsto dalla UI per rimuovere il bordo della teglia.
+
+## Route principali
+
+| Area | Route |
 |---|---|
-| Card principale | `rounded-[2.5rem]` – `rounded-[3rem]` |
-| Card secondaria | `rounded-[2rem]` |
-| Input | `rounded-2xl` – `rounded-[1.5rem]` |
-| Bottone pill | `rounded-full` |
-| Badge / chip | `rounded-full` |
-| Immagine hero | `rounded-[1.5rem]` – `rounded-[3rem]` |
+| Pubblica | `/`, `/menu`, `/ordine`, `/servizi` |
+| Auth cliente | `/accedi`, `/registrati`, `/api/auth/callback` |
+| Cliente | `/account/orders`, `/stato-ordine/[id]` |
+| Admin | `/admin/dashboard`, `/admin/ordini`, `/admin/logistica`, `/admin/report` |
+| Catalogo admin | `/admin/prodotti`, `/admin/categorie`, `/admin/promo-club` |
+| Rider | `/rider/login`, `/rider/dashboard`, `/rider/ordine/[id]` |
+| Stripe | `/api/stripe/webhook` |
 
-### Direzione Visiva
-- tono: artigianale + architettonico + premium minimal
-- headline: forti ma non urlate
-- body/UI: neutri, leggibili, puliti
-- glassmorphism: caldo, leggero, mai troppo lattiginoso
-- evitare look SaaS generico, viola, freddo o troppo playful
-- admin e rider devono privilegiare leggibilità, densità corretta e touch target chiari su mobile/tablet
+La route `/preshop` non esiste più e non va ricreata senza una nuova decisione di
+prodotto.
 
----
+## Verifica prima del commit
 
-## Struttura Route
+Eseguire, quando il cambiamento lo consente:
 
-| Percorso | Tipo | Note |
-|---|---|---|
-| `/` | Landing page pubblica | Homepage marketing |
-| `/menu` | Pubblica | Catalogo prodotti |
-| `/ordine` | Pubblica | Checkout ordine |
-| `/stato-ordine/[id]` | Pubblica | Tracking ordine |
-| `/accedi` | Auth cliente | Login email + Google |
-| `/registrati` | Auth cliente | Registrazione |
-| `/admin/*` | Admin (RBAC) | Gestionale pizzeria (iPad) |
-| `/rider/*` | Rider auth | Area fattorini |
-| `/api/auth/callback` | OAuth callback | `?type=customer` o `admin` |
+```bash
+npm run lint
+npm test -- --run
+npm run build
+```
 
----
+Per cambiamenti a flussi browser o Stripe aggiungere anche i test Playwright
+pertinenti con `npm run test:e2e`.
 
-## Regole Admin
-
-- Dispositivo principale: **iPad** (ottimizzato sia portrait che landscape)
-- Font: **Manrope** via `.admin-layout` class
-- Sidebar: icone sole a `md:` (portrait iPad), label visibili a `lg:` (landscape)
-- Grid KPI: `grid-cols-2 lg:grid-cols-4 xl:grid-cols-8`
-- Kanban: `grid-cols-2 md:grid-cols-3 xl:grid-cols-6`
-
-## Regole Rider
-
-- Dispositivo principale: **iPhone** in servizio, **tablet** come supporto
-- Font: **Manrope** per tutta l'operatività
-- Priorità UI:
-  - stato ordine
-  - prossima azione
-  - ETA
-  - navigazione
-- I pulsanti principali devono essere immediati, ad alto contrasto e comodi col pollice
-
----
-
-## Regole Ordini Cliente
-
-- **Nessuna nota per item** — solo una nota finale per ristorante/fattorino
-- **Nessun prompt login durante checkout** — solo suggerimento post-ordine
-- Il campo email è **facoltativo** nel checkout
-- Dopo ogni ordine loggato: salva telefono e ultimo indirizzo in `user_metadata`
-- Indirizzo: Google Places Autocomplete + bottone geolocalizzazione (solo Livorno, ~15km)
-
----
-
-## Email Transazionali (Brevo)
-
-| Trigger | Funzione | Destinatario |
-|---|---|---|
-| Nuovo ordine con email | `sendOrderConfirmationEmail` | Cliente |
-| Status → `OUT` | `sendRiderDepartedEmail` | Cliente |
-| Nuovo rider creato | `sendRiderWelcomeEmail` | Rider |
-| Registrazione cliente | `sendCustomerWelcomeEmail` | Cliente |
-
-FROM sempre: `ordini@lateglieria.it` / "La Teglieria"
-
----
-
-## Google OAuth
-
-- Solo **Google** (Apple non implementato)
-- Callback: `/api/auth/callback?type=customer&next=/ordine`
-- Al primo login OAuth: il callback setta `role: "customer"` via `supabase.auth.updateUser`
-- Campi pre-compilati: `full_name`, `email` (da Google), `phone` e `lastAddress` (da ordini precedenti)
+Prima del commit controllare `git diff --check` e non aggiungere `tmp/`, build,
+file `.env` o altri artefatti temporanei.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

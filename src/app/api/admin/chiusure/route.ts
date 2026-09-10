@@ -1,15 +1,20 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
-import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
+import { isOperatorUser } from "@/lib/rbac";
 import { closureUpsertSchema } from "@/lib/validation/catalog";
 import { enforceSameOrigin } from "@/lib/request-security";
 
 export async function GET() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
+  if (!isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
+
   const closures = await prisma.closedDate.findMany({
     orderBy: { date: "asc" },
   });
-  return NextResponse.json(closures);
+  return NextResponse.json(closures, { headers: { "Cache-Control": "private, no-store" } });
 }
 
 export async function POST(request: Request) {
@@ -19,7 +24,7 @@ export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
-  if (isAdminRbacStrictEnabled() && !isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
+  if (!isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
 
   const parsed = closureUpsertSchema.safeParse(await request.json());
   if (!parsed.success) {
@@ -44,7 +49,7 @@ export async function DELETE(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
-  if (isAdminRbacStrictEnabled() && !isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
+  if (!isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
 
   const { searchParams } = new URL(request.url);
   const date = searchParams.get("date");

@@ -4,7 +4,7 @@ import { OrderStatus } from "@prisma/client";
 import { sendRiderInviteEmail } from "@/lib/email";
 import { calculateRiderCompensation } from "@/lib/finance";
 import { createClient } from "@/lib/supabase/server";
-import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
+import { isOperatorUser } from "@/lib/rbac";
 import { writeAuditLog } from "@/lib/audit";
 import { captureError } from "@/lib/monitoring";
 import { riderCreateSchema } from "@/lib/validation/catalog";
@@ -16,7 +16,7 @@ export async function GET() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
-  if (isAdminRbacStrictEnabled() && !isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
+  if (!isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
 
   const riders = await prisma.rider.findMany({
     orderBy: { name: "asc" },
@@ -141,7 +141,7 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
     }
-    if (isAdminRbacStrictEnabled() && !isOperatorUser(user)) {
+    if (!isOperatorUser(user)) {
       return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
     }
 

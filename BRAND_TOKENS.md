@@ -1,6 +1,6 @@
 # La Teglieria - Brand Tokens
 
-Ultimo aggiornamento: 2026-04-29
+Ultimo aggiornamento: 2026-09-03
 
 ## Visione
 - tono: artigianale, architettonico, premium minimal

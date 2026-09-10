@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { OrderStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
-import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
+import { isOperatorUser } from "@/lib/rbac";
 import { writeAuditLog } from "@/lib/audit";
 import { captureError } from "@/lib/monitoring";
 import { riderPatchSchema } from "@/lib/validation/catalog";
@@ -27,7 +27,7 @@ export async function PATCH(
     if (!user) {
       return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
     }
-    if (isAdminRbacStrictEnabled() && !isOperatorUser(user)) {
+    if (!isOperatorUser(user)) {
       return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
     }
 
@@ -96,7 +96,7 @@ export async function DELETE(
   if (!user) {
     return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
   }
-  if (isAdminRbacStrictEnabled() && !isOperatorUser(user)) {
+  if (!isOperatorUser(user)) {
     return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
   }
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SITE_CONFIG, toPhoneHref } from "@/lib/site-config";
 import MobileTopBar from "@/components/client/MobileTopBar";
+import { safeJsonLd } from "@/lib/json-ld";
 
 export const metadata: Metadata = {
   title: "Servizi Delivery e Asporto",
@@ -48,7 +49,7 @@ export default function ServiziPage() {
   return (
     <main className="min-h-screen bg-warm-light text-charcoal pt-24 pb-20">
       <MobileTopBar />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }} />
       <section className="max-w-5xl mx-auto px-6">
         <p className="text-sm font-brand font-bold uppercase tracking-[0.28em] text-terracotta mb-4">Servizi</p>
         <h1 className="text-5xl md:text-6xl font-display leading-[0.95]">Delivery e asporto a Livorno</h1>

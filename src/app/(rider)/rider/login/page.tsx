@@ -4,6 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+function sanitizeRiderNextPath(value: string | null): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("://")) {
+    return "/rider/dashboard";
+  }
+  return value;
+}
+
 export default function RiderLoginPage() {
   const router = useRouter();
   const supabase = createClient();
@@ -18,7 +25,7 @@ export default function RiderLoginPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setMessage(params.get("message"));
-    setRedirectTo(params.get("next") || "/rider/dashboard");
+    setRedirectTo(sanitizeRiderNextPath(params.get("next")));
   }, []);
 
   useEffect(() => {
@@ -38,6 +45,18 @@ export default function RiderLoginPage() {
 
     if (authError) {
       setError("Credenziali non valide. Riprova.");
+      setLoading(false);
+      return;
+    }
+
+    const setupRes = await fetch("/api/rider/setup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    if (!setupRes.ok) {
+      await supabase.auth.signOut();
+      setError("Profilo rider non autorizzato. Contatta lo staff.");
       setLoading(false);
       return;
     }

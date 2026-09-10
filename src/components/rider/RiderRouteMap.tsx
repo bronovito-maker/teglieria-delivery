@@ -43,6 +43,8 @@ function loadGoogleMaps(apiKey: string): Promise<any> {
   return new Promise((resolve, reject) => {
     const script = document.createElement("script");
     script.id = MAP_SCRIPT_ID;
+    const nonce = document.querySelector<HTMLScriptElement>("script[nonce]")?.nonce;
+    if (nonce) script.nonce = nonce;
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker&loading=async`;
     script.async = true;
     script.defer = true;
@@ -151,8 +153,7 @@ export default function RiderRouteMap({ address, addressDetail, vehicle }: Props
 
         // Store marker
         const storePin = document.createElement("div");
-        storePin.style.cssText =
-          "width:28px;height:28px;border-radius:50%;background:#ef4444;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 6px rgba(0,0,0,.25)";
+        storePin.className = "map-store-pin-route";
         storePin.textContent = "🏠";
         new maps.marker.AdvancedMarkerElement({
           map: mapRef.current,
@@ -220,8 +221,7 @@ export default function RiderRouteMap({ address, addressDetail, vehicle }: Props
           // Destination marker at last polyline point
           const dest = path[path.length - 1];
           const destPin = document.createElement("div");
-          destPin.style.cssText =
-            "width:32px;height:32px;border-radius:50%;background:white;border:2.5px solid #D96A2B;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,.2)";
+          destPin.className = "map-route-destination-pin";
           destPin.textContent = "📍";
         new maps.marker.AdvancedMarkerElement({
           map: mapRef.current,

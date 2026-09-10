@@ -15,15 +15,11 @@ function readCsvEnv(name: string): string[] {
 
 export function getUserRole(user: UserLike): string | null {
   if (!user) return null;
-  const metaRole = user.user_metadata?.role;
-  if (typeof metaRole === "string" && metaRole.trim()) return metaRole.trim().toLowerCase();
+  // `user_metadata` is user-controlled and must never grant privileges.
+  // Roles are assigned server-side through app_metadata (or a future RBAC table).
   const appRole = user.app_metadata?.role;
   if (typeof appRole === "string" && appRole.trim()) return appRole.trim().toLowerCase();
   return null;
-}
-
-export function isAdminRbacStrictEnabled(): boolean {
-  return String(process.env.ADMIN_RBAC_STRICT || "true").toLowerCase() !== "false";
 }
 
 export function isAdminUser(user: UserLike): boolean {
@@ -47,6 +43,5 @@ export function isOperatorUser(user: UserLike): boolean {
 
 export function hasAdminPanelAccess(user: UserLike): boolean {
   if (!user) return false;
-  if (!isAdminRbacStrictEnabled()) return true;
   return isOperatorUser(user);
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
-import { isAdminRbacStrictEnabled, isOperatorUser } from "@/lib/rbac";
+import { isOperatorUser } from "@/lib/rbac";
 import { scheduleDaysSchema } from "@/lib/validation/catalog";
 import { enforceSameOrigin } from "@/lib/request-security";
 
@@ -17,13 +17,18 @@ const DEFAULTS = Array.from({ length: 7 }, (_, i) => ({
 }));
 
 export async function GET() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
+  if (!isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
+
   const existing = await prisma.daySchedule.findMany({ orderBy: { dayOfWeek: "asc" } });
 
   // Ensure all 7 days exist
   const map = Object.fromEntries(existing.map((d) => [d.dayOfWeek, d]));
   const result = DEFAULTS.map((def) => map[def.dayOfWeek] ?? def);
 
-  return NextResponse.json(result);
+  return NextResponse.json(result, { headers: { "Cache-Control": "private, no-store" } });
 }
 
 export async function POST(request: Request) {
@@ -33,7 +38,7 @@ export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
-  if (isAdminRbacStrictEnabled() && !isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
+  if (!isOperatorUser(user)) return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
 
   const parsed = scheduleDaysSchema.safeParse(await request.json());
   if (!parsed.success) {
