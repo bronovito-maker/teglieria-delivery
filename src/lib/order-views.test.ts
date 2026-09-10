@@ -22,6 +22,7 @@ const order = {
   pickupTime: null,
   timeSlot: "19:00",
   subtotal: 12,
+  clubSavings: 4,
   total: 14,
   notes: "Citofonare",
   authUserId: "customer-auth-id",
@@ -43,6 +44,7 @@ describe("order API views", () => {
     expect(view).not.toHaveProperty("stripePaymentIntentId");
     expect(view).not.toHaveProperty("idempotencyKey");
     expect(view.rider).toEqual({ name: "Rider" });
+    expect(Number(view.clubSavings)).toBe(4);
   });
 
   it("preserves the ingredient snapshot in customer order history", () => {

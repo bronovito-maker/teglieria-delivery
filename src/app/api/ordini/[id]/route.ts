@@ -43,6 +43,7 @@ type TrackingOrder = {
   estimatedTime: Date | null;
   actualTime: Date | null;
   total: unknown;
+  clubSavings: unknown;
   items: unknown;
   rider: unknown;
   statusHistory: unknown;
@@ -93,6 +94,7 @@ function toPublicTrackingOrder(order: TrackingOrder | null) {
     estimatedTime: order.estimatedTime,
     actualTime: order.actualTime,
     total: order.total,
+    clubSavings: order.clubSavings,
     items,
     rider: riderValue && typeof riderValue.name === "string" ? { name: riderValue.name } : null,
     statusHistory,

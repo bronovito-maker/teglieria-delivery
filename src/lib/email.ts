@@ -65,6 +65,7 @@ type OrderConfirmationInput = {
   type: string;
   items: Array<{ productName: string; quantity: number; totalPrice: number; variant?: string | null; ingredients?: string[] }>;
   subtotal: number;
+  clubSavings?: number;
   total: number;
   deliveryCost?: number | null;
   address?: string | null;
@@ -122,6 +123,11 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmationInput):
         <td style="padding:6px 0;font-size:13px;color:#1d1d1f;opacity:0.5;">Subtotale</td>
         <td style="padding:6px 0;text-align:right;font-size:13px;color:#1d1d1f;opacity:0.5;">${formatCurrency(order.subtotal)}</td>
       </tr>
+      ${order.clubSavings && order.clubSavings > 0 ? `
+      <tr>
+        <td style="padding:6px 0;font-size:13px;color:#15803d;">Hai risparmiato con Club</td>
+        <td style="padding:6px 0;text-align:right;font-size:13px;color:#15803d;">-${formatCurrency(order.clubSavings)}</td>
+      </tr>` : ""}
       ${isDelivery && order.deliveryCost ? `
       <tr>
         <td style="padding:6px 0;font-size:13px;color:#1d1d1f;opacity:0.5;">Consegna</td>

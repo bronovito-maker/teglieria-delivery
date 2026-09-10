@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { getStripe, getStripeErrorContext, getStripeSiteUrl } from "@/lib/stripe";
+import { toCents } from "@/lib/money";
 import { createOrderStatusToken, getOrderStatusCookieName, getOrderStatusTokenFromRequest, verifyOrderStatusToken } from "@/lib/order-status-token";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { enforceSameOrigin, getTrustedSiteOrigin } from "@/lib/request-security";
@@ -62,7 +63,7 @@ export async function POST(
         quantity: item.quantity,
         price_data: {
           currency: "eur",
-          unit_amount: Math.round(Number(item.unitPrice) * 100),
+          unit_amount: toCents(Number(item.unitPrice)),
           product_data: {
             name: item.productName,
             metadata: { catalogProductId: item.productId },
@@ -70,7 +71,7 @@ export async function POST(
         },
       })),
       ...(order.deliveryCost && Number(order.deliveryCost) > 0
-        ? { shipping_options: [{ shipping_rate_data: { type: "fixed_amount" as const, fixed_amount: { amount: Math.round(Number(order.deliveryCost) * 100), currency: "eur" }, display_name: "Consegna" } }] }
+        ? { shipping_options: [{ shipping_rate_data: { type: "fixed_amount" as const, fixed_amount: { amount: toCents(Number(order.deliveryCost)), currency: "eur" }, display_name: "Consegna" } }] }
         : {}),
       metadata: { orderId: order.id },
       payment_intent_data: { metadata: { orderId: order.id } },

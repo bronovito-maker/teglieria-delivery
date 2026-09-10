@@ -28,6 +28,7 @@ export type UserOrder = {
   items: OrderItem[];
   total: number;
   subtotal: number;
+  clubSavings: number;
   address: string | null;
   addressDetail?: string | null;
   deliveryZone?: string | null;

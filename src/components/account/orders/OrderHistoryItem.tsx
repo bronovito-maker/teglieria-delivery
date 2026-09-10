@@ -51,6 +51,7 @@ export default function OrderHistoryItem({ order }: OrderHistoryItemProps) {
         {previewItems.join(" · ")}
         {hasMore ? ` · +${order.items.length - 3} altri` : ""}
       </p>
+      {order.clubSavings > 0 && <p className="mt-1 text-xs font-semibold text-emerald-700">Risparmio Club: {formatCurrency(order.clubSavings)}</p>}
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <p className="font-semibold text-zinc-800 tabular-nums">{formatCurrency(order.total)}</p>

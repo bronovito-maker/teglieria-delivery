@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Clock3, Pizza, Scooter, Store } from "lucide-react";
 import { formatCurrency, formatTime } from "@/lib/utils";
 import type { OrderStatus, OrderType, UserOrder } from "./types";
+import { fromCents, toCents } from "@/lib/money";
 
 // Delivery: Inviato → Accettato → Pronto → In consegna
 // Asporto:  Inviato → Accettato → Pronto → Pronto al ritiro
@@ -133,7 +134,7 @@ export default function ActiveOrderTracker({ order, onRefresh }: ActiveOrderTrac
               <span>{item.quantity}x {item.name}
                 {item.ingredients && item.ingredients.length > 0 && <small className="mt-0.5 block text-zinc-400">Ingredienti: {item.ingredients.join(", ")}</small>}
               </span>
-              <span className="tabular-nums">{formatCurrency(item.price * item.quantity)}</span>
+              <span className="tabular-nums">{formatCurrency(fromCents(toCents(item.price) * item.quantity))}</span>
             </div>
           ))}
           {order.items.length > 4 && (
@@ -144,6 +145,9 @@ export default function ActiveOrderTracker({ order, onRefresh }: ActiveOrderTrac
           <span>Totale</span>
           <span className="tabular-nums">{formatCurrency(order.total)}</span>
         </div>
+        {order.clubSavings > 0 && (
+          <p className="mt-2 text-right text-xs font-semibold text-emerald-700">Hai risparmiato {formatCurrency(order.clubSavings)} con Club</p>
+        )}
       </div>
     </section>
   );

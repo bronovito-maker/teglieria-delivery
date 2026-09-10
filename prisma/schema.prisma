@@ -122,6 +122,7 @@ model Order {
   deliveryStatus        DeliveryStatus?
   pickupTime            DateTime?
   subtotal              Decimal          @db.Decimal(10, 2)
+  clubSavings           Decimal          @default(0) @db.Decimal(10, 2)
   total                 Decimal          @db.Decimal(10, 2)
   notes                 String?
   paymentMethod         PaymentMethod?   @default(CONTANTI)
@@ -208,6 +209,7 @@ model OrderItem {
   productName String
   quantity    Int
   unitPrice   Decimal @db.Decimal(8, 2)
+  standardUnitPrice Decimal? @db.Decimal(8, 2)
   totalPrice  Decimal @db.Decimal(10, 2)
   variant     String?
   additions   Json?

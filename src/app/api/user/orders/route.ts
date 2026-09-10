@@ -27,6 +27,7 @@ function mapOrder(order: OrderWithItems): UserOrder {
     })),
     total: Number(order.total),
     subtotal: Number(order.subtotal),
+    clubSavings: Number(order.clubSavings),
     address: order.address ?? null,
     addressDetail: order.addressDetail ?? null,
     deliveryZone: order.deliveryZone ?? null,

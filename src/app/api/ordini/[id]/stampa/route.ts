@@ -127,6 +127,7 @@ export async function GET(
   <div class="sep"></div>
   <table>
     <tr><td>Subtotale</td><td class="r">${fmt(Number(order.subtotal))}</td></tr>
+    ${Number(order.clubSavings) > 0 ? `<tr><td>Risparmio Club</td><td class="r">-${escapeHtml(fmt(Number(order.clubSavings)))}</td></tr>` : ""}
     ${order.deliveryCost && Number(order.deliveryCost) > 0 ? `<tr><td>Consegna</td><td class="r">${escapeHtml(fmt(Number(order.deliveryCost)))}</td></tr>` : ""}
     <tr><td class="total">TOTALE</td><td class="r total">${fmt(Number(order.total))}</td></tr>
   </table>

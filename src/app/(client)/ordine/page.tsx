@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import AddressAutocomplete from "@/components/client/AddressAutocomplete";
-import { useCartStore } from "@/store/cart";
+import { getCartItemUnitPrices, getCartPricing, useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { useCustomerAuth } from "@/components/client/CustomerAuthProvider";
@@ -26,7 +26,7 @@ export default function OrdinePage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const { user, loading: authLoading } = useCustomerAuth();
-  const { items, orderType, setOrderType, getSubtotal, getClubSavings, clearCart, syncPrices } = useCartStore();
+  const { items, orderType, setOrderType, clearCart, syncPrices } = useCartStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const loggedUser = useMemo(() => {
@@ -211,10 +211,11 @@ export default function OrdinePage() {
     return () => observer.disconnect();
   }, [slots]);
 
-  const subtotal = getSubtotal();
-  const clubSavings = getClubSavings();
   const deliveryCost = orderType === "DELIVERY" ? calculateDeliveryFee(deliveryKm) : 0;
-  const total = subtotal + deliveryCost;
+  const pricing = getCartPricing(items, deliveryCost);
+  const subtotal = pricing.subtotal;
+  const clubSavings = pricing.savings;
+  const total = pricing.total;
 
   async function handleDeliveryCoordinates(coordinates: { lat: number; lng: number } | null) {
     if (!coordinates) {
@@ -272,7 +273,7 @@ export default function OrdinePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (subtotal < MIN_ORDER_SUBTOTAL) {
+    if (pricing.subtotalCents < MIN_ORDER_SUBTOTAL * 100) {
       setError(`Il minimo ordine è ${formatCurrency(MIN_ORDER_SUBTOTAL)}, esclusa la consegna.`);
       return;
     }
@@ -309,8 +310,8 @@ export default function OrdinePage() {
             productId: item.productId,
             productName: item.productName,
             quantity: item.quantity,
-            unitPrice: item.unitPrice + item.variantPriceDelta,
-            totalPrice: item.totalPrice,
+            unitPrice: getCartItemUnitPrices(item).payableUnitPrice,
+            totalPrice: getCartPricing([item]).subtotal,
             variant: item.variant,
             additions: item.additions.length > 0 ? item.additions : null,
             removals: item.removals.length > 0 ? item.removals : null,
@@ -404,7 +405,7 @@ export default function OrdinePage() {
                       </p>
                     )}
                   </div>
-                  <span className="font-brand font-semibold">{formatCurrency(item.totalPrice)}</span>
+                  <span className="font-brand font-semibold">{formatCurrency(getCartPricing([item]).subtotal)}</span>
                 </div>
               ))}
             </div>

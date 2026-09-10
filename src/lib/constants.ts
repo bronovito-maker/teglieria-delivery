@@ -29,8 +29,8 @@ export function getItalianTimeSlot(value: string) {
 /** 2 € entro il primo km; oltre, 0,33 €/km arrotondato per eccesso al decimo. */
 export function calculateDeliveryFee(deliveryKm?: number | null): number {
   if (!Number.isFinite(deliveryKm) || (deliveryKm ?? 0) <= 1) return BASE_DELIVERY_FEE;
-  const extra = Math.ceil(((deliveryKm as number) - 1) * 0.33 * 10 - 1e-9) / 10;
-  return Number((BASE_DELIVERY_FEE + extra).toFixed(2));
+  const extraTenths = Math.ceil(((deliveryKm as number) - 1) * 3.3 - 1e-9);
+  return (BASE_DELIVERY_FEE * 100 + extraTenths * 10) / 100;
 }
 
 export const ORDER_STATUS_COLORS: Record<string, string> = {

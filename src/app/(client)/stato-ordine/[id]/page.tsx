@@ -260,6 +260,9 @@ export default function StatoOrdinePage() {
                {formatCurrency(Number(order.total))}
              </span>
           </div>
+          {Number(order.clubSavings) > 0 && (
+            <p className="text-right text-xs font-brand font-semibold text-green-700">Hai risparmiato {formatCurrency(Number(order.clubSavings))} con Club</p>
+          )}
         </div>
 
         {/* Status history */}

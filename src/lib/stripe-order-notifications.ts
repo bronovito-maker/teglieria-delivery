@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createOrderStatusToken } from "@/lib/order-status-token";
 import { getStripeSiteUrl } from "@/lib/stripe";
 import { sendOrderConfirmationEmail, sendOrderPaymentFailedEmail } from "@/lib/email";
+import { toCents } from "@/lib/money";
 
 type StripeOrderWithItems = Prisma.OrderGetPayload<{ include: { items: true } }>;
 
@@ -75,6 +76,7 @@ async function sendPaidOrderConfirmation(orderId: string): Promise<void> {
         : [],
     })),
     subtotal: Number(order.subtotal),
+    clubSavings: Number(order.clubSavings),
     total: Number(order.total),
     deliveryCost: order.deliveryCost == null ? null : Number(order.deliveryCost),
     address: order.address,
@@ -117,7 +119,7 @@ export async function markStripePaymentSucceeded(proof: StripePaymentProof): Pro
     where: { id: proof.orderId },
     select: { total: true, paymentMethod: true },
   });
-  const expectedAmount = order ? Math.round(Number(order.total) * 100) : null;
+  const expectedAmount = order ? toCents(Number(order.total)) : null;
 
   if (
     !order ||

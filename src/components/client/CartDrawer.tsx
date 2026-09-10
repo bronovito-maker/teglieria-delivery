@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect } from "react";
-import { useCartStore } from "@/store/cart";
+import { getCartPricing, useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
 import { BASE_DELIVERY_FEE, MIN_ORDER_SUBTOTAL } from "@/lib/constants";
 
@@ -17,12 +17,13 @@ interface Props {
 
 export default function CartDrawer({ open, onClose }: Props) {
   const router = useRouter();
-  const { items, removeItem, updateQuantity, clearCart, getSubtotal, getClubSavings, orderType, setOrderType } = useCartStore();
-  const subtotal = getSubtotal();
-  const clubSavings = getClubSavings();
+  const { items, removeItem, updateQuantity, clearCart, orderType, setOrderType } = useCartStore();
   const deliveryFee = orderType === "DELIVERY" ? BASE_DELIVERY_FEE : 0;
-  const minimumOrderReached = subtotal >= MIN_ORDER_SUBTOTAL;
-  const total = subtotal + deliveryFee;
+  const pricing = getCartPricing(items, deliveryFee);
+  const subtotal = pricing.subtotal;
+  const clubSavings = pricing.savings;
+  const minimumOrderReached = pricing.subtotalCents >= MIN_ORDER_SUBTOTAL * 100;
+  const total = pricing.total;
 
   useEffect(() => {
     if (!open) return;
@@ -73,11 +74,11 @@ export default function CartDrawer({ open, onClose }: Props) {
                         </p>
                       )}
                     </div>
-                    <p className="shrink-0 font-brand text-sm font-semibold">{formatCurrency(item.totalPrice)}</p>
+                    <p className="shrink-0 font-brand text-sm font-semibold">{formatCurrency(getCartPricing([item]).subtotal)}</p>
                   </div>
-                  {(item.standardUnitPrice ?? item.unitPrice) * item.quantity > item.totalPrice && (
+                  {getCartPricing([item]).savingsCents > 0 && (
                     <p className="mt-1 text-right text-[10px] font-brand font-semibold text-green-700">
-                      Risparmi {formatCurrency((item.standardUnitPrice ?? item.unitPrice) * item.quantity - item.totalPrice)} con Club
+                      Risparmi {formatCurrency(getCartPricing([item]).savings)} con Club
                     </p>
                   )}
                   <div className="mt-2.5 flex items-center justify-between">
@@ -126,7 +127,7 @@ export default function CartDrawer({ open, onClose }: Props) {
               <div className="flex justify-between text-charcoal/55"><span>Subtotale</span><span>{formatCurrency(subtotal)}</span></div>
               {orderType === "DELIVERY" && <div className="flex justify-between text-charcoal/55"><span>Consegna</span><span>{formatCurrency(deliveryFee)}</span></div>}
               <div className="flex justify-between pt-1.5 text-2xl font-brand font-semibold"><span>Totale</span><span className="text-terracotta">{formatCurrency(total)}</span></div>
-              {!minimumOrderReached && <p className="pt-1.5 text-xs font-brand font-semibold text-terracotta">Aggiungi {formatCurrency(MIN_ORDER_SUBTOTAL - subtotal)} per raggiungere il minimo ordine di {formatCurrency(MIN_ORDER_SUBTOTAL)} (consegna esclusa).</p>}
+              {!minimumOrderReached && <p className="pt-1.5 text-xs font-brand font-semibold text-terracotta">Aggiungi {formatCurrency((MIN_ORDER_SUBTOTAL * 100 - pricing.subtotalCents) / 100)} per raggiungere il minimo ordine di {formatCurrency(MIN_ORDER_SUBTOTAL)} (consegna esclusa).</p>}
             </div>
             <button type="button" onClick={clearCart} className="mt-2.5 min-h-10 w-full rounded-xl border border-charcoal/10 text-xs font-brand font-bold uppercase tracking-widest text-charcoal/55 hover:bg-white">Svuota carrello</button>
             <button type="button" disabled={!minimumOrderReached} onClick={() => { onClose(); router.push("/ordine"); }} className="mt-2 min-h-11 w-full rounded-xl bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] text-sm font-brand font-bold uppercase tracking-[0.16em] text-white shadow-[0_12px_24px_rgba(197,86,26,0.22)] active:scale-[.99] disabled:cursor-not-allowed disabled:opacity-45">

@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { CartItem } from "@/types";
+import { calculateMoneySummary, fromCents, toCents } from "@/lib/money";
 
 type OrderType = "ASPORTO" | "DELIVERY";
 
@@ -51,6 +52,7 @@ function sameCartConfiguration(
     existing.imageFit === incoming.imageFit &&
     JSON.stringify(existing.ingredients ?? []) === JSON.stringify(incoming.ingredients ?? []) &&
     existing.unitPrice === incoming.unitPrice &&
+    existing.standardUnitPrice === incoming.standardUnitPrice &&
     (existing.variant ?? "") === (incoming.variant ?? "") &&
     existing.variantPriceDelta === incoming.variantPriceDelta &&
     normalizeText(existing.notes) === normalizeText(incoming.notes) &&
@@ -59,14 +61,33 @@ function sameCartConfiguration(
   );
 }
 
-function computeTotalPrice(item: {
+export function getCartItemUnitPrices(item: {
   unitPrice: number;
+  standardUnitPrice?: number;
   variantPriceDelta: number;
   additions: CartItem["additions"];
-  quantity: number;
-}): number {
-  const additionsTotal = item.additions.reduce((sum, addition) => sum + addition.price, 0);
-  return (item.unitPrice + item.variantPriceDelta + additionsTotal) * item.quantity;
+}) {
+  const additionsCents = item.additions.reduce((sum, addition) => sum + toCents(addition.price), 0);
+  const payableUnitCents = toCents(item.unitPrice) + toCents(item.variantPriceDelta) + additionsCents;
+  const standardUnitCents = item.standardUnitPrice === undefined
+    ? payableUnitCents
+    : toCents(item.standardUnitPrice);
+  return {
+    payableUnitPrice: fromCents(payableUnitCents),
+    standardUnitPrice: fromCents(Math.max(payableUnitCents, standardUnitCents)),
+  };
+}
+
+export function getCartPricing(items: readonly CartItem[], fees = 0) {
+  return calculateMoneySummary(items.map((item) => ({
+    quantity: item.quantity,
+    ...getCartItemUnitPrices(item),
+  })), fees);
+}
+
+function computeTotalPrice(item: Pick<CartItem, "unitPrice" | "standardUnitPrice" | "variantPriceDelta" | "additions" | "quantity">): number {
+  const prices = getCartItemUnitPrices(item);
+  return fromCents(toCents(prices.payableUnitPrice) * item.quantity);
 }
 
 export const useCartStore = create<CartStore>()(
@@ -85,7 +106,7 @@ export const useCartStore = create<CartStore>()(
 
           if (existingIndex === -1) {
             return {
-              items: [...state.items, { ...item, id: crypto.randomUUID() }],
+              items: [...state.items, { ...item, totalPrice: computeTotalPrice(item), id: crypto.randomUUID() }],
             };
           }
 
@@ -97,6 +118,7 @@ export const useCartStore = create<CartStore>()(
             quantity: nextQuantity,
             totalPrice: computeTotalPrice({
               unitPrice: existing.unitPrice,
+              standardUnitPrice: existing.standardUnitPrice,
               variantPriceDelta: existing.variantPriceDelta,
               additions: existing.additions,
               quantity: nextQuantity,
@@ -123,6 +145,7 @@ export const useCartStore = create<CartStore>()(
                         quantity,
                         totalPrice: computeTotalPrice({
                           unitPrice: i.unitPrice,
+                          standardUnitPrice: i.standardUnitPrice,
                           variantPriceDelta: i.variantPriceDelta,
                           additions: i.additions,
                           quantity,
@@ -135,13 +158,10 @@ export const useCartStore = create<CartStore>()(
       clearCart: () => set({ items: [], orderType: "ASPORTO" }),
 
       getSubtotal: () =>
-        get().items.reduce((sum, item) => sum + item.totalPrice, 0),
+        getCartPricing(get().items).subtotal,
 
       getClubSavings: () =>
-        get().items.reduce((sum, item) => {
-          const standardPrice = item.standardUnitPrice ?? item.unitPrice;
-          return sum + Math.max(0, standardPrice * item.quantity - item.totalPrice);
-        }, 0),
+        getCartPricing(get().items).savings,
 
       getItemCount: () =>
         get().items.reduce((sum, item) => sum + item.quantity, 0),
@@ -153,17 +173,23 @@ export const useCartStore = create<CartStore>()(
             items: state.items.map((item) => {
               const product = prices.get(item.productId);
               if (!product) return item;
-              const additionsTotal = item.additions.reduce((sum, addition) => sum + addition.price, 0);
               const unitPrice = Number(product.price);
-              const standardUnitPrice = Number(product.standardPrice ?? product.price) + item.variantPriceDelta + additionsTotal;
-              return {
+              const standardUnitPrice = fromCents(
+                toCents(product.standardPrice ?? product.price)
+                + toCents(item.variantPriceDelta)
+                + item.additions.reduce((sum, addition) => sum + toCents(addition.price), 0),
+              );
+              const nextItem = {
                 ...item,
+                unitPrice,
+                standardUnitPrice,
+              };
+              return {
+                ...nextItem,
                 imageUrl: product.imageUrl,
                 imageFit: product.imageFit,
                 ingredients: product.ingredients ? [...product.ingredients] : undefined,
-                unitPrice,
-                standardUnitPrice,
-                totalPrice: (unitPrice + item.variantPriceDelta + additionsTotal) * item.quantity,
+                totalPrice: computeTotalPrice(nextItem),
               };
             }),
           };

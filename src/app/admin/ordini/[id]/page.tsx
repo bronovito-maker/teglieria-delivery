@@ -259,6 +259,12 @@ export default function OrderDetailPage() {
                 <span>Subtotale</span>
                 <span>{formatCurrency(Number(order.subtotal))}</span>
               </div>
+              {Number(order.clubSavings) > 0 && (
+                <div className="flex justify-between font-semibold text-green-700">
+                  <span>Risparmio Club</span>
+                  <span>-{formatCurrency(Number(order.clubSavings))}</span>
+                </div>
+              )}
               {order.deliveryCost && Number(order.deliveryCost) > 0 && (
                 <div className="flex justify-between text-gray-500">
                   <span>Consegna</span>

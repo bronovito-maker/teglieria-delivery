@@ -1,0 +1,2 @@
+ALTER TABLE "Order" ADD COLUMN "clubSavings" DECIMAL(10,2) NOT NULL DEFAULT 0;
+ALTER TABLE "OrderItem" ADD COLUMN "standardUnitPrice" DECIMAL(8,2);

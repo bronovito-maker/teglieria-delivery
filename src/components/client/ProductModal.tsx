@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import PizzaBuilderModal from "./PizzaBuilderModal";
 import type { PizzaMenuFlavorOption } from "./PizzaBuilderModal";
 import { getPizzaFormatByCategory } from "@/lib/catalog";
+import { fromCents, toCents } from "@/lib/money";
 
 interface Props {
   product: ProductWithRelations;
@@ -38,9 +39,10 @@ function ProductModalContent({ product, onClose }: Props) {
   const allergenInfo = registry ? snapshot(registry, productResult(registry.graph, product.id, selectedAdditions.map(a => a.name), selectedRemovals.map(r => r.name), selectedVariant)) : product.allergenInfo;
   const basePrice = Number(product.price);
   const standardBasePrice = Number(product.standardPrice ?? product.price);
-  const additionsTotal = selectedAdditions.reduce((s, a) => s + a.price, 0);
-  const unitTotal = basePrice + variantDelta + additionsTotal;
-  const total = unitTotal * quantity;
+  const additionsCents = selectedAdditions.reduce((sum, addition) => sum + toCents(addition.price), 0);
+  const unitTotalCents = toCents(basePrice) + toCents(variantDelta) + additionsCents;
+  const unitTotal = fromCents(unitTotalCents);
+  const total = fromCents(unitTotalCents * quantity);
   const shouldZoomParma = (product.category?.name === "Teglie" || product.category?.name === "Mezze teglie") && product.name === "La Parma";
   const isBeverage = product.category?.name === "Bevande analcoliche" || product.category?.name === "Birre";
   const pizzaFormat = product.category?.name ? getPizzaFormatByCategory(product.category.name) : null;
@@ -71,7 +73,7 @@ function ProductModalContent({ product, onClose }: Props) {
       productName: product.name,
       quantity,
       unitPrice: basePrice,
-      standardUnitPrice: standardBasePrice + variantDelta + additionsTotal,
+      standardUnitPrice: fromCents(toCents(standardBasePrice) + toCents(variantDelta) + additionsCents),
       variant: selectedVariant || undefined,
       variantPriceDelta: variantDelta,
       additions: selectedAdditions,

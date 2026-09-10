@@ -4,6 +4,7 @@ import {
   PIZZA_MENU_FLAVORS,
   type PizzaFormat,
 } from "./catalog";
+import { fromCents, toCents } from "./money";
 
 export { PIZZA_BUILDER_CONFIG, PIZZA_FORMATS, PIZZA_MENU_FLAVORS } from "./catalog";
 export type { PizzaFormat, PizzaMenuFlavor } from "./catalog";
@@ -23,7 +24,7 @@ export function pizzaIngredientData(name: string, format: PizzaFormat, gusti: nu
   const divisor = format === "INTERA" ? gusti : gusti * 2;
   const key = pizzaPriceKey(format, gusti);
   const price = Number(row[PIZZA_BUILDER_CONFIG.priceKeys.indexOf(key as (typeof PIZZA_BUILDER_CONFIG.priceKeys)[number]) + 2]);
-  return { name, grams: Number((row[1] / divisor).toFixed(1)), price: Number(price.toFixed(2)) };
+  return { name, grams: Number((row[1] / divisor).toFixed(1)), price: fromCents(toCents(price)) };
 }
 
 export function pizzaBaseData(base: "ROSSA" | "BIANCA", format: PizzaFormat, gusti: number) {
@@ -59,13 +60,13 @@ export function calculatePizzaSlot(
   const baseType = flavor?.base ?? slot.base;
   const base = pizzaBaseData(baseType, format, gusti);
   const additions: Array<{ name: string; price: number; grams?: number; available?: boolean }> = [];
-  let total = base.price;
+  let totalCents = toCents(base.price);
   additions.push({ name: `Gusto ${index + 1} · ${flavor?.name ?? base.name}`, price: base.price });
 
   const mozzarellaStandard = flavor?.mozzarellaStandard ?? (baseType === "ROSSA" && slot.mozzarellaStandard);
   if (mozzarellaStandard) {
     const mozzarella = PIZZA_BUILDER_CONFIG.mozzarellaStandard.prices[format][gusti - 1];
-    total += mozzarella;
+    totalCents += toCents(mozzarella);
     additions.push({ name: `Gusto ${index + 1} · Mozzarella standard`, price: mozzarella, available: true });
   }
 
@@ -73,11 +74,11 @@ export function calculatePizzaSlot(
   for (const name of ingredientNames) {
     if (typeof name !== "string" || !pizzaIngredientData(name, format, gusti)) throw new Error("INVALID_PIZZA_CONFIGURATION");
     const ingredient = pizzaIngredientData(name, format, gusti)!;
-    total += ingredient.price;
+    totalCents += toCents(ingredient.price);
     additions.push({ name: `Gusto ${index + 1} · ${ingredient.name}`, price: ingredient.price, available: true });
   }
 
-  return { total: Number(total.toFixed(2)), additions };
+  return { total: fromCents(totalCents), additions };
 }
 
 export function calculatePizzaConfiguration(selection: PizzaBuilderSelection) {
@@ -85,7 +86,7 @@ export function calculatePizzaConfiguration(selection: PizzaBuilderSelection) {
   if (!format.gusti.includes(selection.gusti as never) || selection.slots.length !== selection.gusti) throw new Error("INVALID_PIZZA_CONFIGURATION");
   const slotCalculations = selection.slots.map((slot, index) => calculatePizzaSlot(slot, selection.format, selection.gusti, index));
   return {
-    total: Number(slotCalculations.reduce((sum, slot) => sum + slot.total, 0).toFixed(2)),
+    total: fromCents(slotCalculations.reduce((sum, slot) => sum + toCents(slot.total), 0)),
     additions: slotCalculations.flatMap((slot) => slot.additions),
   };
 }

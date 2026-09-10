@@ -16,6 +16,7 @@ import { calculateDeliveryFee, getItalianTimeSlot, isOrderTimeAllowed, MIN_ORDER
 import { calculatePizzaConfiguration, type PizzaBuilderSelection } from "@/lib/pizza-builder";
 import { toCustomerOrderView } from "@/lib/order-views";
 import { getCanonicalProductIngredients } from "@/lib/catalog";
+import { calculateAuthoritativeLine, calculateMoneySummary, fromCents, toCents } from "@/lib/money";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -132,6 +133,7 @@ export async function POST(request: Request) {
   const authoritativeDeliveryCost = body.type === "DELIVERY"
     ? channel === "WEB" ? calculateDeliveryFee(body.deliveryKm) : body.deliveryCost ?? 0
     : 0;
+  const authoritativeDeliveryCostCents = toCents(authoritativeDeliveryCost);
 
   let order = idempotencyKey
     ? await prisma.order.findUnique({ where: { idempotencyKey }, include: { items: true } })
@@ -201,11 +203,16 @@ export async function POST(request: Request) {
           }
           let calculated: ReturnType<typeof calculatePizzaConfiguration>;
           try { calculated = calculatePizzaConfiguration(selection); } catch { throw new Error("INVALID_CART_PRICE"); }
-          const priceMismatch = Math.abs(item.unitPrice - calculated.total) > 0.01 || Math.abs(item.totalPrice - calculated.total * item.quantity) > 0.01;
+          const unitPriceCents = toCents(calculated.total);
+          const totalPriceCents = unitPriceCents * item.quantity;
+          const priceMismatch = toCents(item.unitPrice) !== unitPriceCents || toCents(item.totalPrice) !== totalPriceCents;
           if (priceMismatch) throw new Error("INVALID_CART_PRICE");
-          return { ...item, allergenSnapshot: snapshot(allergenRegistry, pizzaAllergens(allergenRegistry.graph, selection)), ingredientSnapshot: null, productName: product.name, unitPrice: calculated.total, totalPrice: calculated.total * item.quantity, additions: calculated.additions, variant: JSON.stringify(selection) };
+          return { ...item, allergenSnapshot: snapshot(allergenRegistry, pizzaAllergens(allergenRegistry.graph, selection)), ingredientSnapshot: null, productName: product.name, unitPrice: fromCents(unitPriceCents), standardUnitPrice: fromCents(unitPriceCents), totalPrice: fromCents(totalPriceCents), additions: calculated.additions, variant: JSON.stringify(selection) };
         }
-        const basePrice = pricingAuthUserId && product.clubPrice != null ? Number(product.clubPrice) : Number(product.price);
+        const standardBasePriceCents = toCents(Number(product.price));
+        const payableBasePriceCents = pricingAuthUserId && product.clubPrice != null
+          ? toCents(Number(product.clubPrice))
+          : standardBasePriceCents;
         const variant = item.variant ? product.variants.find((candidate) => candidate.name === item.variant) : null;
         if (item.variant && !variant) throw new Error("INVALID_CART_PRICE");
         const additions = item.additions ?? [];
@@ -214,20 +221,26 @@ export async function POST(request: Request) {
           if (!match) throw new Error("INVALID_CART_PRICE");
           return { name: match.name, price: Number(match.price) };
         });
-        const expectedUnitPrice = basePrice + (variant ? Number(variant.priceDelta) : 0) + authoritativeAdditions.reduce((sum, addition) => sum + addition.price, 0);
-        const priceMismatch = Math.abs(item.unitPrice - expectedUnitPrice) > 0.01 || Math.abs(item.totalPrice - expectedUnitPrice * item.quantity) > 0.01;
-        if (priceMismatch && !pricingAuthUserId) {
-          throw new Error("INVALID_CART_PRICE");
-        }
+        const linePricing = calculateAuthoritativeLine({
+          quantity: item.quantity,
+          payableBasePrice: fromCents(payableBasePriceCents),
+          standardBasePrice: fromCents(standardBasePriceCents),
+          variantPrice: variant ? Number(variant.priceDelta) : 0,
+          additionPrices: authoritativeAdditions.map((addition) => addition.price),
+        });
+        const priceMismatch = toCents(item.unitPrice) !== linePricing.payableUnitCents || toCents(item.totalPrice) !== linePricing.totalCents;
+        if (priceMismatch) throw new Error("INVALID_CART_PRICE");
         const canonicalIngredients = getCanonicalProductIngredients(product.category.name, product.name);
         if (canonicalIngredients && JSON.stringify(item.ingredients ?? []) !== JSON.stringify(canonicalIngredients)) {
           throw new Error("STALE_CART");
         }
-        return { ...item, allergenSnapshot: snapshot(allergenRegistry, productResult(allergenRegistry.graph, product.id, authoritativeAdditions.map(a => a.name), (item.removals ?? []).map(r => r.name), item.variant)), ingredientSnapshot: canonicalIngredients, productName: product.name, unitPrice: expectedUnitPrice, totalPrice: expectedUnitPrice * item.quantity, additions: authoritativeAdditions };
+        return { ...item, allergenSnapshot: snapshot(allergenRegistry, productResult(allergenRegistry.graph, product.id, authoritativeAdditions.map(a => a.name), (item.removals ?? []).map(r => r.name), item.variant)), ingredientSnapshot: canonicalIngredients, productName: product.name, unitPrice: linePricing.payableUnitPrice, standardUnitPrice: linePricing.standardUnitPrice, totalPrice: linePricing.totalPrice, additions: authoritativeAdditions };
       });
-      const authoritativeSubtotal = authoritativeItems.reduce((sum, item) => sum + item.totalPrice, 0);
-      if (authoritativeSubtotal < MIN_ORDER_SUBTOTAL) throw new Error("MIN_ORDER_NOT_REACHED");
-      const authoritativeTotal = authoritativeSubtotal + authoritativeDeliveryCost;
+      const authoritativePricing = calculateMoneySummary(
+        authoritativeItems.map((item) => ({ quantity: item.quantity, payableUnitPrice: item.unitPrice, standardUnitPrice: item.standardUnitPrice })),
+        fromCents(authoritativeDeliveryCostCents),
+      );
+      if (authoritativePricing.subtotalCents < toCents(MIN_ORDER_SUBTOTAL)) throw new Error("MIN_ORDER_NOT_REACHED");
 
       const createdOrder = await tx.order.create({
         data: {
@@ -241,12 +254,13 @@ export async function POST(request: Request) {
           addressDetail: body.addressDetail,
           deliveryZone: body.deliveryZone,
           deliveryKm: body.deliveryKm,
-          deliveryCost: body.type === "DELIVERY" ? authoritativeDeliveryCost : null,
+          deliveryCost: body.type === "DELIVERY" ? authoritativePricing.fees : null,
           pickupTime: body.pickupTime ? new Date(body.pickupTime) : null,
           timeSlot: body.timeSlot,
           estimatedTime: body.estimatedTime ? new Date(body.estimatedTime) : null,
-          subtotal: authoritativeSubtotal,
-          total: authoritativeTotal,
+          subtotal: authoritativePricing.subtotal,
+          clubSavings: authoritativePricing.savings,
+          total: authoritativePricing.total,
           notes: body.notes,
           paymentMethod: effectivePaymentMethod,
           idempotencyKey,
@@ -261,6 +275,7 @@ export async function POST(request: Request) {
                 productName: item.productName,
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,
+                standardUnitPrice: item.standardUnitPrice,
                 totalPrice: item.totalPrice,
                 variant: item.variant,
                 additions: toNullableJson(item.additions),
@@ -355,6 +370,7 @@ export async function POST(request: Request) {
           : [],
       })),
       subtotal: Number(order.subtotal),
+      clubSavings: Number(order.clubSavings),
       total: Number(order.total),
       deliveryCost: order.deliveryCost ? Number(order.deliveryCost) : null,
       address: order.address,
@@ -395,7 +411,7 @@ export async function POST(request: Request) {
           quantity: item.quantity,
           price_data: {
             currency: "eur",
-            unit_amount: Math.round(Number(item.unitPrice) * 100),
+            unit_amount: toCents(Number(item.unitPrice)),
             product_data: {
               name: item.productName,
               metadata: { catalogProductId: item.productId },
@@ -407,7 +423,7 @@ export async function POST(request: Request) {
               shipping_options: [{
                 shipping_rate_data: {
                   type: "fixed_amount" as const,
-                  fixed_amount: { amount: Math.round(Number(order.deliveryCost) * 100), currency: "eur" },
+                  fixed_amount: { amount: toCents(Number(order.deliveryCost)), currency: "eur" },
                   display_name: "Consegna",
                 },
               }],
