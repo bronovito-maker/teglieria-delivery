@@ -526,6 +526,39 @@ export async function sendOrderDeliveredEmail(order: OrderDeliveredInput): Promi
   }
 }
 
+export type OrderCancellationInput = {
+  customerEmail: string;
+  customerName: string;
+  orderNumber: number;
+  orderCode?: string | null;
+};
+
+export async function sendOrderCancellationEmail(order: OrderCancellationInput): Promise<void> {
+  const client = getClient();
+  if (!client) throw new Error("EMAIL_PROVIDER_NOT_CONFIGURED");
+  const displayCode = order.orderCode ?? `#${order.orderNumber}`;
+  const content = `
+    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:#D96A2B;">Ordine annullato</p>
+    <h1 style="margin:0 0 24px;font-size:28px;font-weight:700;color:#1d1d1f;line-height:1.2;">Ci dispiace, ${escapeHtml(order.customerName)}.</h1>
+    <p style="margin:0 0 24px;font-size:15px;color:#1d1d1f;opacity:0.6;line-height:1.6;">
+      Il tuo ordine è stato annullato dal nostro staff. L’ordine rimane disponibile nel tuo storico.
+    </p>
+    <div style="background:#f5f0e8;border-radius:16px;padding:16px 20px;margin-bottom:24px;text-align:center;">
+      <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#1d1d1f;opacity:0.4;">Ordine</p>
+      <p style="margin:6px 0 0;font-size:32px;font-weight:700;color:#D96A2B;">${escapeHtml(displayCode)}</p>
+    </div>
+    <p style="margin:0;font-size:13px;color:#1d1d1f;opacity:0.5;text-align:center;line-height:1.6;">
+      Per chiarimenti contatta direttamente La Teglieria.
+    </p>
+  `;
+  await client.transactionalEmails.sendTransacEmail({
+    sender: { name: FROM_NAME, email: FROM_EMAIL },
+    to: [{ email: order.customerEmail, name: order.customerName }],
+    subject: `Ordine ${displayCode} annullato — La Teglieria`,
+    htmlContent: emailWrapper(content),
+  });
+}
+
 // ─── EMAIL 8: Feedback post-ordine ──────────────────────────────────────────
 
 type OrderFeedbackInput = {

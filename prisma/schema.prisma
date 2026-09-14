@@ -19,43 +19,43 @@ model Category {
 }
 
 model Product {
-  id              String            @id @default(cuid())
-  name            String
-  description     String?
-  price           Decimal           @db.Decimal(8, 2)
-  clubPrice       Decimal?          @db.Decimal(8, 2)
-  promoPrice      Decimal?          @db.Decimal(8, 2)
-  stripeProductId String?           @unique
-  stripePriceId   String?           @unique
-  imageUrl        String?
-  categoryId      String
-  category        Category          @relation(fields: [categoryId], references: [id])
-  active          Boolean           @default(true)
-  sortOrder       Int               @default(0)
-  kitchenNotes    String?
-  configuration   Json?
-  variants        ProductVariant[]
-  additions       ProductAddition[]
-  removals        ProductRemoval[]
-  orderItems      OrderItem[]
+  id                 String              @id @default(cuid())
+  name               String
+  description        String?
+  price              Decimal             @db.Decimal(8, 2)
+  clubPrice          Decimal?            @db.Decimal(8, 2)
+  promoPrice         Decimal?            @db.Decimal(8, 2)
+  stripeProductId    String?             @unique
+  stripePriceId      String?             @unique
+  imageUrl           String?
+  categoryId         String
+  category           Category            @relation(fields: [categoryId], references: [id])
+  active             Boolean             @default(true)
+  sortOrder          Int                 @default(0)
+  kitchenNotes       String?
+  configuration      Json?
+  variants           ProductVariant[]
+  additions          ProductAddition[]
+  removals           ProductRemoval[]
+  orderItems         OrderItem[]
   clubPromotionItems ClubPromotionItem[]
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 }
 
 model ClubPromotion {
-  id          String   @id @default(cuid())
+  id          String              @id @default(cuid())
   title       String
   description String?
-  price       Decimal  @db.Decimal(8, 2)
+  price       Decimal             @db.Decimal(8, 2)
   imageUrl    String?
   startsAt    DateTime
   endsAt      DateTime
-  active      Boolean  @default(true)
-  sortOrder   Int      @default(0)
+  active      Boolean             @default(true)
+  sortOrder   Int                 @default(0)
   items       ClubPromotionItem[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
 
   @@index([active, startsAt, endsAt])
 }
@@ -98,40 +98,40 @@ model ProductRemoval {
 }
 
 model Order {
-  id                    String           @id @default(cuid())
-  orderNumber           Int              @default(autoincrement())
-  orderCode             String?          @unique // e.g. "A001", "D042"
+  id                    String             @id @default(cuid())
+  orderNumber           Int                @default(autoincrement())
+  orderCode             String?            @unique // e.g. "A001", "D042"
   authUserId            String? // Supabase auth user ID (null per ordini guest)
   clubCardId            String?
-  clubCard              ClubCard?        @relation(fields: [clubCardId], references: [id], onDelete: SetNull)
+  clubCard              ClubCard?          @relation(fields: [clubCardId], references: [id], onDelete: SetNull)
   type                  OrderType
   channel               OrderChannel
-  status                OrderStatus      @default(RECEIVED)
+  status                OrderStatus        @default(RECEIVED)
   customerName          String
   customerPhone         String
   customerEmail         String?
   address               String?
   addressDetail         String?
   deliveryZone          String?
-  deliveryKm            Decimal?         @db.Decimal(5, 1)
-  deliveryCost          Decimal?         @db.Decimal(8, 2)
+  deliveryKm            Decimal?           @db.Decimal(5, 1)
+  deliveryCost          Decimal?           @db.Decimal(8, 2)
   riderId               String?
-  rider                 Rider?           @relation(fields: [riderId], references: [id])
+  rider                 Rider?             @relation(fields: [riderId], references: [id])
   estimatedTime         DateTime?
   actualTime            DateTime?
   deliveryStatus        DeliveryStatus?
   pickupTime            DateTime?
-  subtotal              Decimal          @db.Decimal(10, 2)
-  clubSavings           Decimal          @default(0) @db.Decimal(10, 2)
-  total                 Decimal          @db.Decimal(10, 2)
+  subtotal              Decimal            @db.Decimal(10, 2)
+  clubSavings           Decimal            @default(0) @db.Decimal(10, 2)
+  total                 Decimal            @db.Decimal(10, 2)
   notes                 String?
-  paymentMethod         PaymentMethod?   @default(CONTANTI)
-  paymentStatus         PaymentStatus    @default(PENDING)
-  idempotencyKey        String?          @unique
-  stripeSessionId       String?          @unique
+  paymentMethod         PaymentMethod?     @default(CONTANTI)
+  paymentStatus         PaymentStatus      @default(PENDING)
+  idempotencyKey        String?            @unique
+  stripeSessionId       String?            @unique
   stripePaymentIntentId String?
   stripeRefundId        String?
-  refundedAmountCents   Int              @default(0)
+  refundedAmountCents   Int                @default(0)
   timeSlot              String?
   items                 OrderItem[]
   statusHistory         OrderStatusLog[]
@@ -139,8 +139,8 @@ model Order {
   feedbackRequest       FeedbackRequest?
   feedback              OrderFeedback?
   statusTokens          OrderStatusToken[]
-  createdAt             DateTime         @default(now())
-  updatedAt             DateTime         @updatedAt
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
 
   @@index([pickupTime, status, timeSlot])
   @@index([clubCardId])
@@ -148,13 +148,13 @@ model Order {
 }
 
 model OrderStatusToken {
-  id         String   @id @default(cuid())
-  orderId    String
-  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  tokenHash  String   @unique
-  expiresAt  DateTime
-  revokedAt  DateTime?
-  createdAt  DateTime @default(now())
+  id        String    @id @default(cuid())
+  orderId   String
+  order     Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
 
   @@index([orderId, expiresAt])
 }
@@ -200,22 +200,22 @@ model ClosedDate {
 }
 
 model OrderItem {
-  allergenSnapshot Json?
+  allergenSnapshot   Json?
   ingredientSnapshot Json?
-  id          String  @id @default(cuid())
-  orderId     String
-  order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId   String
-  product     Product @relation(fields: [productId], references: [id])
-  productName String
-  quantity    Int
-  unitPrice   Decimal @db.Decimal(8, 2)
-  standardUnitPrice Decimal? @db.Decimal(8, 2)
-  totalPrice  Decimal @db.Decimal(10, 2)
-  variant     String?
-  additions   Json?
-  removals    Json?
-  notes       String?
+  id                 String   @id @default(cuid())
+  orderId            String
+  order              Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId          String
+  product            Product  @relation(fields: [productId], references: [id])
+  productName        String
+  quantity           Int
+  unitPrice          Decimal  @db.Decimal(8, 2)
+  standardUnitPrice  Decimal? @db.Decimal(8, 2)
+  totalPrice         Decimal  @db.Decimal(10, 2)
+  variant            String?
+  additions          Json?
+  removals           Json?
+  notes              String?
 }
 
 model OrderStatusLog {
@@ -225,6 +225,37 @@ model OrderStatusLog {
   status    OrderStatus
   note      String?
   createdAt DateTime    @default(now())
+}
+
+model OrderEmailOutbox {
+  id        String    @id @default(cuid())
+  orderId   String
+  eventType String
+  recipient String
+  payload   Json
+  attempts  Int       @default(0)
+  claimedAt DateTime?
+  sentAt    DateTime?
+  lastError String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([orderId, eventType])
+  @@index([sentAt, claimedAt, createdAt])
+}
+
+model AuditEvent {
+  id         String   @id @default(cuid())
+  action     String
+  entity     String
+  entityId   String?
+  actorEmail String?
+  actorId    String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entity, entityId, createdAt])
+  @@index([actorId, createdAt])
 }
 
 model PaymentRefund {

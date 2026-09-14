@@ -313,6 +313,7 @@ soglie SLA, geolocalizzazione, mappa e navigazione.
 | `GET /api/user/orders` | Cliente autenticato | Storico ordini personali |
 | `GET/POST /api/feedback/[token]` | Token feedback | Legge e salva feedback |
 | `GET /api/cron/feedback` | Bearer `CRON_SECRET` | Invia richieste feedback pianificate |
+| `GET /api/cron/order-emails` | Bearer `CRON_SECRET` | Ritenta le e-mail di annullamento presenti nell’outbox |
 | `GET/POST /api/admin/orari` | Admin/operator | Orari operativi |
 | `GET/POST /api/admin/config` | Admin/operator | Configurazione globale |
 

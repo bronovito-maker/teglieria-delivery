@@ -27,7 +27,6 @@ export default function DashboardPage() {
 
   // Cancel order state
   const [cancelTarget, setCancelTarget] = useState<OrderWithItems | null>(null);
-  const [cancelPassword, setCancelPassword] = useState("");
   const [cancelLoading, setCancelLoading] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
 
@@ -66,18 +65,17 @@ export default function DashboardPage() {
   }
 
   async function handleCancelOrder() {
-    if (!cancelTarget || !cancelPassword.trim()) return;
+    if (!cancelTarget) return;
     setCancelLoading(true);
     setCancelError(null);
     try {
       const res = await fetch(`/api/ordini/${cancelTarget.id}`, {
-        method: "DELETE",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adminPassword: cancelPassword }),
+        body: JSON.stringify({ status: "CANCELLED" }),
       });
       if (res.ok) {
         setCancelTarget(null);
-        setCancelPassword("");
         fetchOrders();
       } else {
         const data = await res.json().catch(() => ({}));
@@ -202,13 +200,11 @@ export default function DashboardPage() {
                               ✓
                             </button>
                           ) : (
-                            getStatusTransitions(order.type, status)
-                              .filter((nextStatus) => nextStatus !== "CANCELLED")
-                              .map((nextStatus) => (
+                            getStatusTransitions(order.type, status).map((nextStatus) => (
                                 <button
                                   key={nextStatus}
-                                  onClick={(e) => { e.stopPropagation(); updateStatus(order.id, nextStatus); }}
-                                  className="flex-shrink-0 h-8 px-2.5 rounded-xl font-brand font-semibold text-[8px] uppercase tracking-[0.16em] whitespace-nowrap transition-all bg-charcoal/5 text-charcoal hover:bg-charcoal hover:text-white"
+                                  onClick={(e) => { e.stopPropagation(); nextStatus === "CANCELLED" ? setCancelTarget(order) : updateStatus(order.id, nextStatus); }}
+                                  className={`flex-shrink-0 h-8 px-2.5 rounded-xl font-brand font-semibold text-[8px] uppercase tracking-[0.16em] whitespace-nowrap transition-all ${nextStatus === "CANCELLED" ? "bg-red-50 text-red-600 hover:bg-red-600 hover:text-white" : "bg-charcoal/5 text-charcoal hover:bg-charcoal hover:text-white"}`}
                                 >
                                   {ORDER_STATUS_LABELS[nextStatus]}
                                 </button>
@@ -231,7 +227,7 @@ export default function DashboardPage() {
           <div className="w-full max-w-md bg-warm-light rounded-[3rem] p-10 shadow-2xl border border-white/20">
             <div className="flex justify-between items-start mb-10">
               <div>
-                <span className="text-[10px] font-brand font-semibold uppercase tracking-[0.3em] text-red-500 mb-2 block">⚠ Azione Irreversibile</span>
+                <span className="text-[10px] font-brand font-semibold uppercase tracking-[0.3em] text-red-500 mb-2 block">Cambio di stato</span>
                 <h3 className="text-3xl font-display font-semibold text-charcoal tracking-tight">Annulla Ordine</h3>
                 <p className="font-body italic text-charcoal/50 text-sm mt-2">#{formatOrderCode(cancelTarget)} · {cancelTarget.customerName}</p>
               </div>
@@ -246,22 +242,7 @@ export default function DashboardPage() {
             <div className="space-y-6">
               <div className="bg-red-50 border border-red-100 rounded-3xl p-6">
                 <p className="text-[10px] font-brand font-bold uppercase tracking-widest text-red-400 mb-1">Attenzione</p>
-                <p className="font-body italic text-sm text-red-600">La cancellazione è permanente e non può essere annullata. Inserisci la password amministratore per procedere.</p>
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-[10px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/30 ml-4">
-                  Password Admin
-                </label>
-                <input
-                  type="password"
-                  autoFocus
-                  value={cancelPassword}
-                  onChange={(e) => { setCancelPassword(e.target.value); setCancelError(null); }}
-                  onKeyDown={async (e) => { if (e.key === "Enter") await handleCancelOrder(); }}
-                  placeholder="••••••••"
-                  className="w-full px-8 py-5 bg-white border border-charcoal/5 rounded-full font-body italic text-sm focus:ring-2 focus:ring-red-200 focus:border-red-300 outline-none transition-all shadow-sm"
-                />
+                <p className="font-body italic text-sm text-red-600">L’ordine sarà conservato nello storico con stato Annullato. Se presente, il cliente riceverà una sola e-mail di annullamento.</p>
               </div>
 
               {cancelError && (
@@ -276,15 +257,15 @@ export default function DashboardPage() {
                   onClick={() => setCancelTarget(null)}
                   className="py-5 rounded-full border border-charcoal/10 text-charcoal font-brand font-bold uppercase tracking-widest text-[10px] hover:bg-charcoal/5 transition-all"
                 >
-                  Annulla
+                  Chiudi
                 </button>
                 <button
                   type="button"
                   onClick={handleCancelOrder}
-                  disabled={cancelLoading || !cancelPassword.trim()}
+                  disabled={cancelLoading}
                   className="py-5 rounded-full bg-red-500 text-white font-brand font-bold uppercase tracking-widest text-[10px] hover:bg-red-600 active:scale-95 disabled:opacity-50 transition-all shadow-xl shadow-red-500/20"
                 >
-                  {cancelLoading ? "Eliminazione..." : "Conferma Cancellazione"}
+                  {cancelLoading ? "Annullamento..." : "Conferma annullamento"}
                 </button>
               </div>
             </div>

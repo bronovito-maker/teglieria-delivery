@@ -1,21 +1,27 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { orderFindUnique, orderUpdateMany, riderFindFirst, getUser } = vi.hoisted(() => ({
+const { orderFindUnique, orderUpdateMany, orderDelete, auditEventCreate, transaction, riderFindFirst, getUser, signInWithPassword } = vi.hoisted(() => ({
   orderFindUnique: vi.fn(),
   orderUpdateMany: vi.fn(),
+  orderDelete: vi.fn(),
+  auditEventCreate: vi.fn(),
+  transaction: vi.fn(),
   riderFindFirst: vi.fn(),
   getUser: vi.fn(),
+  signInWithPassword: vi.fn(),
 }));
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    order: { findUnique: orderFindUnique, updateMany: orderUpdateMany },
+    order: { findUnique: orderFindUnique, updateMany: orderUpdateMany, delete: orderDelete },
+    auditEvent: { create: auditEventCreate },
     rider: { findFirst: riderFindFirst },
+    $transaction: transaction,
   },
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: vi.fn(async () => ({ auth: { getUser } })),
+  createClient: vi.fn(async () => ({ auth: { getUser, signInWithPassword } })),
 }));
 
 vi.mock("@/lib/rate-limit", () => ({
@@ -63,7 +69,7 @@ vi.mock("@/lib/audit", () => ({
   writeAuditLog: vi.fn(),
 }));
 
-import { GET, PATCH } from "./route";
+import { DELETE, GET, PATCH } from "./route";
 
 function makeOrder(overrides: Record<string, unknown> = {}) {
   return {
@@ -200,5 +206,53 @@ describe("PATCH /api/ordini/[id] rider authorization and transitions", () => {
 
     expect(response.status).toBe(409);
     expect(orderUpdateMany).not.toHaveBeenCalled();
+  });
+});
+
+describe("DELETE /api/ordini/[id] permanent deletion", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    delete process.env.ADMIN_ORDER_DELETE_VERIFICATION_MODE;
+    orderFindUnique.mockResolvedValue({ id: "order-1", orderCode: "D001", status: "CANCELLED" });
+    orderDelete.mockResolvedValue({ id: "order-1" });
+    auditEventCreate.mockResolvedValue({ id: "audit-1" });
+    transaction.mockImplementation(async (queries: Promise<unknown>[]) => Promise.all(queries));
+  });
+
+  it("distinguishes insufficient permissions", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "operator-1", email: "operator@example.com", app_metadata: { role: "operator" } } } });
+    const response = await DELETE(new Request("https://www.lateglieria.it/api/ordini/order-1", {
+      method: "DELETE",
+      headers: { origin: "https://www.lateglieria.it", "content-type": "application/json" },
+      body: JSON.stringify({ adminPassword: "password", confirmation: "D001" }),
+    }), { params: Promise.resolve({ id: "order-1" }) });
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toMatchObject({ code: "ADMIN_PERMISSION_REQUIRED" });
+  });
+
+  it("distinguishes an invalid reauthentication credential", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "admin-1", email: "admin@example.com", app_metadata: { role: "admin" } } } });
+    signInWithPassword.mockResolvedValue({ data: { user: null }, error: new Error("invalid") });
+    const response = await DELETE(new Request("https://www.lateglieria.it/api/ordini/order-1", {
+      method: "DELETE",
+      headers: { origin: "https://www.lateglieria.it", "content-type": "application/json" },
+      body: JSON.stringify({ adminPassword: "wrong", confirmation: "D001" }),
+    }), { params: Promise.resolve({ id: "order-1" }) });
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toMatchObject({ code: "CREDENTIAL_INVALID" });
+  });
+
+  it("requires the order code and stores an audit before permanent deletion", async () => {
+    const user = { id: "admin-1", email: "admin@example.com", app_metadata: { role: "admin" } };
+    getUser.mockResolvedValue({ data: { user } });
+    signInWithPassword.mockResolvedValue({ data: { user }, error: null });
+    const response = await DELETE(new Request("https://www.lateglieria.it/api/ordini/order-1", {
+      method: "DELETE",
+      headers: { origin: "https://www.lateglieria.it", "content-type": "application/json" },
+      body: JSON.stringify({ adminPassword: "password", confirmation: "D001" }),
+    }), { params: Promise.resolve({ id: "order-1" }) });
+    expect(response.status).toBe(200);
+    expect(auditEventCreate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: "order.delete", entityId: "order-1" }) }));
+    expect(orderDelete).toHaveBeenCalledWith({ where: { id: "order-1" } });
   });
 });

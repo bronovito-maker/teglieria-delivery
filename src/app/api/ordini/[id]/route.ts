@@ -4,17 +4,19 @@ import { prisma } from "@/lib/prisma";
 import { notifyCustomerOrderStatus } from "@/lib/customer-notifications";
 import { sendRiderDepartedEmail, sendTimeUpdateEmail, sendOrderConfirmedEmail, sendOrderReadyEmail, sendOrderDeliveredEmail } from "@/lib/email";
 import { createClient } from "@/lib/supabase/server";
-import { isOperatorUser } from "@/lib/rbac";
+import { isAdminUser, isOperatorUser } from "@/lib/rbac";
 import { canTransitionDeliveryStatus, canTransitionOrderStatus } from "@/lib/constants";
 import { writeAuditLog } from "@/lib/audit";
 import { orderPatchSchema, type DeliveryStatusInput, type OrderPatchBody, type OrderStatusInput } from "@/lib/validation/orders";
 import { getOrderStatusCookieName, getOrderStatusTokenFromRequest, getOrderStatusTokenTtlSeconds, verifyOrderStatusToken } from "@/lib/order-status-token";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
-import { enforceSameOrigin, safeEqual } from "@/lib/request-security";
+import { enforceSameOrigin } from "@/lib/request-security";
 import { randomBytes } from "node:crypto";
 import { getStripe } from "@/lib/stripe";
 import { markStripePaymentSucceeded } from "@/lib/stripe-order-notifications";
 import { toCustomerOrderView, toRiderOrderView } from "@/lib/order-views";
+import { deliverOrderCancellationEmail, enqueueOrderCancellationEmail } from "@/lib/order-cancellation-outbox";
+import { verifyAdminDeletionCredential } from "@/lib/admin-delete-verification";
 
 function isRiderSafePatch(body: OrderPatchBody, riderId: string): boolean {
   const allowedStatuses = new Set(["OUT", "DELIVERED"]);
@@ -268,6 +270,10 @@ export async function PATCH(
       deliveryStatus: true,
       paymentMethod: true,
       paymentStatus: true,
+      customerEmail: true,
+      customerName: true,
+      orderNumber: true,
+      orderCode: true,
     },
   });
 
@@ -403,11 +409,30 @@ export async function PATCH(
     status: existingOrder.status,
     ...(!isOperator ? { riderId: rider!.id } : {}),
   };
-  if (Object.keys(data).length > 0) {
+  let cancellationLogCreated = false;
+  if (body.status === "CANCELLED" && statusChanged) {
+    const committed = await prisma.$transaction(async (tx) => {
+      const updated = await tx.order.updateMany({ where: updateWhere, data });
+      if (updated.count !== 1) return false;
+      await tx.orderStatusLog.create({
+        data: { orderId: id, status: "CANCELLED", note: body.statusNote },
+      });
+      if (existingOrder.customerEmail) {
+        await enqueueOrderCancellationEmail(tx, {
+          id,
+          customerEmail: existingOrder.customerEmail,
+          customerName: existingOrder.customerName,
+          orderNumber: existingOrder.orderNumber,
+          orderCode: existingOrder.orderCode,
+        });
+      }
+      return true;
+    });
+    if (!committed) return NextResponse.json({ error: "Ordine modificato da un'altra richiesta" }, { status: 409 });
+    cancellationLogCreated = true;
+  } else if (Object.keys(data).length > 0) {
     const updated = await prisma.order.updateMany({ where: updateWhere, data });
-    if (updated.count !== 1) {
-      return NextResponse.json({ error: "Ordine modificato da un'altra richiesta" }, { status: 409 });
-    }
+    if (updated.count !== 1) return NextResponse.json({ error: "Ordine modificato da un'altra richiesta" }, { status: 409 });
   }
 
   const order = await prisma.order.findUnique({
@@ -421,7 +446,7 @@ export async function PATCH(
   if (!order) return NextResponse.json({ error: "Ordine non trovato" }, { status: 404 });
 
   // Log status change and operational notes
-  if (body.status || body.statusNote) {
+  if ((statusChanged || body.statusNote) && !cancellationLogCreated) {
     await prisma.orderStatusLog.create({
       data: {
         orderId: id,
@@ -503,6 +528,11 @@ export async function PATCH(
     }
   }
 
+  let cancellationEmail: string | null = null;
+  if (body.status === "CANCELLED" && order.customerEmail) {
+    cancellationEmail = await deliverOrderCancellationEmail(order.id);
+  }
+
   // Notifica email su aggiornamento orario (solo se ordine attivo e cliente ha email)
   if (body.estimatedTime && !body.status && order.customerEmail) {
     const activeStatuses = ["RECEIVED", "CONFIRMED", "PREPARING", "READY", "OUT"];
@@ -531,7 +561,7 @@ export async function PATCH(
     });
   }
 
-  return NextResponse.json(isOperator ? order : toRiderOrderView(order), {
+  return NextResponse.json(isOperator ? { ...order, cancellationEmail } : toRiderOrderView(order), {
     headers: { "Cache-Control": "private, no-store" },
   });
 }
@@ -557,43 +587,52 @@ export async function DELETE(
   if (!user) {
     return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
   }
-  if (!isOperatorUser(user)) {
-    return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
+  if (!isAdminUser(user)) {
+    return NextResponse.json({ error: "Permessi Admin richiesti", code: "ADMIN_PERMISSION_REQUIRED" }, { status: 403 });
   }
 
   const order = await prisma.order.findUnique({
     where: { id },
-    select: { id: true, status: true },
+    select: { id: true, orderCode: true, status: true },
   });
 
   if (!order) {
     return NextResponse.json({ error: "Ordine non trovato" }, { status: 404 });
   }
 
-  let body: { adminPassword?: string } = {};
+  let body: { adminPassword?: string; confirmation?: string } = {};
   try {
     body = await request.json();
   } catch {
     body = {};
   }
 
-  const deletePassword = process.env.ADMIN_ORDER_DELETE_PASSWORD;
-  if (!deletePassword) {
-    return NextResponse.json(
-      { error: "Password eliminazione non configurata sul server" },
-      { status: 500 }
-    );
+  const expectedConfirmation = order.orderCode ?? id;
+  if (body.confirmation?.trim() !== expectedConfirmation) {
+    return NextResponse.json({ error: "Conferma ordine non valida", code: "DELETE_CONFIRMATION_INVALID" }, { status: 400 });
   }
-  if (!body.adminPassword || !safeEqual(body.adminPassword, deletePassword)) {
-    return NextResponse.json(
-      { error: "Password amministratore non valida" },
-      { status: 403 }
-    );
+  const verification = await verifyAdminDeletionCredential({ auth: supabase.auth, user, credential: body.adminPassword });
+  if (!verification.ok) {
+    if (verification.code === "VERIFICATION_NOT_CONFIGURED") {
+      return NextResponse.json({ error: "Verifica eliminazione non configurata sul server", code: verification.code }, { status: 503 });
+    }
+    const status = verification.code === "CREDENTIAL_REQUIRED" ? 400 : 401;
+    return NextResponse.json({ error: verification.code === "CREDENTIAL_REQUIRED" ? "Credenziale richiesta" : "Credenziale amministratore non valida", code: verification.code }, { status });
   }
 
-  await prisma.order.delete({
-    where: { id },
-  });
+  await prisma.$transaction([
+    prisma.auditEvent.create({
+      data: {
+        action: "order.delete",
+        entity: "order",
+        entityId: id,
+        actorEmail: user.email,
+        actorId: user.id,
+        metadata: { previousStatus: order.status, verificationMethod: verification.method },
+      },
+    }),
+    prisma.order.delete({ where: { id } }),
+  ]);
 
   writeAuditLog({
     action: "order.delete",
@@ -603,7 +642,7 @@ export async function DELETE(
     actorId: user.id,
     metadata: {
       previousStatus: order.status,
-      withPasswordCheck: true,
+      verificationMethod: verification.method,
     },
   });
 

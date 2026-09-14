@@ -9,13 +9,20 @@ credenziali operative, trattarle come esposte:
    `DATABASE_URL` e `DIRECT_URL`.
 2. Rigenerare `SUPABASE_SERVICE_ROLE_KEY` e verificare le policy RLS.
 3. Revocare e rigenerare `BREVO_API_KEY`, le credenziali Upstash e tutti i
-   secret applicativi (`CRON_SECRET`, `ADMIN_ORDER_DELETE_PASSWORD` e ogni
+   secret applicativi (`CRON_SECRET`, l'eventuale `ADMIN_ORDER_DELETE_PASSWORD` e ogni
    secret usato da webhook interni).
 4. In Stripe revocare le API key secret/restricted e i webhook secret esposti;
    configurare separatamente le credenziali test e live.
 5. Rimuovere dal runtime le credenziali precedenti e la variabile legacy
    `ORDER_STATUS_TOKEN_SECRET`.
 6. Limitare i referrer, le API abilitate e le quote della Google Maps API key.
+
+L’eliminazione definitiva degli ordini usa normalmente
+`ADMIN_ORDER_DELETE_VERIFICATION_MODE=reauth`, che verifica nuovamente la
+password dell’account Admin. Se un ambiente deve usare `server-secret`,
+`ADMIN_ORDER_DELETE_PASSWORD` deve vivere esclusivamente nel vault server-side,
+essere diverso per ambiente e venire ruotato prima di ogni rilascio che segue
+una possibile esposizione.
 
 Il `.env` locale deve restare fuori da Git e con permessi `600`:
 

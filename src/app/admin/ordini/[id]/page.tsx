@@ -13,6 +13,7 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<OrderWithItems | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [deleteError, setDeleteError] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [refunding, setRefunding] = useState(false);
@@ -26,6 +27,7 @@ export default function OrderDetailPage() {
   useEffect(() => { fetchOrder(); }, [fetchOrder]);
 
   async function updateStatus(status: string) {
+    if (status === "CANCELLED" && !window.confirm("Annullare l'ordine? Rimarrà nello storico e il cliente riceverà un'e-mail.")) return;
     await fetch(`/api/ordini/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -61,6 +63,7 @@ export default function OrderDetailPage() {
 
   function openDeleteModal() {
     setDeletePassword("");
+    setDeleteConfirmation("");
     setDeleteError("");
     setShowDeleteModal(true);
   }
@@ -73,7 +76,7 @@ export default function OrderDetailPage() {
     const res = await fetch(`/api/ordini/${id}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ adminPassword: deletePassword }),
+      body: JSON.stringify({ adminPassword: deletePassword, confirmation: deleteConfirmation }),
     });
 
     if (!res.ok) {
@@ -319,18 +322,30 @@ export default function OrderDetailPage() {
 
               <div>
                 <label className="block text-sm font-brand font-semibold text-gray-700 mb-1.5">
-                  Password amministratore
+                  Password del tuo account Admin
                 </label>
                 <input
                   type="password"
                   value={deletePassword}
                   onChange={(e) => setDeletePassword(e.target.value)}
                   className="w-full px-4 py-2.5 border border-red-100 rounded-xl focus:ring-2 focus:ring-[#D96A2B] focus:border-[#D96A2B] outline-none"
-                  placeholder="Inserisci password eliminazione"
+                  placeholder="Inserisci la password con cui hai effettuato l'accesso"
                 />
                 <p className="mt-2 text-xs text-gray-500 font-body">
-                  La password è sempre obbligatoria per eliminare un ordine.
+                  Per impostazione predefinita viene eseguita una nuova autenticazione Supabase.
                 </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-brand font-semibold text-gray-700 mb-1.5">
+                  Digita {order.orderCode ?? order.id} per confermare
+                </label>
+                <input
+                  value={deleteConfirmation}
+                  onChange={(event) => setDeleteConfirmation(event.target.value)}
+                  className="w-full px-4 py-2.5 border border-red-100 rounded-xl focus:ring-2 focus:ring-[#D96A2B] focus:border-[#D96A2B] outline-none"
+                  autoComplete="off"
+                />
               </div>
 
               {deleteError && <p className="text-sm text-red-600 font-body">{deleteError}</p>}
@@ -342,12 +357,12 @@ export default function OrderDetailPage() {
                 onClick={() => setShowDeleteModal(false)}
                 className="px-4 py-2.5 rounded-xl border border-red-100 bg-white text-[#D96A2B] font-brand font-semibold hover:bg-red-50/60 transition-colors"
               >
-                Annulla
+                Chiudi
               </button>
               <button
                 type="button"
                 onClick={handleDeleteOrder}
-                disabled={deleting || !deletePassword.trim()}
+                disabled={deleting || !deletePassword.trim() || deleteConfirmation.trim() !== (order.orderCode ?? order.id)}
                 className="px-4 py-2.5 rounded-xl bg-red-600 border border-red-600 text-white font-brand font-semibold hover:bg-red-700 disabled:opacity-50 transition-colors"
               >
                 {deleting ? "Eliminazione..." : "Conferma eliminazione"}
