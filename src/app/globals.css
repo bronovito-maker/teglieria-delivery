@@ -326,16 +326,48 @@
 /* Places Autocomplete (New) is a Google web component. Style the host while
  * leaving its accessible internal controls and attribution intact. */
 .google-place-autocomplete {
+  position: relative;
+  z-index: 50;
   display: block;
   width: 100%;
   box-sizing: border-box;
   color-scheme: light;
+  overflow: visible;
   --gmpx-color-primary: #d96a2b;
   --gmpx-font-family-base: var(--font-body), system-ui, sans-serif;
 }
 
+.google-place-autocomplete::part(input) {
+  box-sizing: border-box;
+  min-height: 56px;
+  padding-inline: 24px;
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.google-place-autocomplete::part(prediction-list) {
+  z-index: 100;
+  overflow-y: auto;
+  max-height: min(420px, 55vh);
+  border: 1px solid rgb(42 40 38 / 10%);
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 18px 45px rgb(42 40 38 / 18%);
+}
+
+.google-place-autocomplete::part(prediction-item) {
+  min-height: 64px;
+  background: #fff;
+}
+
+.google-place-autocomplete::part(prediction-item-selected) {
+  background: #f6f2ed;
+}
+
 .client-address-autocomplete {
   min-height: 56px;
+  font-size: 1rem;
   border-radius: 1.5rem;
   background: #f9fafb;
 }

@@ -576,7 +576,7 @@ export default function OrdinePage() {
 
         {/* SECTION 3: INDIRIZZO (Solo Delivery) */}
         {orderType === "DELIVERY" && (
-          <div className="reveal space-y-6">
+          <div className="reveal relative z-30 space-y-6">
             <h2 className="ds-micro-label text-charcoal/35">Dove Consegniamo?</h2>
             <div className="space-y-4">
               <div className="space-y-1.5">
