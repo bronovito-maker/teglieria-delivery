@@ -25,7 +25,7 @@ const reviews = [
 const faqItems = [
   ["Fate consegna a domicilio a Livorno?", "Sì, consegniamo nelle zone coperte di Livorno."],
   ["Posso ordinare anche da asporto?", "Sì, puoi ordinare online e ritirare in sede."],
-  ["Quali sono gli orari?", "Siamo aperti tutti i giorni: asporto dalle 16:00 e delivery dalle 19:00 alle 22:00."],
+  ["Quali sono gli orari?", "Siamo aperti da martedì a domenica. Lunedì chiusi. Asporto 16:00–22:00 e Delivery 19:00–22:00."],
   ["Quanto costa la consegna?", "Il costo viene calcolato nel checkout in base alla zona."],
 ];
 
@@ -128,7 +128,8 @@ export default function LandingPage() {
           <p className="ds-micro-label text-terracotta/75">Servizi</p>
           <h2 className="mt-3 font-display text-2xl font-semibold tracking-tight sm:text-3xl">Consegna e asporto a Livorno</h2>
           <p className="mt-4 text-sm leading-relaxed text-charcoal/55">Ordina online per consegna a domicilio oppure ritira in sede.</p>
-          <p className="mt-3 text-xs font-brand font-semibold text-charcoal/55">Asporto: 16:00 – 22:00 · Delivery: 19:00 – 22:00</p>
+          <p className="mt-3 text-xs font-brand font-semibold text-charcoal/55">Martedì–Domenica · Asporto 16:00–22:00 · Delivery 19:00–22:00</p>
+          <p className="mt-1 text-xs font-brand font-semibold text-terracotta/70">Lunedì chiusi</p>
         </div>
       </section>
 

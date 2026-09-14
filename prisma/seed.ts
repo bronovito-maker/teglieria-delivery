@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 const defaultSchedule = Array.from({ length: 7 }, (_, dayOfWeek) => ({
   dayOfWeek,
-  isOpen: true,
+  isOpen: dayOfWeek !== 1,
   lunchActive: false,
   lunchStart: "12:00",
   lunchEnd: "14:30",

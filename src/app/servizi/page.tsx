@@ -24,7 +24,7 @@ const FAQ_ITEMS = [
   },
   {
     question: "Fino a che ora consegnate?",
-    answer: "Siamo aperti tutti i giorni: asporto dalle 16:00 e delivery dalle 19:00 alle 22:00.",
+    answer: "Siamo aperti da martedì a domenica. Lunedì chiusi. Asporto 16:00–22:00 e Delivery 19:00–22:00.",
   },
   {
     question: "Come vedo gli orari disponibili?",

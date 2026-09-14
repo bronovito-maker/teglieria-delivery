@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { getRomeDateOffsetString, romeDateTimeToDate } from "@/lib/constants";
+import { getRomeDateOffsetString, getRomeDayOfWeek, romeDateTimeToDate } from "@/lib/constants";
 
 type ServiceKey = "delivery" | "pickup";
 type Config = {
@@ -17,7 +17,9 @@ const serviceDetails = {
 } as const;
 
 function tomorrowAt(hour: number) {
-  return romeDateTimeToDate(getRomeDateOffsetString(1), `${String(hour).padStart(2, "0")}:00`).toISOString();
+  let offset = 1;
+  while (getRomeDayOfWeek(getRomeDateOffsetString(offset)) === 1) offset += 1;
+  return romeDateTimeToDate(getRomeDateOffsetString(offset), `${String(hour).padStart(2, "0")}:00`).toISOString();
 }
 
 function deadlineLabel(value: string | null) {

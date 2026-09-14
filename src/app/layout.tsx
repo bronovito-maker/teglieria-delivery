@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     template: "%s — La Teglieria Livorno",
   },
   description:
-    "La Teglieria è la pizzeria artigianale di Livorno Scopaia specializzata in pizza in teglia ad alta idratazione. Ordina online con consegna a domicilio o asporto. Aperta dal lunedì alla domenica.",
+    "La Teglieria è la pizzeria artigianale di Livorno Scopaia specializzata in pizza in teglia ad alta idratazione. Asporto 16–22 e Delivery 19–22, da martedì a domenica. Lunedì chiusa.",
   keywords: [
     "pizzeria livorno",
     "pizza in teglia livorno",
