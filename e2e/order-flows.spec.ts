@@ -39,7 +39,7 @@ async function createCustomerOrder(request: APIRequestContext) {
       customerPhone: "3330000000",
       customerEmail: "e2e-cliente@example.com",
       pickupTime,
-      timeSlot: pickupTime.slice(11, 16),
+      timeSlot: "18:30",
       subtotal: unitPrice,
       total: unitPrice,
       paymentMethod: "CONTANTI",
