@@ -7,9 +7,9 @@ if (!rawBaseURL) {
 
 const targetUrl = new URL(rawBaseURL);
 const baseURL = targetUrl.toString();
-const productionOrigin = process.env.NEXT_PUBLIC_SITE_URL
-  ? new URL(process.env.NEXT_PUBLIC_SITE_URL).origin
-  : "https://www.lateglieria.it";
+const productionOrigin = new URL(
+  process.env.E2E_PRODUCTION_URL ?? "https://www.lateglieria.it",
+).origin;
 const forbiddenHosts = new Set(["lateglieria.it", "www.lateglieria.it", "localhost", "127.0.0.1", "::1"]);
 
 if (

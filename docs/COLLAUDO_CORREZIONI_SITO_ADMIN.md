@@ -8,6 +8,7 @@ Configurazione minima:
 
 ```dotenv
 E2E_BASE_URL=https://staging-isolato.example.com
+E2E_PRODUCTION_URL=https://www.lateglieria.it
 E2E_CONFIRM_ISOLATED_STAGING=1
 E2E_CUSTOMER_EMAIL=...
 E2E_CUSTOMER_PASSWORD=...
