@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { ShoppingCart } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
+import { useServiceAvailability } from "@/components/client/ServiceAvailabilityNotice";
 
 /**
  * Header pubblico volutamente minimale: il riferimento usa il brand come
@@ -14,6 +15,7 @@ export default function MobileTopBar() {
   const [hydrated, setHydrated] = useState(false);
   const itemCount = useCartStore((state) => state.getItemCount());
   const total = useCartStore((state) => state.getSubtotal());
+  const services = useServiceAvailability();
 
   useEffect(() => {
     setHydrated(true);
@@ -22,14 +24,14 @@ export default function MobileTopBar() {
   return (
     <header className="fixed inset-x-0 top-0 z-[70] border-b border-charcoal/5 bg-warm-light/95 backdrop-blur-xl">
       <div className="mx-auto flex h-[4.1rem] max-w-5xl items-center justify-between gap-3 px-4 sm:h-[4.5rem] sm:px-6">
-        <Link
+        {!services?.allDisabled && <Link
           href="/"
           translate="no"
           aria-label="La Teglieria, home"
           className="shrink-0 font-logo text-[1.35rem] leading-none tracking-[-0.06em] text-charcoal sm:text-[2.35rem]"
         >
           LA <span className="text-terracotta">TEGLIERIA</span>
-        </Link>
+        </Link>}
 
         <Link
           href="/menu?openCart=1"
