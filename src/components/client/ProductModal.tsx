@@ -1,5 +1,7 @@
 "use client";
 
+import { requiresBeverageChoice } from "@/lib/beverage-choice";
+
 import AllergenIngredients from "./AllergenIngredients";
 import AllergenBadges from "./AllergenBadges";
 import { productResult, snapshot } from "@/lib/allergens/core";
@@ -63,7 +65,10 @@ function ProductModalContent({ product, onClose }: Props) {
     );
   }
 
+  const choiceRequired = requiresBeverageChoice(product.name);
+
   function handleAdd() {
+    if (choiceRequired && !selectedVariant) { toast.error("Scegli la bevanda prima di aggiungerla"); return; }
     addItem({
       allergenInfo,
       imageUrl: product.imageUrl,
@@ -159,7 +164,7 @@ function ProductModalContent({ product, onClose }: Props) {
               <section className="reveal active">
                 <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-charcoal/40 mb-4 ml-1">Scegli la variante</h3>
                 <div className="flex flex-wrap gap-2">
-                  <button
+                  {!choiceRequired && <button
                     onClick={() => { setSelectedVariant(null); setVariantDelta(0); }}
                     className={`px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest border transition-all ${
                       !selectedVariant
@@ -168,7 +173,7 @@ function ProductModalContent({ product, onClose }: Props) {
                     }`}
                   >
                     Standard
-                  </button>
+                  </button>}
                   {product.variants.map((v) => (
                     <button
                       key={v.id}

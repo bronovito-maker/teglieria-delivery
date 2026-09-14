@@ -104,6 +104,7 @@ export default function OrdiniPage() {
                   }`}>
                     {ORDER_STATUS_LABELS[o.status] || o.status}
                   </span>
+                  {o.gestionaleOrder?.lastError && <p role="alert" className="mt-2 text-xs text-terracotta">Ordine non sincronizzato con il gestionale — verifica il collegamento.</p>}
                 </td>
                 <td className="px-4 lg:px-8 py-5 text-right">
                   <Link href={`/admin/ordini/${o.id}`}
@@ -142,6 +143,7 @@ export default function OrdiniPage() {
                 {ORDER_STATUS_LABELS[o.status]}
               </span>
             </div>
+            {o.gestionaleOrder?.lastError && <p role="alert" className="mb-4 text-xs text-terracotta">Ordine non sincronizzato con il gestionale — verifica il collegamento.</p>}
 
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div>

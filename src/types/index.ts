@@ -60,6 +60,7 @@ export type CategoryWithProducts = Category & {
 
 // Order with relations
 export type OrderWithItems = Order & {
+  gestionaleOrder?: { backendOrderId: string | null; lastError: string | null; lastSyncedAt: string | null } | null;
   items: OrderItem[];
   refunds?: PaymentRefund[];
   rider?: Rider | null;

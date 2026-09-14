@@ -98,6 +98,7 @@ model ProductRemoval {
 }
 
 model Order {
+  gestionaleOrder       GestionaleOrder?
   id                    String             @id @default(cuid())
   orderNumber           Int                @default(autoincrement())
   orderCode             String?            @unique // e.g. "A001", "D042"
@@ -399,4 +400,23 @@ model AllergenAudit {
   before    Json
   after     Json
   createdAt DateTime @default(now())
+}
+
+// Durable, production-only order delivery and acknowledgments. No menu sync.
+model GestionaleOrder {
+  orderId String @id
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  backendOrderId String? @unique
+  backendVersion Int @default(-1)
+  backendState Json?
+  lastError String?
+  lastSyncedAt DateTime?
+  nextPollAt DateTime @default(now())
+  createdAt DateTime @default(now())
+  @@index([nextPollAt])
+}
+model GestionaleNonce {
+  nonce String @id
+  expiresAt DateTime
+  @@index([expiresAt])
 }

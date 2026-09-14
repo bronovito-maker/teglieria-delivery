@@ -1,3 +1,5 @@
+import { validBeverageChoice } from "@/lib/beverage-choice";
+import { enqueueGestionaleOrder } from "@/lib/gestionale-bridge";
 import { readRegistry } from "@/lib/allergens/server";
 import { productResult, pizzaAllergens, snapshot } from "@/lib/allergens/core";
 import { NextResponse } from "next/server";
@@ -55,6 +57,7 @@ export async function GET(request: Request) {
     include: {
       items: true,
       rider: true,
+      gestionaleOrder: { select: { backendOrderId: true, lastError: true, lastSyncedAt: true } },
       statusHistory: { orderBy: { createdAt: "asc" } },
     },
   });
@@ -221,6 +224,7 @@ export async function POST(request: Request) {
           const { calculated, unitPriceCents, totalPriceCents } = authoritativePizza;
           return { ...item, allergenSnapshot: snapshot(allergenRegistry, pizzaAllergens(allergenRegistry.graph, selection)), ingredientSnapshot: null, productName: product.name, unitPrice: fromCents(unitPriceCents), standardUnitPrice: fromCents(unitPriceCents), totalPrice: fromCents(totalPriceCents), additions: calculated.additions, variant: JSON.stringify(selection) };
         }
+        if (!validBeverageChoice(product.name, item.variant)) throw new Error("INVALID_CART_PRICE");
         const standardBasePriceCents = toCents(Number(product.price));
         const payableBasePriceCents = pricingAuthUserId && product.clubPrice != null
           ? toCents(Number(product.clubPrice))
@@ -303,6 +307,7 @@ export async function POST(request: Request) {
         include: { items: true },
       });
 
+      if (channel === "WEB") await enqueueGestionaleOrder(tx, createdOrder.id);
       const orderCode = generateOrderCode(body.type, createdOrder.orderNumber);
       try {
         return await tx.order.update({
