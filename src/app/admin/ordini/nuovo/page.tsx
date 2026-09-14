@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import type { CategoryWithProducts, ProductWithRelations } from "@/types";
 import AdminAddressInput from "@/components/admin/AdminAddressInput";
+import PizzaBuilderConfigurator, { createInitialPizzaSelection, type PizzaMenuFlavorOption } from "@/components/shared/PizzaBuilderConfigurator";
+import { calculatePizzaConfiguration, formatPizzaVariant, type PizzaBuilderSelection } from "@/lib/pizza-builder";
+import { PIZZA_MENU_FLAVORS } from "@/lib/catalog";
 
 type CartLine = {
   product: ProductWithRelations;
@@ -31,6 +34,9 @@ export default function NuovoOrdinePage() {
   const [notes, setNotes] = useState("");
   const [lines, setLines] = useState<CartLine[]>([]);
   const [search, setSearch] = useState("");
+  const [configuringProduct, setConfiguringProduct] = useState<ProductWithRelations | null>(null);
+  const [pizzaSelection, setPizzaSelection] = useState<PizzaBuilderSelection>(createInitialPizzaSelection);
+  const [submitError, setSubmitError] = useState("");
 
   const [etaMinutes, setEtaMinutes] = useState(30);
 
@@ -53,8 +59,26 @@ export default function NuovoOrdinePage() {
   const filteredProducts = search.length >= 2
     ? allProducts.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
     : [];
+  const pizzaMenuFlavors = useMemo<PizzaMenuFlavorOption[]>(() => {
+    const availableProducts = categories
+      .filter((category) => category.name === "Teglie" || category.name === "Mezze teglie")
+      .flatMap((category) => category.products);
+    const availableNames = new Set(availableProducts.map((product) => product.name));
+    return PIZZA_MENU_FLAVORS
+      .filter((flavor) => availableNames.has(flavor.name))
+      .map((flavor) => ({
+        name: flavor.name,
+        description: availableProducts.find((product) => product.name === flavor.name)?.description ?? null,
+      }));
+  }, [categories]);
 
   function addProduct(product: ProductWithRelations) {
+    if (product.configuration) {
+      setPizzaSelection(createInitialPizzaSelection());
+      setConfiguringProduct(product);
+      setSearch("");
+      return;
+    }
     // Pre-select first active variant if present
     const firstVariant = product.variants.find((v) => v.active);
     setLines([...lines, {
@@ -66,6 +90,20 @@ export default function NuovoOrdinePage() {
       removals: [],
     }]);
     setSearch("");
+  }
+
+  function addConfiguredPizza() {
+    if (!configuringProduct) return;
+    const calculated = calculatePizzaConfiguration(pizzaSelection);
+    setLines((current) => [...current, {
+      product: configuringProduct,
+      quantity: 1,
+      variant: JSON.stringify(pizzaSelection),
+      variantDelta: 0,
+      additions: calculated.additions,
+      removals: [],
+    }]);
+    setConfiguringProduct(null);
   }
 
   function priceFor(product: ProductWithRelations) {
@@ -88,7 +126,12 @@ export default function NuovoOrdinePage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (lines.length === 0) return;
+    if (lines.some((line) => line.product.configuration && !line.variant)) {
+      setSubmitError("Configura tutte le pizze componibili prima di creare l'ordine.");
+      return;
+    }
     setLoading(true);
+    setSubmitError("");
 
     const items = lines.map((l) => {
       const unitPrice = priceFor(l.product) + l.variantDelta + l.additions.reduce((s, a) => s + a.price, 0);
@@ -132,6 +175,9 @@ export default function NuovoOrdinePage() {
         body: JSON.stringify({ status: "CONFIRMED" }),
       });
       router.push(`/admin/ordini/${order.id}`);
+    } else {
+      const data = await res.json().catch(() => ({}));
+      setSubmitError(data.error || "Impossibile creare l'ordine.");
     }
     setLoading(false);
   }
@@ -243,7 +289,7 @@ export default function NuovoOrdinePage() {
                 <button key={p.id} type="button" onClick={() => addProduct(p)}
                   className="w-full flex justify-between px-3 py-2 text-sm hover:bg-red-50/60 transition-colors text-left">
                   <span>{p.name}</span>
-                  <span className="text-[#D96A2B] font-brand font-semibold">{formatCurrency(Number(p.price))}</span>
+                  <span className="text-[#D96A2B] font-brand font-semibold">{p.configuration ? "Prezzo variabile — Configura" : formatCurrency(Number(p.price))}</span>
                 </button>
               ))}
             </div>
@@ -272,7 +318,7 @@ export default function NuovoOrdinePage() {
                     </div>
                     <span className="flex-1 text-sm font-brand font-semibold">{line.product.name}</span>
                     {line.variant && (
-                      <span className="text-xs text-gray-400 hidden sm:inline">{line.variant}</span>
+                      <span className="text-xs text-gray-400 hidden sm:inline">{line.product.configuration ? formatPizzaVariant(line.variant) : line.variant}</span>
                     )}
                     <span className="text-sm font-brand font-semibold tabular-nums">{formatCurrency(unitPrice * line.quantity)}</span>
                     <button type="button" onClick={() => removeLine(i)} className="text-red-400 text-xs font-bold px-1">✕</button>
@@ -422,7 +468,35 @@ export default function NuovoOrdinePage() {
           className="w-full py-3 tomato-glass border text-white rounded-xl font-brand font-semibold uppercase tracking-[0.18em] text-[11px] hover:brightness-105 disabled:opacity-50 transition-all">
           {loading ? "Salvataggio..." : "Crea ordine"}
         </button>
+        {submitError && <p role="alert" className="text-center text-sm font-semibold text-red-600">{submitError}</p>}
       </form>
+
+      {configuringProduct && (
+        <div className="fixed inset-0 z-[90] flex h-[100dvh] items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+          <div className="flex max-h-[100dvh] min-h-0 w-full flex-col overflow-hidden rounded-t-[2.5rem] bg-warm-light shadow-2xl sm:max-h-[calc(100dvh-2rem)] sm:max-w-2xl sm:rounded-[2.5rem]">
+            <div className="min-h-0 flex-1 overflow-y-auto p-6 sm:p-8">
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div>
+                  <span className="ds-micro-label text-terracotta/60">Configuratore Admin</span>
+                  <h2 className="mt-2 font-display text-4xl leading-none text-charcoal">Crea la tua pizza</h2>
+                </div>
+                <button type="button" onClick={() => setConfiguringProduct(null)} aria-label="Chiudi" className="h-10 w-10 rounded-full bg-charcoal/5 text-2xl">×</button>
+              </div>
+              <PizzaBuilderConfigurator
+                value={pizzaSelection}
+                onChange={setPizzaSelection}
+                menuFlavors={pizzaMenuFlavors}
+                allergenRegistry={configuringProduct.allergenRegistry}
+              />
+            </div>
+            <div className="shrink-0 border-t border-charcoal/8 bg-warm-light p-5 sm:px-8">
+              <button type="button" onClick={addConfiguredPizza} className="w-full rounded-full bg-terracotta py-4 text-xs font-bold uppercase tracking-widest text-white shadow-xl">
+                Aggiungi configurazione · {formatCurrency(calculatePizzaConfiguration(pizzaSelection).total)}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

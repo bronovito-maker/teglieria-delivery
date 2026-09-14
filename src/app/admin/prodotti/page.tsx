@@ -82,7 +82,7 @@ export default function ProdottiPage() {
                 <td className="px-8 py-6">
                    <span className="font-brand font-semibold uppercase tracking-widest text-[11px] text-charcoal/60 bg-charcoal/5 px-3 py-1 rounded-full">{p.category.name}</span>
                 </td>
-                <td className="px-8 py-6 font-brand font-semibold text-charcoal">{formatCurrency(Number(p.price))}</td>
+                <td className="px-8 py-6 font-brand font-semibold text-charcoal">{p.configuration ? "Prezzo variabile — Configura" : formatCurrency(Number(p.price))}</td>
                 <td className="px-8 py-6 text-center">
                   <span className={`inline-block px-4 py-1.5 rounded-full text-[9px] font-brand font-semibold uppercase tracking-[0.16em] border ${
                     p.active ? "bg-green-50 text-green-600 border-green-100" : "bg-charcoal/5 text-charcoal/40 border-charcoal/10"

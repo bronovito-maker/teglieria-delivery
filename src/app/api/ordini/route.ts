@@ -13,7 +13,7 @@ import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { enforceSameOrigin, getTrustedSiteOrigin } from "@/lib/request-security";
 import { getStripe, getStripeErrorContext, getStripeSiteUrl } from "@/lib/stripe";
 import { calculateDeliveryFee, getItalianTimeSlot, getRomeDayBounds, isOrderTimeAllowed, MIN_ORDER_SUBTOTAL } from "@/lib/constants";
-import { calculatePizzaConfiguration, type PizzaBuilderSelection } from "@/lib/pizza-builder";
+import { calculateAuthoritativePizzaLine, parsePizzaBuilderSelection, type PizzaBuilderSelection } from "@/lib/pizza-builder";
 import { toCustomerOrderView } from "@/lib/order-views";
 import { getCanonicalProductIngredients } from "@/lib/catalog";
 import { calculateAuthoritativeLine, calculateMoneySummary, fromCents, toCents } from "@/lib/money";
@@ -171,8 +171,7 @@ export async function POST(request: Request) {
         const product = productsById.get(item.productId)!;
         if (!product.configuration) continue;
         let selection: PizzaBuilderSelection;
-        try { selection = JSON.parse(item.variant || "") as PizzaBuilderSelection; } catch { throw new Error("INVALID_CART_PRICE"); }
-        if (!Array.isArray(selection.slots)) throw new Error("INVALID_CART_PRICE");
+        try { selection = parsePizzaBuilderSelection(item.variant || ""); } catch { throw new Error("INVALID_CART_PRICE"); }
         for (const slot of selection.slots) {
           if (slot && typeof slot.flavor === "string" && slot.flavor.trim()) requestedPizzaFlavorNames.add(slot.flavor);
         }
@@ -196,17 +195,21 @@ export async function POST(request: Request) {
         const product = productsById.get(item.productId)!;
         if (product.configuration) {
           let selection: PizzaBuilderSelection;
-          try { selection = JSON.parse(item.variant || "") as PizzaBuilderSelection; } catch { throw new Error("INVALID_CART_PRICE"); }
+          try { selection = parsePizzaBuilderSelection(item.variant || ""); } catch { throw new Error("INVALID_CART_PRICE"); }
           const flavorCategory = selection.format === "MEZZA" ? "Mezze teglie" : "Teglie";
           if (selection.slots.some((slot) => typeof slot?.flavor === "string" && slot.flavor.trim() && !validPizzaFlavorKeys.has(`${flavorCategory}:${slot.flavor}`))) {
             throw new Error("INVALID_CART_PRICE");
           }
-          let calculated: ReturnType<typeof calculatePizzaConfiguration>;
-          try { calculated = calculatePizzaConfiguration(selection); } catch { throw new Error("INVALID_CART_PRICE"); }
-          const unitPriceCents = toCents(calculated.total);
-          const totalPriceCents = unitPriceCents * item.quantity;
-          const priceMismatch = toCents(item.unitPrice) !== unitPriceCents || toCents(item.totalPrice) !== totalPriceCents;
-          if (priceMismatch) throw new Error("INVALID_CART_PRICE");
+          let authoritativePizza: ReturnType<typeof calculateAuthoritativePizzaLine>;
+          try {
+            authoritativePizza = calculateAuthoritativePizzaLine({
+              selection,
+              quantity: item.quantity,
+              claimedUnitPrice: item.unitPrice,
+              claimedTotalPrice: item.totalPrice,
+            });
+          } catch { throw new Error("INVALID_CART_PRICE"); }
+          const { calculated, unitPriceCents, totalPriceCents } = authoritativePizza;
           return { ...item, allergenSnapshot: snapshot(allergenRegistry, pizzaAllergens(allergenRegistry.graph, selection)), ingredientSnapshot: null, productName: product.name, unitPrice: fromCents(unitPriceCents), standardUnitPrice: fromCents(unitPriceCents), totalPrice: fromCents(totalPriceCents), additions: calculated.additions, variant: JSON.stringify(selection) };
         }
         const standardBasePriceCents = toCents(Number(product.price));

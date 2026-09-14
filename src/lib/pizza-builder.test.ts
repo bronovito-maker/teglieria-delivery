@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculatePizzaConfiguration } from "./pizza-builder";
+import { calculateAuthoritativePizzaLine, calculatePizzaConfiguration, parsePizzaBuilderSelection } from "./pizza-builder";
 
 describe("calculatePizzaConfiguration", () => {
   it("usa la ricetta di un gusto presente nel menu", () => {
@@ -34,5 +34,44 @@ describe("calculatePizzaConfiguration", () => {
       gusti: 1,
       slots: [{ base: "ROSSA", flavor: "Gusto inventato", ingredients: [] }],
     })).toThrow("INVALID_PIZZA_CONFIGURATION");
+  });
+
+  it("rifiuta una riga generica priva di configurazione", () => {
+    expect(() => parsePizzaBuilderSelection("")).toThrow("INVALID_PIZZA_CONFIGURATION");
+    expect(() => parsePizzaBuilderSelection({ format: "INTERA", gusti: 1, slots: [] })).toThrow("INVALID_PIZZA_CONFIGURATION");
+  });
+
+  it("rifiuta campi obbligatori o ricette incoerenti", () => {
+    expect(() => parsePizzaBuilderSelection({
+      format: "INTERA",
+      gusti: 1,
+      slots: [{ flavor: "La Diavola", base: "BIANCA", mozzarellaStandard: true, ingredients: [] }],
+    })).toThrow("INVALID_PIZZA_CONFIGURATION");
+    expect(() => parsePizzaBuilderSelection({
+      format: "INTERA",
+      gusti: 1,
+      slots: [{ base: "ROSSA", ingredients: ["Ingrediente inventato"] }],
+    })).toThrow("INVALID_PIZZA_CONFIGURATION");
+  });
+
+  it("rifiuta prezzi unitari o totali manipolati", () => {
+    const selection = parsePizzaBuilderSelection({
+      format: "INTERA",
+      gusti: 1,
+      slots: [{ base: "ROSSA", ingredients: [] }],
+    });
+    const price = calculatePizzaConfiguration(selection).total;
+    expect(() => calculateAuthoritativePizzaLine({
+      selection,
+      quantity: 2,
+      claimedUnitPrice: price - 1,
+      claimedTotalPrice: price * 2,
+    })).toThrow("INVALID_PIZZA_PRICE");
+    expect(() => calculateAuthoritativePizzaLine({
+      selection,
+      quantity: 2,
+      claimedUnitPrice: price,
+      claimedTotalPrice: price,
+    })).toThrow("INVALID_PIZZA_PRICE");
   });
 });

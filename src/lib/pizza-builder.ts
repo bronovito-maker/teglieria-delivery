@@ -42,6 +42,40 @@ export type PizzaBuilderSelection = {
   }>;
 };
 
+export function parsePizzaBuilderSelection(value: unknown): PizzaBuilderSelection {
+  let parsed = value;
+  if (typeof value === "string") {
+    try {
+      parsed = JSON.parse(value);
+    } catch {
+      throw new Error("INVALID_PIZZA_CONFIGURATION");
+    }
+  }
+  if (!parsed || typeof parsed !== "object") throw new Error("INVALID_PIZZA_CONFIGURATION");
+  const candidate = parsed as Partial<PizzaBuilderSelection>;
+  if (candidate.format !== "INTERA" && candidate.format !== "MEZZA") throw new Error("INVALID_PIZZA_CONFIGURATION");
+  const formatConfig = PIZZA_BUILDER_CONFIG.formats[candidate.format];
+  if (!Number.isInteger(candidate.gusti) || !formatConfig.gusti.includes(candidate.gusti as never)) throw new Error("INVALID_PIZZA_CONFIGURATION");
+  if (!Array.isArray(candidate.slots) || candidate.slots.length !== candidate.gusti) throw new Error("INVALID_PIZZA_CONFIGURATION");
+
+  for (const slot of candidate.slots) {
+    if (!slot || (slot.base !== "ROSSA" && slot.base !== "BIANCA")) throw new Error("INVALID_PIZZA_CONFIGURATION");
+    if (!Array.isArray(slot.ingredients) || slot.ingredients.some((name) => typeof name !== "string" || !pizzaIngredientData(name, candidate.format!, candidate.gusti!))) {
+      throw new Error("INVALID_PIZZA_CONFIGURATION");
+    }
+    if (new Set(slot.ingredients).size !== slot.ingredients.length) throw new Error("INVALID_PIZZA_CONFIGURATION");
+    if (slot.mozzarellaStandard !== undefined && typeof slot.mozzarellaStandard !== "boolean") throw new Error("INVALID_PIZZA_CONFIGURATION");
+    if (slot.flavor !== undefined) {
+      if (typeof slot.flavor !== "string" || !slot.flavor.trim()) throw new Error("INVALID_PIZZA_CONFIGURATION");
+      const flavor = getPizzaMenuFlavor(slot.flavor);
+      if (!flavor || slot.base !== flavor.base || (slot.mozzarellaStandard !== undefined && slot.mozzarellaStandard !== flavor.mozzarellaStandard)) {
+        throw new Error("INVALID_PIZZA_CONFIGURATION");
+      }
+    }
+  }
+  return candidate as PizzaBuilderSelection;
+}
+
 export function calculatePizzaSlot(
   slot: PizzaBuilderSelection["slots"][number],
   format: PizzaFormat,
@@ -82,13 +116,28 @@ export function calculatePizzaSlot(
 }
 
 export function calculatePizzaConfiguration(selection: PizzaBuilderSelection) {
-  const format = PIZZA_BUILDER_CONFIG.formats[selection.format];
-  if (!format.gusti.includes(selection.gusti as never) || selection.slots.length !== selection.gusti) throw new Error("INVALID_PIZZA_CONFIGURATION");
-  const slotCalculations = selection.slots.map((slot, index) => calculatePizzaSlot(slot, selection.format, selection.gusti, index));
+  const validated = parsePizzaBuilderSelection(selection);
+  const slotCalculations = validated.slots.map((slot, index) => calculatePizzaSlot(slot, validated.format, validated.gusti, index));
   return {
     total: fromCents(slotCalculations.reduce((sum, slot) => sum + toCents(slot.total), 0)),
     additions: slotCalculations.flatMap((slot) => slot.additions),
   };
+}
+
+export function calculateAuthoritativePizzaLine(input: {
+  selection: PizzaBuilderSelection;
+  quantity: number;
+  claimedUnitPrice: number;
+  claimedTotalPrice: number;
+}) {
+  if (!Number.isSafeInteger(input.quantity) || input.quantity <= 0) throw new Error("INVALID_PIZZA_PRICE");
+  const calculated = calculatePizzaConfiguration(input.selection);
+  const unitPriceCents = toCents(calculated.total);
+  const totalPriceCents = unitPriceCents * input.quantity;
+  if (toCents(input.claimedUnitPrice) !== unitPriceCents || toCents(input.claimedTotalPrice) !== totalPriceCents) {
+    throw new Error("INVALID_PIZZA_PRICE");
+  }
+  return { calculated, unitPriceCents, totalPriceCents };
 }
 
 export function formatPizzaVariant(variant?: string | null) {
