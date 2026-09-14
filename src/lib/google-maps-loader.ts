@@ -34,4 +34,3 @@ export async function loadPlacesLibrary(apiKey: string) {
   configureGoogleMaps(apiKey);
   return importLibrary("places");
 }
-
