@@ -16,21 +16,23 @@ import type { ClubPromotionWithItems } from "@/types";
 import { SITE_CONFIG } from "@/lib/site-config";
 import { useCustomerAuth } from "@/components/client/CustomerAuthProvider";
 import { getPizzaFormatByCategory, PIZZA_MENU_FLAVORS } from "@/lib/catalog";
+import { useInitialMenuData } from "@/components/client/MenuInitialData";
 
 function MenuContent() {
+  const initialMenu = useInitialMenuData();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setOrderType, syncPrices } = useCartStore();
   const { user, loading: authLoading } = useCustomerAuth();
   const services = useServiceAvailability();
   const browseOnly = services?.allDisabled === true;
-  const [categories, setCategories] = useState<CategoryWithProducts[]>([]);
-  const [promotions, setPromotions] = useState<ClubPromotionWithItems[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [categories, setCategories] = useState<CategoryWithProducts[]>(() => initialMenu?.categories ?? []);
+  const [promotions, setPromotions] = useState<ClubPromotionWithItems[]>(() => initialMenu?.promotions ?? []);
+  const [isLoading, setIsLoading] = useState(!initialMenu);
   const [selectedProduct, setSelectedProduct] = useState<ProductWithRelations | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [isClubMember, setIsClubMember] = useState<boolean | null>(null);
+  const [isClubMember, setIsClubMember] = useState<boolean | null>(initialMenu?.isClubMember ?? null);
   const authChecked = !authLoading;
   const navRef = useRef<HTMLDivElement>(null);
   const pizzaMenuFlavors = useMemo<PizzaMenuFlavorOption[]>(() => {
@@ -97,10 +99,7 @@ function MenuContent() {
     }
 
     const loadMenu = async () => {
-      setIsClubMember(null);
-      setCategories([]);
-      setPromotions([]);
-      setIsLoading(true);
+      if (!initialMenu) setIsLoading(true);
       try {
         const response = await fetch("/api/menu", { cache: "no-store" });
         if (!response.ok) throw new Error("Menu unavailable");
@@ -124,7 +123,7 @@ function MenuContent() {
     };
 
     loadMenu();
-  }, [authLoading, router, searchParams, setOrderType, syncPrices, user?.id]);
+  }, [authLoading, initialMenu, router, searchParams, setOrderType, syncPrices, user?.id]);
 
   useEffect(() => {
     if (browseOnly) {
