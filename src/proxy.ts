@@ -9,7 +9,14 @@ function buildContentSecurityPolicy(nonce: string): string {
     `script-src 'self' 'nonce-${nonce}' ${isDevelopment ? "'unsafe-eval'" : ""} https://maps.googleapis.com https://www.googletagmanager.com https://connect.facebook.net https://va.vercel-scripts.com https://cdn.zirel.org`
       .replace(/\s+/g, " ")
       .trim(),
+    // Zirel's embed currently uses inline event attributes. Keep inline script
+    // elements blocked and relax only event-handler attributes.
+    "script-src-attr 'unsafe-inline'",
     `style-src 'self' 'nonce-${nonce}' https://fonts.googleapis.com`,
+    // Zirel injects its stylesheet and updates display/position through style
+    // attributes. Scope the exception to styles instead of allowing inline JS.
+    "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "style-src-attr 'unsafe-inline'",
     "img-src 'self' data: https://www.facebook.com https://maps.googleapis.com https://maps.gstatic.com https://*.googleusercontent.com https://*.supabase.co https://*.zirel.org",
     "font-src 'self' data: https://fonts.gstatic.com",
     `connect-src 'self' https://maps.googleapis.com https://routes.googleapis.com https://*.supabase.co https://vitals.vercel-insights.com https://*.zirel.org https://*.up.railway.app wss://*.supabase.co ${isDevelopment ? "http: ws:" : ""}`
