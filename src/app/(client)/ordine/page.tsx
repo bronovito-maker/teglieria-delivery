@@ -46,9 +46,13 @@ export default function OrdinePage() {
 
   useEffect(() => {
     if (!services) return;
+    if (services.allDisabled) {
+      router.replace("/");
+      return;
+    }
     if (orderType === "DELIVERY" && !services.delivery.active && services.pickup.active) setOrderType("ASPORTO");
     if (orderType === "ASPORTO" && !services.pickup.active && services.delivery.active) setOrderType("DELIVERY");
-  }, [orderType, services, setOrderType]);
+  }, [orderType, router, services, setOrderType]);
 
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
