@@ -36,10 +36,7 @@ export async function POST(
   if (!authorized) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    authorized = Boolean(user && (
-      order.authUserId === user.id ||
-      (Boolean(user.email_confirmed_at) && user.email?.toLowerCase() === order.customerEmail?.toLowerCase())
-    ));
+    authorized = Boolean(user && order.authUserId === user.id);
   }
   if (!authorized) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
   if (order.paymentMethod !== "STRIPE" || ["PAID", "REFUNDED"].includes(order.paymentStatus)) {

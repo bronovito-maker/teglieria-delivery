@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { prisma } from "@/lib/prisma";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { getTrustedSiteOrigin, sanitizeInternalPath } from "@/lib/request-security";
+import { linkUnclaimedOrdersToUser } from "@/lib/orders/link-user-orders";
 
 export async function GET(request: Request) {
   const origin = getTrustedSiteOrigin(request);
@@ -33,13 +33,8 @@ export async function GET(request: Request) {
 
       // Retroactive linking: collega ordini guest (authUserId null) all'account per email
       const isCustomer = type === "customer" || role === "customer" || (!role && type !== "admin");
-      if (isCustomer && data.user?.email) {
-        prisma.order
-          .updateMany({
-            where: { customerEmail: data.user.email, authUserId: null },
-            data: { authUserId: data.user.id },
-          })
-          .catch((err) => console.error("[CALLBACK] Retroactive linking fallito:", err));
+      if (isCustomer && data.user) {
+        await linkUnclaimedOrdersToUser(data.user);
       }
 
       if (next) return NextResponse.redirect(`${origin}${next}`);

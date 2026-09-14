@@ -218,9 +218,7 @@ export async function GET(
     return NextResponse.json(toRiderOrderView(order), { headers: { "Cache-Control": "private, no-store" } });
   }
 
-  const isOwner =
-    order.authUserId === user.id ||
-    (Boolean(user.email_confirmed_at) && Boolean(user.email) && order.customerEmail?.toLowerCase() === user.email!.toLowerCase());
+  const isOwner = order.authUserId === user.id;
   if (!isOwner) {
     return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
   }

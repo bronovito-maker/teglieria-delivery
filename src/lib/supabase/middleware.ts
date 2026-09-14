@@ -6,6 +6,14 @@ import { SUPABASE_COOKIE_ENCODING, SUPABASE_COOKIE_OPTIONS } from "./config";
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
+  function redirectPreservingSession(url: URL) {
+    const redirect = NextResponse.redirect(url);
+    for (const cookie of supabaseResponse.cookies.getAll()) {
+      redirect.cookies.set(cookie);
+    }
+    return redirect;
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -41,7 +49,7 @@ export async function updateSession(request: NextRequest) {
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin/login";
-    return NextResponse.redirect(url);
+    return redirectPreservingSession(url);
   }
 
   if (
@@ -53,7 +61,7 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin/login";
     url.searchParams.set("error", "unauthorized");
-    return NextResponse.redirect(url);
+    return redirectPreservingSession(url);
   }
 
   return supabaseResponse;

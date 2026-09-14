@@ -3,12 +3,12 @@ import { expect, test } from "@playwright/test";
 const customerEmail = process.env.E2E_CUSTOMER_EMAIL;
 const customerPassword = process.env.E2E_CUSTOMER_PASSWORD;
 
-async function login(page: import("@playwright/test").Page) {
-  await page.goto("/accedi?next=/menu");
+async function login(page: import("@playwright/test").Page, next = "/menu") {
+  await page.goto(`/accedi?next=${encodeURIComponent(next)}`);
   await page.locator('input[type="email"]').fill(customerEmail!);
   await page.locator('input[type="password"]').fill(customerPassword!);
   await page.getByRole("button", { name: "Accedi" }).click();
-  await expect(page).toHaveURL(/\/menu/);
+  await expect(page).toHaveURL(new RegExp(next.replace("/", "\\/")));
 }
 
 test.describe("customer authentication flow", () => {
@@ -110,11 +110,11 @@ test.describe("customer authentication flow", () => {
       const menuResponse = await page.request.get("/api/menu");
       const payload = await menuResponse.json();
       const categories = Array.isArray(payload) ? payload : payload.categories;
-      const product = categories.flatMap((category: { products: unknown[] }) => category.products)[0] as {
-        id: string; name: string; price: number | string;
-      };
+      const product = categories.flatMap((category: { products: unknown[] }) => category.products).find(
+        (candidate: { configuration?: unknown; price?: number | string }) => !candidate.configuration && Number(candidate.price) > 0,
+      ) as { id: string; name: string; price: number | string; ingredients?: string[] } | undefined;
       test.skip(!product, "Serve almeno un prodotto attivo nel menu.");
-      const unitPrice = Number(product.price);
+      const unitPrice = Number(product!.price);
       const quantity = Math.ceil(12 / unitPrice);
       const orderResponse = await page.request.post("/api/ordini", {
         headers: { origin: process.env.E2E_BASE_URL ?? "http://localhost:3000", "Idempotency-Key": `e2e-auth-${Date.now()}` },
@@ -122,10 +122,46 @@ test.describe("customer authentication flow", () => {
           type: "ASPORTO", channel: "WEB", customerName: "E2E Cliente", customerPhone: "3330000098",
           customerEmail, pickupTime: new Date(Date.now() + 90 * 60_000).toISOString(), timeSlot: "18:30",
           subtotal: unitPrice * quantity, total: unitPrice * quantity, paymentMethod: "CONTANTI",
-          items: [{ productId: product.id, productName: product.name, quantity, unitPrice, totalPrice: unitPrice * quantity }],
+          items: [{ productId: product!.id, productName: product!.name, quantity, unitPrice, totalPrice: unitPrice * quantity, ingredients: product!.ingredients }],
         },
       });
       expect(orderResponse.status()).toBe(201);
+    });
+
+    test("login → ordine → storico → reload → logout → nuovo login conserva lo stesso ordine", async ({ page }) => {
+      await login(page);
+      const menuResponse = await page.request.get("/api/menu");
+      expect(menuResponse.ok()).toBe(true);
+      const menuPayload = await menuResponse.json();
+      const categories = Array.isArray(menuPayload) ? menuPayload : menuPayload.categories;
+      const product = categories.flatMap((category: { products: unknown[] }) => category.products).find(
+        (candidate: { configuration?: unknown; price?: number | string }) => !candidate.configuration && Number(candidate.price) > 0,
+      ) as { id: string; name: string; price: number | string; ingredients?: string[] } | undefined;
+      test.skip(!product, "Serve almeno un prodotto fisso attivo nel menu.");
+
+      const unitPrice = Number(product!.price);
+      const quantity = Math.ceil(12 / unitPrice);
+      const orderResponse = await page.request.post("/api/ordini", {
+        headers: { origin: process.env.E2E_BASE_URL ?? "http://localhost:3000", "Idempotency-Key": `e2e-history-${Date.now()}` },
+        data: {
+          type: "ASPORTO", channel: "WEB", customerName: "E2E Storico", customerPhone: "3330000097",
+          customerEmail, pickupTime: new Date(Date.now() + 90 * 60_000).toISOString(), timeSlot: "18:30",
+          subtotal: unitPrice * quantity, total: unitPrice * quantity, paymentMethod: "CONTANTI",
+          items: [{ productId: product!.id, productName: product!.name, quantity, unitPrice, totalPrice: unitPrice * quantity, ingredients: product!.ingredients }],
+        },
+      });
+      expect(orderResponse.status()).toBe(201);
+      const createdOrder = await orderResponse.json() as { orderCode: string };
+
+      await page.goto("/account/orders");
+      await expect(page.getByText(`Ordine ${createdOrder.orderCode}`)).toBeVisible();
+      await page.reload();
+      await expect(page.getByText(`Ordine ${createdOrder.orderCode}`)).toBeVisible();
+
+      await page.getByRole("button", { name: "Esci" }).click();
+      await expect(page).toHaveURL(/\/menu/);
+      await login(page, "/account/orders");
+      await expect(page.getByText(`Ordine ${createdOrder.orderCode}`)).toBeVisible();
     });
   });
 });

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { enforceSameOrigin } from "@/lib/request-security";
+import { linkUnclaimedOrdersToUser } from "@/lib/orders/link-user-orders";
 
 export async function POST(request: Request) {
   const sameOriginError = enforceSameOrigin(request);
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: body.email.trim(),
     password: body.password,
   });
@@ -46,6 +47,15 @@ export async function POST(request: Request) {
       { status: 401, headers: { "Cache-Control": "private, no-store" } },
     );
   }
+
+  if (!data.user) {
+    return NextResponse.json(
+      { error: "invalid_credentials" },
+      { status: 401, headers: { "Cache-Control": "private, no-store" } },
+    );
+  }
+
+  await linkUnclaimedOrdersToUser(data.user);
 
   return NextResponse.json(
     { ok: true },

@@ -138,6 +138,25 @@ describe("GET /api/ordini/[id] object authorization", () => {
     expect(response.status).toBe(403);
   });
 
+  it("does not grant access by email when the order belongs to another user", async () => {
+    getUser.mockResolvedValue({
+      data: { user: { id: "different-user", email: "customer@example.com", email_confirmed_at: "2026-09-11T00:00:00Z" } },
+    });
+
+    const response = await GET(request(), { params: Promise.resolve({ id: "order-1" }) });
+    expect(response.status).toBe(403);
+  });
+
+  it("allows a customer to read an order linked to their user id", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "customer-user", email: "another@example.com" } } });
+
+    const response = await GET(request(), { params: Promise.resolve({ id: "order-1" }) });
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.customerName).toBe("Mario Rossi");
+    expect(body).not.toHaveProperty("authUserId");
+  });
+
   it("allows the assigned rider and strips internal customer/payment fields", async () => {
     getUser.mockResolvedValue({ data: { user: { id: "rider-user", email: "rider@example.com" } } });
     riderFindFirst.mockResolvedValue({ id: "rider-1" });
