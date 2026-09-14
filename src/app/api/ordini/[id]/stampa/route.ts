@@ -8,6 +8,14 @@ import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { escapeHtml } from "@/lib/html";
 import { getTrustedSiteOrigin } from "@/lib/request-security";
 import { formatOrderTimeSlot } from "@/lib/order-time-slots";
+import {
+  RECEIPT_QR_ERROR_CORRECTION,
+  RECEIPT_QR_QUIET_ZONE_MODULES,
+  RECEIPT_QR_RASTER_WIDTH_PX,
+  RECEIPT_QR_SIZE_MM,
+  RECEIPT_ROLL_WIDTH_MM,
+  getReceiptPrintableWidthMm,
+} from "@/lib/receipt-layout";
 
 export async function GET(
   request: Request,
@@ -76,7 +84,12 @@ export async function GET(
     return NextResponse.json({ error: "Origine del sito non configurata" }, { status: 500 });
   }
   const riderUrl = `${siteUrl.replace(/\/$/, "")}/rider/ordine/${encodeURIComponent(order.id)}`;
-  const qrCodeDataUrl = await QRCode.toDataURL(riderUrl, { margin: 1, width: 200 });
+  const qrCodeDataUrl = await QRCode.toDataURL(riderUrl, {
+    errorCorrectionLevel: RECEIPT_QR_ERROR_CORRECTION,
+    margin: RECEIPT_QR_QUIET_ZONE_MODULES,
+    width: RECEIPT_QR_RASTER_WIDTH_PX,
+  });
+  const printableWidthMm = getReceiptPrintableWidthMm();
   const styleNonce = request.headers.get("x-nonce");
   const styleNonceAttribute = styleNonce ? ` nonce="${escapeHtml(styleNonce)}"` : "";
 
@@ -86,26 +99,32 @@ export async function GET(
 <meta charset="UTF-8">
 <title>Ordine #${escapeHtml(displayCode)}</title>
 <style${styleNonceAttribute}>
-  @page { size: 80mm auto; margin: 0; }
+  @page { size: ${RECEIPT_ROLL_WIDTH_MM}mm 200mm; margin: 0; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Courier New', monospace; font-size: 12px; width: 80mm; padding: 4mm; }
+  html, body { width: ${RECEIPT_ROLL_WIDTH_MM}mm; max-width: ${RECEIPT_ROLL_WIDTH_MM}mm; }
+  body { margin: 0; padding: 0; overflow-x: hidden; background: #fff; color: #000; font-family: 'Courier New', monospace; font-size: 9pt; line-height: 1.25; overflow-wrap: anywhere; }
+  .receipt { width: ${printableWidthMm}mm; max-width: ${printableWidthMm}mm; margin: 0 auto; padding: 2mm 0 3mm; }
   .center { text-align: center; }
   .bold { font-weight: bold; }
-  .r { text-align: right; }
-  .sep { border-top: 1px dashed #000; margin: 4px 0; }
-  h1 { font-size: 18px; margin-bottom: 2px; }
-  table { width: 100%; border-collapse: collapse; }
-  td { padding: 1px 0; vertical-align: top; }
-  .mod { font-size: 10px; color: #555; padding-left: 16px; }
-  .total { font-size: 16px; font-weight: bold; }
-  .qr { margin-top: 10px; text-align: center; }
-  .qr img { width: 100px; height: 100px; }
-  .qr-caption { font-size: 8px; }
-  .thank-you { margin-top: 8px; font-size: 10px; }
-  @media print { body { width: 80mm; } }
+  .r { width: 15mm; padding-left: 1.5mm; text-align: right; white-space: nowrap; }
+  .sep { border-top: 0.25mm dashed #000; margin: 2mm 0; }
+  h1 { margin-bottom: 0.5mm; font-size: 15pt; letter-spacing: 0.2mm; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  td { padding: 0.35mm 0; vertical-align: top; overflow-wrap: anywhere; }
+  small { display: block; margin-top: 0.4mm; font-size: 7.5pt; line-height: 1.2; }
+  .mod { padding: 0.4mm 0 0.8mm 2mm; color: #222; font-size: 7.5pt; line-height: 1.2; }
+  .total { font-size: 12pt; font-weight: bold; }
+  .qr { margin-top: 2mm; text-align: center; break-inside: avoid; page-break-inside: avoid; }
+  .qr img { display: block; width: ${RECEIPT_QR_SIZE_MM}mm; height: ${RECEIPT_QR_SIZE_MM}mm; margin: 0 auto; image-rendering: pixelated; }
+  .qr-caption { margin-top: 1mm; font-size: 7pt; line-height: 1.2; }
+  .thank-you { margin-top: 2mm; font-size: 8pt; }
+  @media print {
+    html, body { width: ${RECEIPT_ROLL_WIDTH_MM}mm; max-width: ${RECEIPT_ROLL_WIDTH_MM}mm; }
+    body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  }
 </style>
 </head>
-<body>
+<body><main class="receipt">
   <div class="center">
     <h1>TEGLIERIA</h1>
   </div>
@@ -135,14 +154,24 @@ export async function GET(
   
   <div class="sep"></div>
   <div class="qr">
-    <img src="${qrCodeDataUrl}" alt="Rider QR" />
+    <img src="${qrCodeDataUrl}" alt="QR per gestione consegna rider" />
     <p class="qr-caption">Scansiona per gestire consegna</p>
   </div>
 
   <div class="sep"></div>
   <div class="center thank-you">Grazie e buon appetito!</div>
-  ${request.headers.get("x-nonce") ? `<script nonce="${escapeHtml(request.headers.get("x-nonce"))}">window.onload=function(){window.print();}</script>` : ""}
-</body>
+  ${request.headers.get("x-nonce") ? `<script nonce="${escapeHtml(request.headers.get("x-nonce"))}">
+    window.addEventListener("load",function(){
+      var receipt=document.querySelector(".receipt");
+      var pageHeightMm=Math.max(58,Math.ceil(receipt.getBoundingClientRect().height*25.4/96));
+      var pageStyle=document.createElement("style");
+      pageStyle.nonce="${escapeHtml(request.headers.get("x-nonce"))}";
+      pageStyle.textContent="@page{size:${RECEIPT_ROLL_WIDTH_MM}mm "+pageHeightMm+"mm;margin:0}";
+      document.head.appendChild(pageStyle);
+      window.print();
+    },{once:true});
+  </script>` : ""}
+</main></body>
 </html>`;
 
   return new NextResponse(html, {

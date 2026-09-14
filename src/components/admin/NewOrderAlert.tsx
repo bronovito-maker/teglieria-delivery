@@ -199,8 +199,7 @@ export default function NewOrderAlert() {
   }
 
   function printOrder(orderId: string) {
-    const w = window.open(`/api/ordini/${orderId}/stampa`, "_blank", "width=420,height=700");
-    w?.addEventListener("load", () => w.print());
+    window.open(`/api/ordini/${orderId}/stampa`, "_blank", "width=420,height=700");
   }
 
   async function requestNotifPermission() {

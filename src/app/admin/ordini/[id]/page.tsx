@@ -55,10 +55,7 @@ export default function OrderDetailPage() {
   }
 
   function handlePrint() {
-    const printWindow = window.open(`/api/ordini/${id}/stampa`, "_blank", "width=400,height=600");
-    printWindow?.addEventListener("load", () => {
-      printWindow.print();
-    });
+    window.open(`/api/ordini/${id}/stampa`, "_blank", "width=400,height=600");
   }
 
   function openDeleteModal() {
