@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toCustomerOrderView, toRiderOrderView, type LoadedOrder } from "./order-views";
+import { toCustomerOrderView, toPublicTrackingOrderView, toRiderOrderView, type LoadedOrder } from "./order-views";
 
 const order = {
   id: "order-1",
@@ -71,6 +71,38 @@ describe("order API views", () => {
       "prosciutto cotto",
       "fiordilatte",
     ]);
+  });
+
+  it("preserves authoritative line prices in the public confirmation view", () => {
+    const withItems = {
+      ...order,
+      items: [{
+        id: "item-1",
+        productId: "regina",
+        productName: "La Regina",
+        quantity: 2,
+        unitPrice: 4.5,
+        standardUnitPrice: 5,
+        totalPrice: 9,
+        variant: null,
+        additions: null,
+        removals: null,
+        notes: null,
+        allergenSnapshot: null,
+        ingredientSnapshot: null,
+      }],
+    } as unknown as LoadedOrder;
+
+    const view = toPublicTrackingOrderView(withItems);
+    expect(Number(view.items[0].unitPrice)).toBe(4.5);
+    expect(Number(view.items[0].standardUnitPrice)).toBe(5);
+    expect(Number(view.items[0].totalPrice)).toBe(9);
+    expect(Number(view.subtotal)).toBe(12);
+    expect(Number(view.total)).toBe(14);
+    expect(view.timeSlot).toBe("19:00");
+    expect(view).not.toHaveProperty("customerPhone");
+    expect(view).not.toHaveProperty("customerEmail");
+    expect(view).not.toHaveProperty("authUserId");
   });
 
   it("does not expose customer identity or payment internals to riders", () => {

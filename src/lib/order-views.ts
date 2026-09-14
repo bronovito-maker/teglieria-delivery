@@ -29,6 +29,38 @@ const statusHistory = (history: OrderStatusLog[] = []) => history.map((entry) =>
   createdAt: entry.createdAt,
 }));
 
+/**
+ * Fields available through the possession-based tracking token. This contains
+ * everything rendered by the confirmation page, but no customer contact,
+ * authentication, Stripe or idempotency data.
+ */
+export function toPublicTrackingOrderView(order: LoadedOrder) {
+  return {
+    id: order.id,
+    orderCode: order.orderCode,
+    orderNumber: order.orderNumber,
+    type: order.type,
+    status: order.status,
+    customerName: order.customerName,
+    paymentMethod: order.paymentMethod,
+    paymentStatus: order.paymentStatus,
+    address: order.address,
+    deliveryCost: order.deliveryCost,
+    estimatedTime: order.estimatedTime,
+    actualTime: order.actualTime,
+    pickupTime: order.pickupTime,
+    timeSlot: order.timeSlot,
+    subtotal: order.subtotal,
+    clubSavings: order.clubSavings,
+    total: order.total,
+    items: orderItems(order.items),
+    rider: order.rider ? { name: order.rider.name } : null,
+    statusHistory: statusHistory(order.statusHistory),
+    createdAt: order.createdAt,
+    updatedAt: order.updatedAt,
+  };
+}
+
 /** Fields needed by the customer UI, excluding auth, Stripe and idempotency data. */
 export function toCustomerOrderView(order: LoadedOrder) {
   return {

@@ -14,7 +14,7 @@ import { enforceSameOrigin } from "@/lib/request-security";
 import { randomBytes } from "node:crypto";
 import { getStripe } from "@/lib/stripe";
 import { markStripePaymentSucceeded } from "@/lib/stripe-order-notifications";
-import { toCustomerOrderView, toRiderOrderView } from "@/lib/order-views";
+import { toCustomerOrderView, toPublicTrackingOrderView, toRiderOrderView, type LoadedOrder } from "@/lib/order-views";
 import { deliverOrderCancellationEmail, enqueueOrderCancellationEmail } from "@/lib/order-cancellation-outbox";
 import { verifyAdminDeletionCredential } from "@/lib/admin-delete-verification";
 
@@ -32,80 +32,7 @@ function isRiderSafePatch(body: OrderPatchBody, riderId: string): boolean {
   return true;
 }
 
-type TrackingOrder = {
-  id: string;
-  orderCode: string | null;
-  orderNumber: number;
-  type: string;
-  status: string;
-  customerName: string;
-  paymentMethod: string | null;
-  paymentStatus: string;
-  address: string | null;
-  estimatedTime: Date | null;
-  actualTime: Date | null;
-  total: unknown;
-  clubSavings: unknown;
-  items: unknown;
-  rider: unknown;
-  statusHistory: unknown;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-function toPublicTrackingOrder(order: TrackingOrder | null) {
-  if (!order) return null;
-  const items = Array.isArray(order.items)
-    ? order.items.map((item) => {
-        const value = item as Record<string, unknown>;
-        return {
-          id: typeof value.id === "string" ? value.id : undefined,
-          productName: typeof value.productName === "string" ? value.productName : "",
-          quantity: typeof value.quantity === "number" ? value.quantity : 0,
-          variant: typeof value.variant === "string" ? value.variant : null,
-          additions: Array.isArray(value.additions) ? value.additions : [],
-          removals: Array.isArray(value.removals) ? value.removals : [],
-          ingredientSnapshot: Array.isArray(value.ingredientSnapshot)
-            ? value.ingredientSnapshot.filter((ingredient): ingredient is string => typeof ingredient === "string")
-            : [],
-          notes: typeof value.notes === "string" ? value.notes : null,
-        };
-      })
-    : [];
-  const riderValue = order.rider as Record<string, unknown> | null;
-  const statusHistory = Array.isArray(order.statusHistory)
-    ? order.statusHistory.map((entry) => {
-        const value = entry as Record<string, unknown>;
-        return {
-          id: typeof value.id === "string" ? value.id : undefined,
-          status: typeof value.status === "string" ? value.status : "",
-          createdAt: value.createdAt ?? null,
-        };
-      })
-    : [];
-  return {
-    id: order.id,
-    orderCode: order.orderCode,
-    orderNumber: order.orderNumber,
-    type: order.type,
-    status: order.status,
-    customerName: order.customerName,
-    paymentMethod: order.paymentMethod,
-    paymentStatus: order.paymentStatus,
-    address: order.address,
-    estimatedTime: order.estimatedTime,
-    actualTime: order.actualTime,
-    total: order.total,
-    clubSavings: order.clubSavings,
-    items,
-    rider: riderValue && typeof riderValue.name === "string" ? { name: riderValue.name } : null,
-    statusHistory,
-    createdAt: order.createdAt,
-    updatedAt: order.updatedAt,
-  };
-}
-
-async function reconcilePaidStripeOrder(order: TrackingOrder & { stripeSessionId?: string | null; stripePaymentIntentId?: string | null }) {
+async function reconcilePaidStripeOrder(order: LoadedOrder) {
   if (order.paymentMethod !== "STRIPE" || !["PENDING", "FAILED"].includes(order.paymentStatus) || !order.stripeSessionId) {
     return;
   }
@@ -183,7 +110,7 @@ export async function GET(
   }
   if (validStatusToken) {
     await reconcilePaidStripeOrder(order);
-    const response = NextResponse.json(toPublicTrackingOrder(order), {
+    const response = NextResponse.json(toPublicTrackingOrderView(order), {
       headers: { "Cache-Control": "private, no-store" },
     });
     if (validStatusToken === token) {
