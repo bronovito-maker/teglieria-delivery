@@ -54,21 +54,24 @@ export default function AddressAutocomplete({ value, onChange, onCoordinatesChan
 
   return (
     <div className="space-y-1.5">
-      <div className="relative">
-        <GooglePlaceAutocomplete
-          value={value}
-          onChange={onChange}
-          onCoordinatesChange={onCoordinatesChange}
-          required={required}
-          placeholder={placeholder ?? "Via, Piazza, Numero civico"}
-          className="client-address-autocomplete"
-        />
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <GooglePlaceAutocomplete
+            value={value}
+            onChange={onChange}
+            onCoordinatesChange={onCoordinatesChange}
+            required={required}
+            placeholder={placeholder ?? "Via, Piazza, Numero civico"}
+            className="client-address-autocomplete"
+          />
+        </div>
         <button
           type="button"
           onClick={handleGeolocate}
           disabled={locating}
           title="Usa la mia posizione"
-          className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-charcoal/10 text-charcoal/50 hover:text-terracotta hover:border-terracotta/30 transition-all disabled:opacity-40 shadow-sm"
+          aria-label="Usa la mia posizione"
+          className="shrink-0 w-12 h-12 flex items-center justify-center rounded-2xl bg-white border border-charcoal/10 text-charcoal/50 hover:text-terracotta hover:border-terracotta/30 transition-all disabled:opacity-40 shadow-sm"
         >
           {locating ? (
             <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">

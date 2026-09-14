@@ -19,14 +19,14 @@ function buildContentSecurityPolicy(nonce: string): string {
     "style-src-attr 'unsafe-inline'",
     "img-src 'self' data: https://www.facebook.com https://maps.googleapis.com https://maps.gstatic.com https://*.googleusercontent.com https://*.supabase.co https://*.zirel.org",
     "font-src 'self' data: https://fonts.gstatic.com",
-    `connect-src 'self' https://maps.googleapis.com https://routes.googleapis.com https://*.supabase.co https://vitals.vercel-insights.com https://*.zirel.org https://*.up.railway.app wss://*.supabase.co ${isDevelopment ? "http: ws:" : ""}`
+    `connect-src 'self' https://maps.googleapis.com https://places.googleapis.com https://routes.googleapis.com https://www.facebook.com https://*.supabase.co https://vitals.vercel-insights.com https://*.zirel.org https://*.up.railway.app wss://*.supabase.co ${isDevelopment ? "http: ws:" : ""}`
       .replace(/\s+/g, " ")
       .trim(),
-    "frame-src 'self' https://*.zirel.org https://www.google.com https://maps.google.com",
+    "frame-src 'self' https://*.zirel.org https://www.google.com https://maps.google.com https://www.facebook.com",
     "frame-ancestors 'none'",
     "object-src 'none'",
     "base-uri 'self'",
-    "form-action 'self'",
+    "form-action 'self' https://www.facebook.com",
   ].join("; ");
 }
 
