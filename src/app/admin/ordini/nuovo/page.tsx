@@ -52,7 +52,20 @@ export default function NuovoOrdinePage() {
   }
 
   useEffect(() => {
-    fetch("/api/menu").then((r) => r.json()).then((data) => setCategories(Array.isArray(data) ? data : data.categories));
+    fetch("/api/menu").then((r) => r.json()).then((data) => {
+      const menuCategories: CategoryWithProducts[] = Array.isArray(data) ? data : data.categories;
+      setCategories(menuCategories);
+
+      const requestedProductId = new URLSearchParams(window.location.search).get("product");
+      if (!requestedProductId) return;
+      const requestedProduct = menuCategories
+        .flatMap((category) => category.products)
+        .find((product) => product.id === requestedProductId && product.configuration);
+      if (requestedProduct) {
+        setPizzaSelection(createInitialPizzaSelection());
+        setConfiguringProduct(requestedProduct);
+      }
+    });
   }, []);
 
   const allProducts = categories.flatMap((c) => c.products);
