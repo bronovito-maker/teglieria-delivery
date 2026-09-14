@@ -244,13 +244,28 @@ export default function OrdinePage() {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Goog-Api-Key": apiKey, "X-Goog-FieldMask": "routes.distanceMeters" },
         body: JSON.stringify({
-          origin: { location: { latLng: STORE_POSITION } },
+          origin: {
+            location: {
+              latLng: {
+                latitude: STORE_POSITION.lat,
+                longitude: STORE_POSITION.lng,
+              },
+            },
+          },
           destination: { location: { latLng: { latitude: coordinates.lat, longitude: coordinates.lng } } },
           travelMode: "DRIVE",
           routingPreference: "TRAFFIC_UNAWARE",
         }),
       });
-      if (!response.ok) throw new Error("Routes API error");
+      if (!response.ok) {
+        const details = await response.json().catch(() => null);
+        console.error("[Google Routes] calcolo distanza rifiutato", {
+          status: response.status,
+          code: details?.error?.status,
+          message: details?.error?.message,
+        });
+        throw new Error("Routes API error");
+      }
       const data = await response.json();
       const meters = data?.routes?.[0]?.distanceMeters;
       if (typeof meters !== "number" || !Number.isFinite(meters) || meters < 0) {
