@@ -29,7 +29,6 @@ async function createCustomerOrder(request: APIRequestContext) {
   test.skip(!product, "Serve almeno un prodotto attivo nel menu per creare un ordine e2e.");
 
   const unitPrice = Number(product.price);
-  const pickupTime = new Date(Date.now() + 90 * 60_000).toISOString();
   const orderRes = await request.post("/api/ordini", {
     headers: { origin: e2eOrigin },
     data: {
@@ -38,7 +37,6 @@ async function createCustomerOrder(request: APIRequestContext) {
       customerName: "E2E Cliente",
       customerPhone: "3330000000",
       customerEmail: "e2e-cliente@example.com",
-      pickupTime,
       timeSlot: "18:30",
       subtotal: unitPrice,
       total: unitPrice,

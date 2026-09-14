@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("webhook Stripe rifiuta richieste senza firma", async ({ request }) => {
   const response = await request.post("/api/stripe/webhook", { data: {} });
   expect(response.status()).toBe(400);
-  expect(await response.text()).toContain("Webhook Stripe");
+  expect(await response.text()).toContain("Firma Stripe mancante");
 });
 
 test.describe("Stripe payment flow", () => {

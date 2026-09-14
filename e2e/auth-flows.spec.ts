@@ -22,7 +22,8 @@ test.describe("customer authentication flow", () => {
 
   test("registrazione mostra la conferma email", async ({ page }) => {
     test.skip(process.env.E2E_ALLOW_REGISTRATION !== "1", "Imposta E2E_ALLOW_REGISTRATION=1 per creare un account di test su Supabase.");
-    const email = `e2e-${Date.now()}@example.com`;
+    const [localPart, domain] = customerEmail!.split("@");
+    const email = `${localPart}+e2e-${Date.now()}@${domain}`;
     await page.goto("/registrati");
     const inputs = page.locator("form input");
     await inputs.nth(0).fill("E2E Cliente");
@@ -120,7 +121,7 @@ test.describe("customer authentication flow", () => {
         headers: { origin: process.env.E2E_BASE_URL ?? "http://localhost:3000", "Idempotency-Key": `e2e-auth-${Date.now()}` },
         data: {
           type: "ASPORTO", channel: "WEB", customerName: "E2E Cliente", customerPhone: "3330000098",
-          customerEmail, pickupTime: new Date(Date.now() + 90 * 60_000).toISOString(), timeSlot: "18:30",
+          customerEmail, timeSlot: "18:30",
           subtotal: unitPrice * quantity, total: unitPrice * quantity, paymentMethod: "CONTANTI",
           items: [{ productId: product!.id, productName: product!.name, quantity, unitPrice, totalPrice: unitPrice * quantity, ingredients: product!.ingredients }],
         },
@@ -145,7 +146,7 @@ test.describe("customer authentication flow", () => {
         headers: { origin: process.env.E2E_BASE_URL ?? "http://localhost:3000", "Idempotency-Key": `e2e-history-${Date.now()}` },
         data: {
           type: "ASPORTO", channel: "WEB", customerName: "E2E Storico", customerPhone: "3330000097",
-          customerEmail, pickupTime: new Date(Date.now() + 90 * 60_000).toISOString(), timeSlot: "18:30",
+          customerEmail, timeSlot: "18:30",
           subtotal: unitPrice * quantity, total: unitPrice * quantity, paymentMethod: "CONTANTI",
           items: [{ productId: product!.id, productName: product!.name, quantity, unitPrice, totalPrice: unitPrice * quantity, ingredients: product!.ingredients }],
         },
