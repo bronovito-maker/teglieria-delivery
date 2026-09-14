@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getRomeDateString, ORDER_STATUS_LABELS, getStatusTransitions } from "@/lib/constants";
 import { cn, formatCurrency, formatTime, formatOrderCode } from "@/lib/utils";
 import type { OrderWithItems } from "@/types";
+import ServiceAvailabilityControls from "@/components/admin/ServiceAvailabilityControls";
 
 const KANBAN_COLUMNS = ["RECEIVED", "CONFIRMED", "READY", "OUT", "DELIVERED"];
 
@@ -135,6 +136,8 @@ export default function DashboardPage() {
           </div>
         ))}
       </div>
+
+      <ServiceAvailabilityControls />
 
       {/* Grouped inline rows by status */}
       <div className="space-y-3">

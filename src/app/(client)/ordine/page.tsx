@@ -12,6 +12,7 @@ import { formatCurrency } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { useCustomerAuth } from "@/components/client/CustomerAuthProvider";
 import { calculateDeliveryFee, formatOrderTimeSlot, getRomeDateOffsetString, getRomeDateString, MIN_ORDER_SUBTOTAL, romeDateTimeToDate } from "@/lib/constants";
+import { OrderingAvailabilityGate, useServiceAvailability } from "@/components/client/ServiceAvailabilityNotice";
 
 const STORE_POSITION = {
   lat: Number.isFinite(Number(process.env.NEXT_PUBLIC_STORE_LAT))
@@ -27,6 +28,7 @@ export default function OrdinePage() {
   const supabase = useMemo(() => createClient(), []);
   const { user, loading: authLoading } = useCustomerAuth();
   const { items, orderType, setOrderType, clearCart, syncPrices } = useCartStore();
+  const services = useServiceAvailability();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const loggedUser = useMemo(() => {
@@ -41,6 +43,12 @@ export default function OrdinePage() {
   // Il checkout resta sempre accessibile anche agli ospiti: l'accesso è
   // facoltativo e non deve creare un passaggio bloccante, soprattutto su mobile.
   const [showDetails, setShowDetails] = useState(true);
+
+  useEffect(() => {
+    if (!services) return;
+    if (orderType === "DELIVERY" && !services.delivery.active && services.pickup.active) setOrderType("ASPORTO");
+    if (orderType === "ASPORTO" && !services.pickup.active && services.delivery.active) setOrderType("DELIVERY");
+  }, [orderType, services, setOrderType]);
 
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -368,6 +376,7 @@ export default function OrdinePage() {
 
   return (
     <div className="mx-auto max-w-3xl px-1 pb-24 pt-2 sm:px-2 sm:pt-4">
+      <OrderingAvailabilityGate />
       <header className="mb-10 rounded-[2rem] border border-charcoal/5 bg-white px-6 py-7 shadow-[0_10px_24px_rgba(26,26,26,0.035)] sm:px-8 sm:py-8">
         <span className="ds-micro-label text-terracotta/60 mb-4 block">Checkout</span>
         <h1 className="mb-3 font-display text-4xl leading-none tracking-[-0.055em] text-charcoal sm:text-6xl">
@@ -444,13 +453,14 @@ export default function OrdinePage() {
                   <button
                     key={type}
                     type="button"
+                    disabled={type === "ASPORTO" ? services?.pickup.active === false : services?.delivery.active === false}
                     onClick={() => {
                       setOrderType(type);
                       setPickupTime("");
                       setSlots([]);
                       setDayClosed(false);
                     }}
-                    className={`min-h-10 flex-1 rounded-full text-xs font-brand font-bold uppercase tracking-widest transition-all ${orderType === type ? "bg-white text-charcoal shadow-sm" : "text-charcoal/40"}`}
+                    className={`min-h-10 flex-1 rounded-full text-xs font-brand font-bold uppercase tracking-widest transition-all disabled:cursor-not-allowed disabled:line-through disabled:opacity-30 ${orderType === type ? "bg-white text-charcoal shadow-sm" : "text-charcoal/40"}`}
                   >
                     {type === "ASPORTO" ? "Ritiro in sede" : "Consegna a domicilio"}
                   </button>

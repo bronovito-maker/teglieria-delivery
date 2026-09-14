@@ -5,6 +5,7 @@ import { Mail, MapPin, Phone } from "lucide-react";
 import MobileTopBar from "@/components/client/MobileTopBar";
 import { SITE_CONFIG, toPhoneHref } from "@/lib/site-config";
 import { safeJsonLd } from "@/lib/json-ld";
+import { LandingOrderAction } from "@/components/client/ServiceAvailabilityNotice";
 
 const reviews = [
   {
@@ -70,9 +71,7 @@ export default function LandingPage() {
         <h1 className="mt-7 max-w-[9ch] font-display text-[clamp(3rem,12vw,5.6rem)] font-semibold leading-[.91] tracking-[-.06em]">
           La tua pizzeria <span className="text-terracotta">di quartiere.</span>
         </h1>
-        <Link href="/menu" className="ds-cta-primary mt-12 flex min-h-12 w-full max-w-[22rem] items-center justify-center text-lg">
-          Ordina ora
-        </Link>
+        <LandingOrderAction />
       </section>
 
       <section id="dicono-di-noi" className="mx-auto max-w-3xl px-5 py-10 sm:py-16">

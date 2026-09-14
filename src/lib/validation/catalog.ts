@@ -96,9 +96,15 @@ export const scheduleDaysSchema = z.array(scheduleDaySchema).length(7);
 
 export const adminConfigSchema = z
   .object({
-    maxOrdersPerSlot: z.number().int().positive().max(100),
+    maxOrdersPerSlot: z.number().int().positive().max(100).optional(),
+    deliveryEnabled: z.boolean().optional(),
+    deliveryDisabledUntil: z.string().datetime().nullable().optional(),
+    pickupEnabled: z.boolean().optional(),
+    pickupDisabledUntil: z.string().datetime().nullable().optional(),
+    serviceMessage: z.string().trim().max(240).nullable().optional(),
   })
-  .strict();
+  .strict()
+  .refine((value) => Object.keys(value).length > 0, "Nessuna modifica richiesta");
 
 export const riderVehicleSchema = z.enum(["BIKE", "SCOOTER", "CAR"]);
 

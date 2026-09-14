@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
+import { OrderingAvailabilityGate } from "@/components/client/ServiceAvailabilityNotice";
 import { safeJsonLd } from "@/lib/json-ld";
 import CartDrawer from "@/components/client/CartDrawer";
 import ProductModal from "@/components/client/ProductModal";
@@ -179,6 +180,7 @@ function MenuContent() {
 
   return (
     <div className="mx-auto min-h-screen max-w-4xl bg-warm-light pb-32">
+      <div className="px-5 pt-4 sm:px-8"><OrderingAvailabilityGate /></div>
       {categories.length > 0 && (
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(menuSchema) }} />
       )}

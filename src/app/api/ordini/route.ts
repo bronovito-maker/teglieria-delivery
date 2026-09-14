@@ -17,6 +17,7 @@ import { calculateAuthoritativePizzaLine, parsePizzaBuilderSelection, type Pizza
 import { toCustomerOrderView } from "@/lib/order-views";
 import { getCanonicalProductIngredients } from "@/lib/catalog";
 import { calculateAuthoritativeLine, calculateMoneySummary, fromCents, toCents } from "@/lib/money";
+import { getServiceAvailability, serviceForOrderType } from "@/lib/service-availability";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -79,6 +80,14 @@ export async function POST(request: Request) {
   }
 
   const body = parsed.data;
+  const serviceConfig = await prisma.globalConfig.findUnique({ where: { id: "default" } });
+  const requestedService = serviceForOrderType(body.type, getServiceAvailability(serviceConfig));
+  if (!requestedService.active) {
+    return NextResponse.json(
+      { error: requestedService.label ?? "Servizio temporaneamente non disponibile", code: "SERVICE_DISABLED", disabledUntil: requestedService.disabledUntil },
+      { status: 503 },
+    );
+  }
   const requestedTimeSlots = [
     body.timeSlot,
     body.pickupTime ? getItalianTimeSlot(body.pickupTime) : null,

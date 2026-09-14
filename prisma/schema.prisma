@@ -172,10 +172,16 @@ model ClubCard {
 }
 
 model GlobalConfig {
-  id               String   @id @default("default")
-  maxOrdersPerSlot Int      @default(5)
-  deliveryFee      Decimal  @default(2.00) @db.Decimal(8, 2)
-  updatedAt        DateTime @updatedAt
+  id                    String    @id @default("default")
+  maxOrdersPerSlot      Int       @default(5)
+  deliveryFee           Decimal   @default(2.00) @db.Decimal(8, 2)
+  deliveryEnabled       Boolean   @default(true)
+  deliveryDisabledUntil DateTime?
+  pickupEnabled         Boolean   @default(true)
+  pickupDisabledUntil   DateTime?
+  serviceMessage        String?
+  serviceUpdatedBy      String?
+  updatedAt             DateTime  @updatedAt
 }
 
 // 0=Dom, 1=Lun, 2=Mar, 3=Mer, 4=Gio, 5=Ven, 6=Sab (JS getDay())
