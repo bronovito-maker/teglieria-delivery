@@ -26,7 +26,7 @@ function ServiceMessage({ services }: { services: PublicServices }) {
   const labels = [services.delivery.label, services.pickup.label].filter(Boolean);
   return (
     <div role="status" className="rounded-2xl border border-terracotta/20 bg-white/90 px-5 py-4 text-center shadow-sm">
-      <p className="font-brand text-sm font-bold text-terracotta">Servizio temporaneamente modificato</p>
+      <p className="font-brand text-sm font-bold text-terracotta">Una piccola pausa 🍕</p>
       {labels.map((label) => <p key={label} className="mt-1 text-sm text-charcoal/65">{label}</p>)}
       {services.message && <p className="mt-2 text-sm italic text-charcoal/55">{services.message}</p>}
     </div>

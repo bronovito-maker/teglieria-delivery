@@ -34,14 +34,14 @@ function resolve(enabled: boolean | undefined, untilValue: Date | string | null 
     active,
     disabledUntil,
     label: active ? null : disabledUntil
-      ? `${name} sospeso fino a ${italianDateTime(until!)}`
-      : `${name} temporaneamente sospeso`,
+      ? `${name} torna disponibile ${italianDateTime(until!)}`
+      : `${name} torna presto`,
   };
 }
 
 export function getServiceAvailability(config: ServiceAvailabilityConfig | null | undefined, now = new Date()) {
   const delivery = resolve(config?.deliveryEnabled, config?.deliveryDisabledUntil, "Delivery", now);
-  const pickup = resolve(config?.pickupEnabled, config?.pickupDisabledUntil, "Asporto", now);
+  const pickup = resolve(config?.pickupEnabled, config?.pickupDisabledUntil, "Il ritiro in sede", now);
   return {
     delivery,
     pickup,

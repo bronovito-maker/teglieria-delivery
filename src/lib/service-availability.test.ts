@@ -19,6 +19,6 @@ describe("service availability", () => {
   it("supports an indefinite suspension", () => {
     const state = getServiceAvailability({ pickupEnabled: false, pickupDisabledUntil: null }, now);
     expect(serviceForOrderType("ASPORTO", state).active).toBe(false);
-    expect(state.pickup.label).toBe("Asporto temporaneamente sospeso");
+    expect(state.pickup.label).toBe("Il ritiro in sede torna presto");
   });
 });
