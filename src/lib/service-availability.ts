@@ -40,7 +40,7 @@ function resolve(enabled: boolean | undefined, untilValue: Date | string | null 
 }
 
 export function getServiceAvailability(config: ServiceAvailabilityConfig | null | undefined, now = new Date()) {
-  const delivery = resolve(config?.deliveryEnabled, config?.deliveryDisabledUntil, "Delivery", now);
+  const delivery = resolve(config?.deliveryEnabled, config?.deliveryDisabledUntil, "Il Delivery", now);
   const pickup = resolve(config?.pickupEnabled, config?.pickupDisabledUntil, "Il ritiro in sede", now);
   return {
     delivery,

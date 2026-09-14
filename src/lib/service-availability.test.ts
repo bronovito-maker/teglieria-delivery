@@ -7,8 +7,14 @@ describe("service availability", () => {
   it("keeps delivery and pickup independent", () => {
     const state = getServiceAvailability({ deliveryEnabled: false, pickupEnabled: true }, now);
     expect(state.delivery.active).toBe(false);
+    expect(state.delivery.label).toBe("Il Delivery torna presto");
     expect(state.pickup.active).toBe(true);
     expect(state.allDisabled).toBe(false);
+  });
+
+  it("shows the automatic Delivery reactivation date", () => {
+    const state = getServiceAvailability({ deliveryEnabled: false, deliveryDisabledUntil: "2026-09-14T20:00:00.000Z" }, now);
+    expect(state.delivery.label).toMatch(/^Il Delivery torna disponibile /);
   });
 
   it("automatically reactivates an expired suspension", () => {
