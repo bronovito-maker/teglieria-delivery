@@ -11,7 +11,7 @@ import { getCartItemUnitPrices, getCartPricing, useCartStore } from "@/store/car
 import { formatCurrency } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { useCustomerAuth } from "@/components/client/CustomerAuthProvider";
-import { calculateDeliveryFee, MIN_ORDER_SUBTOTAL } from "@/lib/constants";
+import { calculateDeliveryFee, formatOrderTimeSlot, getRomeDateOffsetString, getRomeDateString, MIN_ORDER_SUBTOTAL, romeDateTimeToDate } from "@/lib/constants";
 
 const STORE_POSITION = {
   lat: Number.isFinite(Number(process.env.NEXT_PUBLIC_STORE_LAT))
@@ -119,7 +119,7 @@ export default function OrdinePage() {
   const [address, setAddress] = useState("");
   const [addressDetail, setAddressDetail] = useState("");
   const [deliveryZone, setDeliveryZone] = useState("");
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [selectedDate, setSelectedDate] = useState(() => getRomeDateString());
   const [pickupTime, setPickupTime] = useState("");
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"CONTANTI" | "STRIPE">("CONTANTI");
@@ -138,9 +138,7 @@ export default function OrdinePage() {
 
     async function checkDays() {
       const checks = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date();
-        d.setDate(d.getDate() + i);
-        return d.toISOString().split("T")[0];
+        return getRomeDateOffsetString(i);
       });
       const results = await Promise.all(
         checks.map((date) => fetch(`/api/logistica/fasce?date=${date}&type=${orderType}`).then((r) => r.json()).catch(() => ({ closed: true })))
@@ -299,9 +297,9 @@ export default function OrdinePage() {
           deliveryZone: orderType === "DELIVERY" ? deliveryZone : null,
           deliveryKm: orderType === "DELIVERY" ? deliveryKm : null,
           deliveryCost: orderType === "DELIVERY" ? deliveryCost : null,
-          pickupTime: new Date(`${selectedDate}T${pickupTime}`).toISOString(),
+          pickupTime: romeDateTimeToDate(selectedDate, pickupTime).toISOString(),
           timeSlot: pickupTime,
-          estimatedTime: orderType === "DELIVERY" ? new Date(`${selectedDate}T${pickupTime}`).toISOString() : null,
+          estimatedTime: orderType === "DELIVERY" ? romeDateTimeToDate(selectedDate, pickupTime).toISOString() : null,
           subtotal,
           total,
           notes: notes || null,
@@ -425,6 +423,12 @@ export default function OrdinePage() {
                 <div className="flex justify-between text-charcoal/50 font-body">
                   <span>Consegna</span>
                   <span>{formatCurrency(deliveryCost)}</span>
+                </div>
+              )}
+              {pickupTime && (
+                <div className="flex justify-between text-charcoal/50 font-body">
+                  <span>Fascia richiesta</span>
+                  <span>{formatOrderTimeSlot(orderType, pickupTime)}</span>
                 </div>
               )}
               <div className="flex justify-between pt-4 font-brand text-2xl font-semibold text-charcoal">
@@ -607,12 +611,11 @@ export default function OrdinePage() {
           <div className="md:hidden -mx-1 px-1 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <div className="flex gap-2.5 min-w-max">
               {Array.from({ length: 7 }, (_, offset) => {
-                const d = new Date();
-                d.setDate(d.getDate() + offset);
-                const dateStr = d.toISOString().split("T")[0];
-                const weekday = offset === 0 ? "Oggi" : d.toLocaleDateString("it-IT", { weekday: "short" });
-                const day = d.getDate();
-                const month = d.toLocaleDateString("it-IT", { month: "short" });
+                const dateStr = getRomeDateOffsetString(offset);
+                const d = new Date(`${dateStr}T12:00:00Z`);
+                const weekday = offset === 0 ? "Oggi" : d.toLocaleDateString("it-IT", { weekday: "short", timeZone: "UTC" });
+                const day = d.getUTCDate();
+                const month = d.toLocaleDateString("it-IT", { month: "short", timeZone: "UTC" });
                 const isSelected = selectedDate === dateStr;
                 const isClosed = closedDays.has(dateStr);
                 return (
@@ -645,12 +648,11 @@ export default function OrdinePage() {
 
           <div className="hidden md:grid grid-cols-7 gap-1.5">
             {Array.from({ length: 7 }, (_, offset) => {
-              const d = new Date();
-              d.setDate(d.getDate() + offset);
-              const dateStr = d.toISOString().split("T")[0];
-              const weekday = offset === 0 ? "Oggi" : d.toLocaleDateString("it-IT", { weekday: "short" });
-              const day = d.getDate();
-              const month = d.toLocaleDateString("it-IT", { month: "short" });
+              const dateStr = getRomeDateOffsetString(offset);
+              const d = new Date(`${dateStr}T12:00:00Z`);
+              const weekday = offset === 0 ? "Oggi" : d.toLocaleDateString("it-IT", { weekday: "short", timeZone: "UTC" });
+              const day = d.getUTCDate();
+              const month = d.toLocaleDateString("it-IT", { month: "short", timeZone: "UTC" });
               const isSelected = selectedDate === dateStr;
               const isClosed = closedDays.has(dateStr);
               return (

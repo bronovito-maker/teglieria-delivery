@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ORDER_STATUS_LABELS } from "@/lib/constants";
+import { formatOrderTimeSlot, ORDER_STATUS_LABELS } from "@/lib/constants";
 import { formatOrderCode } from "@/lib/utils";
 import { escapeHtml } from "@/lib/html";
 
@@ -16,6 +16,7 @@ type OrderMapItem = {
   status: string;
   createdAt?: string | null;
   estimatedTime?: string | null;
+  timeSlot?: string | null;
   riderName?: string | null;
 };
 
@@ -422,10 +423,12 @@ export default function LogisticsMap({ orders, onStatusChange }: Props) {
         const code = o.orderCode ?? formatOrderCode({ orderCode: o.orderCode, orderNumber: o.orderNumber, type: o.type ?? "DELIVERY" });
         const statusLabel = ORDER_STATUS_LABELS[o.status] || o.status;
         const createdTime = o.createdAt
-          ? new Date(o.createdAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })
+          ? new Date(o.createdAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Rome" })
           : null;
-        const etaTime = o.estimatedTime
-          ? new Date(o.estimatedTime).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })
+        const etaTime = o.timeSlot
+          ? formatOrderTimeSlot("DELIVERY", o.timeSlot)
+          : o.estimatedTime
+          ? new Date(o.estimatedTime).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Rome" })
           : null;
 
         infoWindowRef.current?.setContent(buildInfoWindowContent(
@@ -528,8 +531,8 @@ export default function LogisticsMap({ orders, onStatusChange }: Props) {
           if (activeMarkerRef.current?.orderId === order.id) {
             const label = ORDER_STATUS_LABELS[order.status] || order.status;
             const code = order.orderCode ?? formatOrderCode({ orderCode: order.orderCode, orderNumber: order.orderNumber, type: order.type ?? "DELIVERY" });
-            const createdTime = order.createdAt ? new Date(order.createdAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) : null;
-            const etaTime = order.estimatedTime ? new Date(order.estimatedTime).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) : null;
+            const createdTime = order.createdAt ? new Date(order.createdAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Rome" }) : null;
+            const etaTime = order.timeSlot ? formatOrderTimeSlot("DELIVERY", order.timeSlot) : order.estimatedTime ? new Date(order.estimatedTime).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Rome" }) : null;
             const ri = routeInfoRef.current;
             const newContent = buildInfoWindowContent(
               order.id, code, order.customerName, order.customerPhone, order.address,

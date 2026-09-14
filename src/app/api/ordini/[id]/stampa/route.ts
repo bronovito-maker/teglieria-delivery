@@ -41,12 +41,12 @@ export async function GET(
     }
   }
 
-  const date = new Date(order.createdAt).toLocaleDateString("it-IT");
-  const time = new Date(order.createdAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+  const date = new Date(order.createdAt).toLocaleDateString("it-IT", { timeZone: "Europe/Rome" });
+  const time = new Date(order.createdAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Rome" });
   const displayCode = order.orderCode ?? `${order.type === "ASPORTO" ? "A" : "D"}${String(order.orderNumber).padStart(3, "0")}`;
   const requestedTime = formatOrderTimeSlot(order.type, order.timeSlot)
     || (order.pickupTime
-      ? new Date(order.pickupTime).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })
+      ? new Date(order.pickupTime).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Rome" })
       : null);
 
   const itemsHtml = order.items

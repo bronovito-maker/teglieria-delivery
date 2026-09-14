@@ -9,6 +9,7 @@ import { writeAuditLog } from "@/lib/audit";
 import { captureError } from "@/lib/monitoring";
 import { riderCreateSchema } from "@/lib/validation/catalog";
 import { enforceSameOrigin } from "@/lib/request-security";
+import { getRomeDateString, getRomeDayBounds } from "@/lib/order-time-slots";
 
 const ACTIVE_ORDER_STATUSES: OrderStatus[] = ["CONFIRMED", "READY", "OUT"];
 
@@ -22,10 +23,7 @@ export async function GET() {
     orderBy: { name: "asc" },
   });
 
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const todayEnd = new Date(todayStart);
-  todayEnd.setDate(todayEnd.getDate() + 1);
+  const { gte: todayStart, lt: todayEnd } = getRomeDayBounds(getRomeDateString());
 
   const payload = await Promise.all(
     riders.map(async (rider) => {

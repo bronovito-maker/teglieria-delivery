@@ -12,7 +12,7 @@ import { createOrderStatusToken } from "@/lib/order-status-token";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { enforceSameOrigin, getTrustedSiteOrigin } from "@/lib/request-security";
 import { getStripe, getStripeErrorContext, getStripeSiteUrl } from "@/lib/stripe";
-import { calculateDeliveryFee, getItalianTimeSlot, isOrderTimeAllowed, MIN_ORDER_SUBTOTAL } from "@/lib/constants";
+import { calculateDeliveryFee, getItalianTimeSlot, getRomeDayBounds, isOrderTimeAllowed, MIN_ORDER_SUBTOTAL } from "@/lib/constants";
 import { calculatePizzaConfiguration, type PizzaBuilderSelection } from "@/lib/pizza-builder";
 import { toCustomerOrderView } from "@/lib/order-views";
 import { getCanonicalProductIngredients } from "@/lib/catalog";
@@ -33,10 +33,7 @@ export async function GET(request: Request) {
   if (parsedType?.success) where.type = parsedType.data;
   if (phone) where.customerPhone = phone;
   if (date) {
-    const start = new Date(date);
-    const end = new Date(date);
-    end.setDate(end.getDate() + 1);
-    where.createdAt = { gte: start, lt: end };
+    where.createdAt = getRomeDayBounds(date);
   }
 
   // Both full order lists and repeat-customer counts contain operational data
@@ -95,6 +92,9 @@ export async function POST(request: Request) {
       },
       { status: 400 },
     );
+  }
+  if (requestedTimeSlots.length === 2 && requestedTimeSlots[0] !== requestedTimeSlots[1]) {
+    return NextResponse.json({ error: "La fascia richiesta non coincide con l'orario dell'ordine" }, { status: 400 });
   }
   const idempotencyKey = request.headers.get("idempotency-key")?.trim().slice(0, 100) || null;
 
@@ -376,6 +376,7 @@ export async function POST(request: Request) {
       address: order.address,
       pickupTime: order.pickupTime,
       estimatedTime: order.estimatedTime,
+      timeSlot: order.timeSlot,
       paymentMethod: order.paymentMethod,
       accountLink,
     }).catch((err) => console.error("[EMAIL] Conferma ordine fallita:", err));

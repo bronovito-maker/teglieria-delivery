@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/constants";
+import { formatOrderTimeSlot, getRomeDateString, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/constants";
 import { formatCurrency, formatOrderCode } from "@/lib/utils";
 import type { OrderWithItems } from "@/types";
 import LogisticsMap from "@/components/admin/LogisticsMap";
@@ -194,7 +194,7 @@ export default function LogisticaPage() {
   const alertAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const fetchData = useCallback(async () => {
-    const today = new Date().toISOString().split("T")[0];
+    const today = getRomeDateString();
     const [ordersRes, ridersRes] = await Promise.all([
       fetch(`/api/ordini?date=${today}&type=DELIVERY`),
       fetch("/api/riders"),
@@ -288,6 +288,7 @@ export default function LogisticaPage() {
         status: order.status,
         createdAt: order.createdAt ? new Date(order.createdAt).toISOString() : null,
         estimatedTime: order.estimatedTime ? new Date(order.estimatedTime).toISOString() : null,
+        timeSlot: order.timeSlot,
         riderName: order.rider?.name ?? null,
       })),
     [activeOrders]
@@ -572,6 +573,7 @@ export default function LogisticaPage() {
                     <div>
                       <p className="font-brand font-semibold text-xl tracking-tight text-charcoal">#{formatOrderCode(order)} • {order.customerName}</p>
                       <p className="font-body italic text-xs text-charcoal/40 mt-1">{order.address || "Indirizzo non presente"}</p>
+                      {order.timeSlot && <p className="mt-1 text-xs font-brand font-semibold text-terracotta">Fascia {formatOrderTimeSlot(order.type, order.timeSlot)}</p>}
                     </div>
                     <span className={`px-5 py-2 rounded-full text-[9px] font-brand font-semibold uppercase tracking-[0.18em] border ${ORDER_STATUS_COLORS[order.status]}`}>
                       {ORDER_STATUS_LABELS[order.status]}

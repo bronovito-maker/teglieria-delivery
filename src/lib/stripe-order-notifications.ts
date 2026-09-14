@@ -82,6 +82,7 @@ async function sendPaidOrderConfirmation(orderId: string): Promise<void> {
     address: order.address,
     pickupTime: order.pickupTime,
     estimatedTime: order.estimatedTime,
+    timeSlot: order.timeSlot,
     paymentMethod: order.paymentMethod,
     paymentConfirmed: true,
     accountLink,

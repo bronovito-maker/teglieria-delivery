@@ -4,23 +4,20 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { formatCurrency, formatOrderCode } from "@/lib/utils";
 import type { OrderWithItems } from "@/types";
+import { formatOrderTimeSlot, getRomeDateOffsetString, getRomeDateString } from "@/lib/order-time-slots";
 
-function formatPickupDate(pickupTime: Date | string | null | undefined): string | null {
+function formatPickupDate(order: Pick<OrderWithItems, "pickupTime" | "timeSlot" | "type">): string | null {
+  const pickupTime = order.pickupTime;
   if (!pickupTime) return null;
   const d = new Date(pickupTime);
-  const todayMidnight = new Date();
-  todayMidnight.setHours(0, 0, 0, 0);
-  const tomorrowMidnight = new Date(todayMidnight);
-  tomorrowMidnight.setDate(tomorrowMidnight.getDate() + 1);
-  const dayAfterMidnight = new Date(tomorrowMidnight);
-  dayAfterMidnight.setDate(dayAfterMidnight.getDate() + 1);
+  const date = getRomeDateString(d);
+  const time = formatOrderTimeSlot(order.type, order.timeSlot)
+    || d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Rome" });
 
-  const time = d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Rome" });
-
-  if (d >= todayMidnight && d < tomorrowMidnight) {
+  if (date === getRomeDateString()) {
     return `Oggi · ${time}`;
   }
-  if (d >= tomorrowMidnight && d < dayAfterMidnight) {
+  if (date === getRomeDateOffsetString(1)) {
     return `Domani · ${time}`;
   }
   const dateStr = d.toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "short", timeZone: "Europe/Rome" });
@@ -214,7 +211,7 @@ export default function NewOrderAlert() {
 
   // Global polling — runs on every admin page
   const fetchNewOrders = useCallback(async () => {
-    const today = new Date().toISOString().split("T")[0];
+    const today = getRomeDateString();
     const res = await fetch(`/api/ordini?date=${today}`);
     if (res.status === 401 || res.status === 403) {
       router.replace("/admin/login");
@@ -282,7 +279,7 @@ export default function NewOrderAlert() {
     timeZone: "Europe/Rome",
   });
 
-  const pickupLabel = confirmingOrder ? formatPickupDate(confirmingOrder.pickupTime) : null;
+  const pickupLabel = confirmingOrder ? formatPickupDate(confirmingOrder) : null;
   return (
     <>
       {/* Hidden audio fallback */}

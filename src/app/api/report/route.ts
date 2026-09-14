@@ -4,6 +4,7 @@ import { calculateRiderCompensation } from "@/lib/finance";
 import { createClient } from "@/lib/supabase/server";
 import { isOperatorUser } from "@/lib/rbac";
 import { reportQuerySchema } from "@/lib/validation/catalog";
+import { getRomeDateString, getRomeDayBounds } from "@/lib/order-time-slots";
 
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -17,11 +18,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Query non valida", issues: parsed.error.flatten() }, { status: 400 });
   }
 
-  const date = parsed.data.date || new Date().toISOString().split("T")[0];
-
-  const start = new Date(date);
-  const end = new Date(date);
-  end.setDate(end.getDate() + 1);
+  const date = parsed.data.date || getRomeDateString();
+  const { gte: start, lt: end } = getRomeDayBounds(date);
 
   const orders = await prisma.order.findMany({
     where: {

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ORDER_STATUS_LABELS } from "@/lib/constants";
+import { formatOrderTimeSlot, ORDER_STATUS_LABELS } from "@/lib/constants";
 import { formatOrderCode, formatTime } from "@/lib/utils";
 import dynamic from "next/dynamic";
 
@@ -295,6 +295,7 @@ export default function RiderDashboard() {
 // ── Order Card ───────────────────────────────────────────────────────────
 
 function formatRiderOrderDateTime(order: any): string {
+  if (order.timeSlot) return formatOrderTimeSlot(order.type, order.timeSlot);
   const raw = order.estimatedTime ?? order.pickupTime ?? order.createdAt;
   if (!raw) return "--:--";
 

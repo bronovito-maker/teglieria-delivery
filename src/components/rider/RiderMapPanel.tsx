@@ -7,7 +7,7 @@ import {
   type RouteStop,
   type OptimizedRoute,
 } from "@/hooks/useRouteOptimization";
-import { ORDER_STATUS_LABELS } from "@/lib/constants";
+import { formatOrderTimeSlot, ORDER_STATUS_LABELS } from "@/lib/constants";
 import { formatOrderCode } from "@/lib/utils";
 import { escapeHtml } from "@/lib/html";
 
@@ -25,6 +25,7 @@ type RiderOrder = {
   customerName: string;
   customerPhone?: string | null;
   estimatedTime?: string | null;
+  timeSlot?: string | null;
   notes?: string | null;
   total?: string | number | null;
 };
@@ -394,10 +395,13 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
               const code = formatOrderCode(order);
               const statusLabel =
                 ORDER_STATUS_LABELS[order.status] || order.status;
-              const eta = order.estimatedTime
+              const eta = order.timeSlot
+                ? formatOrderTimeSlot("DELIVERY", order.timeSlot)
+                : order.estimatedTime
                 ? new Date(order.estimatedTime).toLocaleTimeString("it-IT", {
                     hour: "2-digit",
                     minute: "2-digit",
+                    timeZone: "Europe/Rome",
                   })
                 : null;
 
@@ -599,11 +603,11 @@ export default function RiderMapPanel({ orders, vehicle }: Props) {
                 <p className="font-brand font-bold text-[15px] text-charcoal truncate leading-tight">
                   {nextStop.order.customerName}
                 </p>
-                {nextStop.order.estimatedTime && (
+                {(nextStop.order.timeSlot || nextStop.order.estimatedTime) && (
                   <span className="flex-shrink-0 text-[9px] font-brand font-bold text-terracotta leading-tight">
-                    {new Date(nextStop.order.estimatedTime).toLocaleTimeString(
+                    {nextStop.order.timeSlot ? formatOrderTimeSlot("DELIVERY", nextStop.order.timeSlot) : new Date(nextStop.order.estimatedTime!).toLocaleTimeString(
                       "it-IT",
-                      { hour: "2-digit", minute: "2-digit" }
+                      { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Rome" }
                     )}
                   </span>
                 )}

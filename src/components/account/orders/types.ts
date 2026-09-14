@@ -36,6 +36,7 @@ export type UserOrder = {
   customerPhone?: string | null;
   customerEmail?: string | null;
   estimatedTime: string | null; // ISO string, null se non impostato
+  timeSlot: string | null; // ora iniziale canonica, es. 19:00
 };
 
 export const CLOSED_STATUSES: OrderStatus[] = ["DELIVERED", "CANCELLED"];

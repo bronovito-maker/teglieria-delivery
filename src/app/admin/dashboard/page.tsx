@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ORDER_STATUS_LABELS, getStatusTransitions } from "@/lib/constants";
+import { getRomeDateString, ORDER_STATUS_LABELS, getStatusTransitions } from "@/lib/constants";
 import { cn, formatCurrency, formatTime, formatOrderCode } from "@/lib/utils";
 import type { OrderWithItems } from "@/types";
 
@@ -32,7 +32,7 @@ export default function DashboardPage() {
   const [cancelError, setCancelError] = useState<string | null>(null);
 
   const fetchOrders = useCallback(async () => {
-    const today = new Date().toISOString().split("T")[0];
+    const today = getRomeDateString();
     const res = await fetch(`/api/ordini?date=${today}`);
     if (res.status === 401 || res.status === 403) {
       router.replace("/admin/login");

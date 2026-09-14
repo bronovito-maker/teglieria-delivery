@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
+import { getRomeDateString, getRomeDayBounds } from "@/lib/order-time-slots";
 
 const ACTIVE_RIDER_STATUSES = ["CONFIRMED", "READY", "OUT"] as const;
 
@@ -20,8 +21,7 @@ export async function GET() {
     return NextResponse.json({ error: "Rider not found" }, { status: 404 });
   }
 
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
+  const { gte: todayStart } = getRomeDayBounds(getRomeDateString());
 
   const orders = await prisma.order.findMany({
     where: {
@@ -59,6 +59,7 @@ export async function GET() {
       estimatedTime: true,
       actualTime: true,
       pickupTime: true,
+      timeSlot: true,
       total: true,
       notes: true,
       riderId: true,

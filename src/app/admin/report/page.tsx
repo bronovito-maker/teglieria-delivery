@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils";
+import { getRomeDateString } from "@/lib/order-time-slots";
 
 type Report = {
   date: string;
@@ -29,7 +30,7 @@ type Report = {
 
 export default function ReportPage() {
   const router = useRouter();
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(getRomeDateString());
   const [report, setReport] = useState<Report | null>(null);
 
   useEffect(() => {

@@ -1,3 +1,5 @@
+import { getRomeTimeString, ORDER_TIME_SLOT_CONFIG } from "./order-time-slots";
+
 export const ORDER_STATUS_LABELS: Record<string, string> = {
   RECEIVED: "Ricevuto",
   CONFIRMED: "Confermato",
@@ -16,14 +18,7 @@ export const DELIVERY_START_TIME = ORDER_TIME_SLOT_CONFIG.DELIVERY.start;
 export const DELIVERY_END_TIME = ORDER_TIME_SLOT_CONFIG.DELIVERY.end;
 
 export function getItalianTimeSlot(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  return new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Europe/Rome",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(date);
+  return getRomeTimeString(value);
 }
 
 /** 2 € entro il primo km; oltre, 0,33 €/km arrotondato per eccesso al decimo. */
@@ -101,12 +96,17 @@ export function canTransitionDeliveryStatus(current: string | null, requested: s
   if (current === null) return requested === "ASSIGNED" || requested === "EN_ROUTE";
   return DELIVERY_STATUS_TRANSITIONS[current]?.includes(requested) ?? false;
 }
-import { ORDER_TIME_SLOT_CONFIG } from "./order-time-slots";
-
 export {
   buildOrderTimeSlot,
   formatOrderTimeSlot,
   generateOrderTimeSlots,
+  getRomeDateString,
+  getRomeDateOffsetString,
+  getRomeDayBounds,
+  getRomeDayOfWeek,
+  getRomeTimeString,
   isOrderTimeAllowed,
   ORDER_TIME_SLOT_CONFIG,
+  ROME_TIME_ZONE,
+  romeDateTimeToDate,
 } from "./order-time-slots";

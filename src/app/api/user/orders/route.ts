@@ -35,6 +35,7 @@ function mapOrder(order: OrderWithItems): UserOrder {
     customerPhone: order.customerPhone ?? null,
     customerEmail: order.customerEmail ?? null,
     estimatedTime: order.estimatedTime?.toISOString() ?? null,
+    timeSlot: order.timeSlot ?? null,
   };
 }
 

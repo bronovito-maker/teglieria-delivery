@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getRomeDateString } from "@/lib/order-time-slots";
 
 const DAY_NAMES = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
 const DAY_SHORT = ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"];
@@ -246,7 +247,7 @@ export default function AdminOrariPage() {
               type="date"
               value={newDate}
               onChange={(e) => setNewDate(e.target.value)}
-              min={new Date().toISOString().split("T")[0]}
+              min={getRomeDateString()}
               className="flex-1 px-5 py-3.5 bg-charcoal/5 border border-charcoal/10 rounded-2xl font-brand font-bold text-xs text-charcoal focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta outline-none"
             />
             <input

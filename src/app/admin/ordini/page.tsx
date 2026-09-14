@@ -4,14 +4,14 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, ORDER_TYPE_LABELS, ORDER_CHANNEL_LABELS } from "@/lib/constants";
+import { formatOrderTimeSlot, getRomeDateString, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, ORDER_TYPE_LABELS, ORDER_CHANNEL_LABELS } from "@/lib/constants";
 import { formatCurrency, formatTime, formatOrderCode } from "@/lib/utils";
 import type { OrderWithItems } from "@/types";
 
 export default function OrdiniPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<OrderWithItems[]>([]);
-  const [dateFilter, setDateFilter] = useState(new Date().toISOString().split("T")[0]);
+  const [dateFilter, setDateFilter] = useState(getRomeDateString());
   const [statusFilter, setStatusFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
 
@@ -79,7 +79,7 @@ export default function OrdiniPage() {
           <thead>
             <tr className="border-b border-charcoal/5">
               <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-semibold uppercase tracking-[0.3em] text-charcoal/40">Id</th>
-              <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-semibold uppercase tracking-[0.3em] text-charcoal/40">Ora</th>
+              <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-semibold uppercase tracking-[0.3em] text-charcoal/40">Fascia</th>
               <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-semibold uppercase tracking-[0.3em] text-charcoal/40">Cliente</th>
               <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-semibold uppercase tracking-[0.3em] text-charcoal/40">Canale</th>
               <th className="px-4 lg:px-8 py-6 text-left text-[10px] font-brand font-semibold uppercase tracking-[0.3em] text-charcoal/40">Valore</th>
@@ -91,7 +91,7 @@ export default function OrdiniPage() {
             {orders.map((o) => (
               <tr key={o.id} className="group hover:bg-warm-light/50 transition-colors">
                 <td className="px-4 lg:px-8 py-5 font-brand font-semibold text-lg text-charcoal">#{formatOrderCode(o)}</td>
-                <td className="px-4 lg:px-8 py-5 font-body italic text-xs text-charcoal/40 group-hover:text-charcoal transition-colors whitespace-nowrap">{formatTime(o.createdAt)}</td>
+                <td className="px-4 lg:px-8 py-5 font-body italic text-xs text-charcoal/40 group-hover:text-charcoal transition-colors whitespace-nowrap">{formatOrderTimeSlot(o.type, o.timeSlot) || formatTime(o.createdAt)}</td>
                 <td className="px-4 lg:px-8 py-5 font-brand font-semibold text-[13px] text-charcoal">{o.customerName}</td>
                 <td className="px-4 lg:px-8 py-5">
                    <span className="font-body italic text-xs text-charcoal/60">{ORDER_TYPE_LABELS[o.type]}</span>
@@ -134,7 +134,7 @@ export default function OrdiniPage() {
             <div className="flex items-start justify-between mb-6">
               <div>
                 <p className="text-3xl font-brand font-semibold tracking-tighter text-charcoal">#{formatOrderCode(o)}</p>
-                <p className="font-body italic text-xs text-charcoal/40 mt-1">{formatTime(o.createdAt)} • {ORDER_CHANNEL_LABELS[o.channel]}</p>
+                <p className="font-body italic text-xs text-charcoal/40 mt-1">{formatOrderTimeSlot(o.type, o.timeSlot) || formatTime(o.createdAt)} • {ORDER_CHANNEL_LABELS[o.channel]}</p>
               </div>
               <span className={`px-4 py-1.5 rounded-full text-[9px] font-brand font-semibold uppercase tracking-[0.16em] border shadow-sm transition-all duration-500 ${
                     ORDER_STATUS_COLORS[o.status] || "bg-charcoal/5 text-charcoal/40 border-charcoal/10"

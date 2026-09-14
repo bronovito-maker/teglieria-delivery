@@ -1,5 +1,6 @@
 import { BrevoClient, BrevoEnvironment } from "@getbrevo/brevo";
 import { escapeHtml, safeHttpUrl } from "@/lib/html";
+import { formatOrderTimeSlot, type OrderServiceType } from "@/lib/order-time-slots";
 
 const FROM_EMAIL = "ordini@lateglieria.it";
 const FROM_NAME = "La Teglieria";
@@ -71,6 +72,7 @@ type OrderConfirmationInput = {
   address?: string | null;
   pickupTime?: Date | string | null;
   estimatedTime?: Date | string | null;
+  timeSlot?: string | null;
   paymentMethod?: string | null;
   paymentConfirmed?: boolean;
   accountLink?: string | null; // magic link per accesso senza password
@@ -85,7 +87,9 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmationInput):
 
   const isDelivery = order.type === "DELIVERY";
   const paymentConfirmed = order.paymentConfirmed === true;
-  const timeLabel = formatTime(isDelivery ? order.estimatedTime : order.pickupTime);
+  const timeLabel = order.timeSlot
+    ? formatOrderTimeSlot(order.type as OrderServiceType, order.timeSlot)
+    : formatTime(isDelivery ? order.estimatedTime : order.pickupTime);
   const paymentLabel = order.paymentMethod === "STRIPE"
     ? "Carta online (Stripe)"
     : order.paymentMethod === "POS" ? "Carta / POS" : "Contanti";

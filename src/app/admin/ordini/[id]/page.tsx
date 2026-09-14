@@ -182,7 +182,7 @@ export default function OrderDetailPage() {
               <p className="text-gray-500 font-body">Cliente</p>
               <p className="font-brand font-semibold">{order.customerName}</p>
               <p className="font-body">{order.customerPhone}</p>
-              <p className="mt-1 font-brand font-semibold text-blue-600">Richiesto: {formatOrderTimeSlot(order.type, order.timeSlot) || (order.pickupTime ? new Date(order.pickupTime).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : 'N/D')}</p>
+              <p className="mt-1 font-brand font-semibold text-blue-600">Richiesto: {formatOrderTimeSlot(order.type, order.timeSlot) || (order.pickupTime ? new Date(order.pickupTime).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Rome' }) : 'N/D')}</p>
             </div>
             {order.type === "DELIVERY" && (
               <div>

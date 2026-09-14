@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { RotateCcw } from "lucide-react";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 import type { UserOrder } from "./types";
+import { formatOrderTimeSlot } from "@/lib/order-time-slots";
 
 type OrderHistoryItemProps = {
   order: UserOrder;
@@ -51,6 +52,7 @@ export default function OrderHistoryItem({ order }: OrderHistoryItemProps) {
         {previewItems.join(" · ")}
         {hasMore ? ` · +${order.items.length - 3} altri` : ""}
       </p>
+      {order.timeSlot && <p className="mt-1 text-xs font-semibold text-terracotta">Fascia: {formatOrderTimeSlot(order.type, order.timeSlot)}</p>}
       {order.clubSavings > 0 && <p className="mt-1 text-xs font-semibold text-emerald-700">Risparmio Club: {formatCurrency(order.clubSavings)}</p>}
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">

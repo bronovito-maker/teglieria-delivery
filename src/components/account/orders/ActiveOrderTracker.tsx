@@ -5,6 +5,7 @@ import { Clock3, Pizza, Scooter, Store } from "lucide-react";
 import { formatCurrency, formatTime } from "@/lib/utils";
 import type { OrderStatus, OrderType, UserOrder } from "./types";
 import { fromCents, toCents } from "@/lib/money";
+import { formatOrderTimeSlot } from "@/lib/order-time-slots";
 
 // Delivery: Inviato → Accettato → Pronto → In consegna
 // Asporto:  Inviato → Accettato → Pronto → Pronto al ritiro
@@ -68,6 +69,11 @@ export default function ActiveOrderTracker({ order, onRefresh }: ActiveOrderTrac
       </div>
 
       <div className="rounded-[1.5rem] border border-zinc-100 bg-zinc-50 p-4 mb-5">
+        {order.timeSlot && (
+          <p className="mb-2 text-sm font-semibold text-terracotta">
+            Fascia richiesta: {formatOrderTimeSlot(order.type, order.timeSlot)}
+          </p>
+        )}
         <p className="text-[11px] uppercase tracking-[0.2em] font-bold text-zinc-400 mb-1">
           Arrivo stimato
         </p>

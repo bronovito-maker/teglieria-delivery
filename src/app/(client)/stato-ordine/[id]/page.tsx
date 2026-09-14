@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/constants";
+import { formatOrderTimeSlot, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/constants";
 import { formatCurrency, formatTime, formatOrderCode } from "@/lib/utils";
 import { useCustomerAuth } from "@/components/client/CustomerAuthProvider";
 import type { OrderWithItems } from "@/types";
@@ -225,6 +225,12 @@ export default function StatoOrdinePage() {
         </header>
 
         <div className="space-y-4 font-body text-sm font-medium italic text-charcoal/60">
+          {order.timeSlot && (
+            <div className="flex justify-between items-center">
+              <span className="text-charcoal/30 not-italic uppercase text-[10px] font-brand">Fascia richiesta</span>
+              <span>{formatOrderTimeSlot(order.type, order.timeSlot)}</span>
+            </div>
+          )}
           <div className="flex justify-between items-center">
             <span className="text-charcoal/30 not-italic uppercase text-[10px] font-brand">Destinatario</span>
             <span>{order.customerName}</span>

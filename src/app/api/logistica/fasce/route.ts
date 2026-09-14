@@ -8,6 +8,10 @@ import {
   DELIVERY_END_TIME,
   DELIVERY_START_TIME,
   generateOrderTimeSlots,
+  getRomeDateString,
+  getRomeDayBounds,
+  getRomeDayOfWeek,
+  getRomeTimeString,
 } from "@/lib/constants";
 
 export async function GET(request: Request) {
@@ -23,14 +27,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Query non valida", issues: parsed.error.flatten() }, { status: 400 });
   }
 
-  const dateStr = parsed.data.date || new Date().toISOString().split("T")[0];
+  const dateStr = parsed.data.date || getRomeDateString();
   const orderType = parsed.data.type ?? "ASPORTO";
 
   // 1. Read config + schedule data
   let config = await prisma.globalConfig.findFirst();
   if (!config) config = await prisma.globalConfig.create({ data: { maxOrdersPerSlot: 5 } });
 
-  const dayOfWeek = new Date(dateStr + "T12:00:00").getDay();
+  const dayOfWeek = getRomeDayOfWeek(dateStr);
   const [closure, daySchedule] = await Promise.all([
     prisma.closedDate.findUnique({ where: { date: dateStr } }),
     prisma.daySchedule.findUnique({ where: { dayOfWeek } }),
@@ -71,7 +75,11 @@ export async function GET(request: Request) {
     const deliveryStart = daySchedule.dinnerStart > DELIVERY_START_TIME ? daySchedule.dinnerStart : DELIVERY_START_TIME;
     const deliveryEnd = daySchedule.dinnerEnd < DELIVERY_END_TIME ? daySchedule.dinnerEnd : DELIVERY_END_TIME;
     if (deliveryStart < deliveryEnd) {
-      baseSlots.push(...generateOrderTimeSlots("DELIVERY", deliveryStart, deliveryEnd).map((slot) => slot.time));
+      baseSlots.push(
+        ...generateOrderTimeSlots("DELIVERY")
+          .filter((slot) => slot.start >= deliveryStart && slot.end <= deliveryEnd)
+          .map((slot) => slot.time),
+      );
     }
   }
   const serviceStart = orderType === "DELIVERY" ? DELIVERY_START_TIME : ASPORTO_START_TIME;
@@ -86,10 +94,10 @@ export async function GET(request: Request) {
 
   // 5. Filter past slots for today (+ 30 min buffer)
   // Use Italian timezone to avoid UTC offset issues on the server
-  const nowItaly = new Date().toLocaleString("en-CA", { timeZone: "Europe/Rome", hour12: false }).replace(",", "");
-  const todayItaly = nowItaly.split(" ")[0]; // "YYYY-MM-DD"
+  const now = new Date();
+  const todayItaly = getRomeDateString(now);
   const isToday = dateStr === todayItaly;
-  const [italyH, italyM] = nowItaly.split(" ")[1].split(":").map(Number);
+  const [italyH, italyM] = (getRomeTimeString(now) ?? "00:00").split(":").map(Number);
   const nowMinutes = italyH * 60 + italyM + 30;
 
   const filteredSlots = isToday
@@ -104,14 +112,12 @@ export async function GET(request: Request) {
   }
 
   // 6. Get order counts per slot (only for currently relevant slots)
+  const dayBounds = getRomeDayBounds(dateStr);
   const orders = await prisma.order.groupBy({
     by: ["timeSlot"],
     where: {
       timeSlot: { in: filteredSlots },
-      pickupTime: {
-        gte: new Date(dateStr),
-        lt: new Date(new Date(dateStr).getTime() + 86400000),
-      },
+      pickupTime: dayBounds,
       status: { not: "CANCELLED" },
     },
     _count: { id: true },

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatCurrency, formatTime, formatOrderCode } from "@/lib/utils";
-import { ORDER_STATUS_COLORS, ORDER_STATUS_LABELS } from "@/lib/constants";
+import { formatOrderTimeSlot, ORDER_STATUS_COLORS, ORDER_STATUS_LABELS } from "@/lib/constants";
 import RiderRouteMap from "@/components/rider/RiderRouteMap";
 
 export default function RiderOrderPage() {
@@ -184,9 +184,9 @@ export default function RiderOrderPage() {
 
             <section className="grid grid-cols-2 gap-4">
               <div className="p-6 bg-warm-light/40 rounded-[2rem] border border-charcoal/5">
-                <span className="text-[8px] font-brand font-semibold uppercase tracking-widest text-charcoal/40 mb-2 block">Orario Stimato</span>
+                <span className="text-[8px] font-brand font-semibold uppercase tracking-widest text-charcoal/40 mb-2 block">Fascia richiesta</span>
                 <p className="text-2xl font-brand font-semibold text-charcoal">
-                  {order.estimatedTime ? formatTime(order.estimatedTime) : order.pickupTime}
+                  {formatOrderTimeSlot(order.type, order.timeSlot) || (order.estimatedTime ? formatTime(order.estimatedTime) : order.pickupTime)}
                 </p>
               </div>
               <div className="p-6 bg-charcoal rounded-[2rem] shadow-xl text-center">
