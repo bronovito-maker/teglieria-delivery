@@ -55,6 +55,7 @@ export default defineConfig({
   timeout: 30_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,
+  workers: isProductionTarget ? 1 : undefined,
   retries: process.env.CI ? 1 : 0,
   use: {
     baseURL,
