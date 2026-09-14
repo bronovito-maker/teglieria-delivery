@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { loadMapsLibrary, loadMarkerLibrary } from "@/lib/google-maps-loader";
 
 type RiderVehicleValue = "BIKE" | "SCOOTER" | "CAR";
 
@@ -19,39 +20,15 @@ declare global {
   }
 }
 
-const MAP_SCRIPT_ID = "google-maps-script";
 const STORE_POSITION: GeoPos = {
   lat: parseFloat(process.env.NEXT_PUBLIC_STORE_LAT ?? "43.5261962"),
   lng: parseFloat(process.env.NEXT_PUBLIC_STORE_LNG ?? "10.3371522"),
 };
 
 function loadGoogleMaps(apiKey: string): Promise<any> {
-  if (window.google?.maps) return Promise.resolve(window.google.maps);
-  const resolveMaps = (resolve: (maps: any) => void, reject: (error: Error) => void) => {
-    if (window.google?.maps) resolve(window.google.maps);
-    else reject(new Error("Lo script Google Maps è stato caricato, ma google.maps non è disponibile. Controlla la restrizione del referrer e le API abilitate."));
-  };
-  const existing = document.getElementById(MAP_SCRIPT_ID) as HTMLScriptElement | null;
-  if (existing) {
-    return new Promise((resolve, reject) => {
-      existing.addEventListener("load", () => resolveMaps(resolve, reject));
-      existing.addEventListener("error", () =>
-        reject(new Error("Errore caricamento Google Maps"))
-      );
-    });
-  }
-  return new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.id = MAP_SCRIPT_ID;
-    const nonce = document.querySelector<HTMLScriptElement>("script[nonce]")?.nonce;
-    if (nonce) script.nonce = nonce;
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker&loading=async`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => resolveMaps(resolve, reject);
-    script.onerror = () => reject(new Error("Errore caricamento Google Maps"));
-    document.head.appendChild(script);
-  });
+  return Promise.all([loadMapsLibrary(apiKey), loadMarkerLibrary(apiKey)]).then(
+    ([mapsLibrary, markerLibrary]) => ({ ...mapsLibrary, marker: markerLibrary }),
+  );
 }
 
 /** Parse Routes API v2 duration string like "123s" → 123 */

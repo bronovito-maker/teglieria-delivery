@@ -323,6 +323,29 @@
 .map-iw-action-ready { background: #22c55e; }
 .map-iw-action-out { background: #d96a2b; }
 
+/* Places Autocomplete (New) is a Google web component. Style the host while
+ * leaving its accessible internal controls and attribution intact. */
+.google-place-autocomplete {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  color-scheme: light;
+  --gmpx-color-primary: #d96a2b;
+  --gmpx-font-family-base: var(--font-body), system-ui, sans-serif;
+}
+
+.client-address-autocomplete {
+  min-height: 56px;
+  border-radius: 1.5rem;
+  background: #f9fafb;
+}
+
+.admin-address-autocomplete {
+  min-height: 42px;
+  border-radius: .75rem;
+  background: #fff;
+}
+
 /* Floating ingredients use trusted static defaults; scroll-dependent values are
  * emitted in a nonce-protected <style> element by the component. */
 .floating-ingredients-container { opacity: .96; }

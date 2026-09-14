@@ -1,66 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-
-const CALLBACK_NAME = "_mapsPlacesReady";
-let scriptLoading = false;
-let scriptReady = false;
-const pendingCallbacks: (() => void)[] = [];
-
-function loadMapsPlaces(apiKey: string, onReady: () => void): void {
-  if (scriptReady) {
-    onReady();
-    return;
-  }
-
-  pendingCallbacks.push(onReady);
-
-  if (scriptLoading) return;
-  scriptLoading = true;
-
-  (window as unknown as Record<string, unknown>)[CALLBACK_NAME] = () => {
-    scriptReady = true;
-    pendingCallbacks.forEach((cb) => cb());
-    pendingCallbacks.length = 0;
-  };
-
-  const script = document.createElement("script");
-  script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=${CALLBACK_NAME}&language=it`;
-  script.async = true;
-  script.onerror = () => {
-    scriptLoading = false;
-    pendingCallbacks.length = 0;
-  };
-  document.head.appendChild(script);
-}
-
-function setupAutocomplete(input: HTMLInputElement, onChange: (value: string) => void, onCoordinatesChange?: (coordinates: { lat: number; lng: number } | null) => void): void {
-  if (!window.google?.maps?.places?.Autocomplete) return;
-
-  // Bounding box centrato su Livorno (~15km raggio)
-  const livornoCenter = new window.google.maps.LatLng(43.5485, 10.3106);
-  const livornoBounds = new window.google.maps.Circle({
-    center: livornoCenter,
-    radius: 15000,
-  }).getBounds();
-
-  const autocomplete = new window.google.maps.places.Autocomplete(input, {
-    componentRestrictions: { country: "it" },
-    bounds: livornoBounds,
-    strictBounds: true,
-    fields: ["formatted_address", "geometry"],
-    types: ["address"],
-  });
-
-  autocomplete.addListener("place_changed", () => {
-    const place = autocomplete.getPlace();
-    if (place?.formatted_address) {
-      onChange(place.formatted_address);
-      const location = place.geometry?.location;
-      onCoordinatesChange?.(location ? { lat: location.lat(), lng: location.lng() } : null);
-    }
-  });
-}
+import { useState } from "react";
+import GooglePlaceAutocomplete from "@/components/shared/GooglePlaceAutocomplete";
 
 interface Props {
   value: string;
@@ -71,20 +12,10 @@ interface Props {
 }
 
 export default function AddressAutocomplete({ value, onChange, onCoordinatesChange, required, placeholder }: Props) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteInitialized = useRef(false);
   const [locating, setLocating] = useState(false);
   const [geoError, setGeoError] = useState("");
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-  function handleFocus() {
-    if (autocompleteInitialized.current || !apiKey || !inputRef.current) return;
-    autocompleteInitialized.current = true;
-
-    const input = inputRef.current;
-    loadMapsPlaces(apiKey, () => setupAutocomplete(input, onChange, onCoordinatesChange));
-  }
 
   async function handleGeolocate() {
     if (!navigator.geolocation) {
@@ -124,16 +55,13 @@ export default function AddressAutocomplete({ value, onChange, onCoordinatesChan
   return (
     <div className="space-y-1.5">
       <div className="relative">
-        <input
-          ref={inputRef}
-          type="text"
+        <GooglePlaceAutocomplete
           value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onFocus={handleFocus}
+          onChange={onChange}
+          onCoordinatesChange={onCoordinatesChange}
           required={required}
           placeholder={placeholder ?? "Via, Piazza, Numero civico"}
-          autoComplete="off"
-          className="w-full px-6 py-4 pr-14 bg-gray-50 border-none rounded-[1.5rem] focus:ring-2 focus:ring-orange-500 transition-all outline-none text-sm"
+          className="client-address-autocomplete"
         />
         <button
           type="button"
