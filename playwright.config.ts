@@ -10,15 +10,30 @@ const baseURL = targetUrl.toString();
 const productionOrigin = new URL(
   process.env.E2E_PRODUCTION_URL ?? "https://www.lateglieria.it",
 ).origin;
-const forbiddenHosts = new Set(["lateglieria.it", "www.lateglieria.it", "localhost", "127.0.0.1", "::1"]);
+const productionHosts = new Set(["lateglieria.it", "www.lateglieria.it"]);
+const localHosts = new Set(["localhost", "127.0.0.1", "::1"]);
+const isProductionTarget =
+  productionHosts.has(targetUrl.hostname.toLowerCase())
+  || targetUrl.origin === productionOrigin;
 
-if (
-  forbiddenHosts.has(targetUrl.hostname.toLowerCase())
-  || targetUrl.origin === productionOrigin
-  || process.env.E2E_CONFIRM_ISOLATED_STAGING !== "1"
-) {
+if (localHosts.has(targetUrl.hostname.toLowerCase())) {
   throw new Error(
-    "Target E2E non sicuro: usa uno staging isolato e imposta E2E_CONFIRM_ISOLATED_STAGING=1.",
+    "Target E2E non sicuro: localhost non e' ammesso da questo runner.",
+  );
+}
+
+if (isProductionTarget) {
+  if (
+    process.env.E2E_ALLOW_PRODUCTION !== "1"
+    || process.env.E2E_CONFIRM_SITE_INACTIVE !== "1"
+  ) {
+    throw new Error(
+      "Target E2E di produzione bloccato: servono E2E_ALLOW_PRODUCTION=1 e E2E_CONFIRM_SITE_INACTIVE=1.",
+    );
+  }
+} else if (process.env.E2E_CONFIRM_ISOLATED_STAGING !== "1") {
+  throw new Error(
+    "Target E2E non sicuro: per lo staging imposta E2E_CONFIRM_ISOLATED_STAGING=1.",
   );
 }
 

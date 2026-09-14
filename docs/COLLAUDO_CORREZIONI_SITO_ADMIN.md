@@ -2,7 +2,7 @@
 
 ## Ambiente E2E
 
-Gli E2E creano utenti e ordini e possono inviare notifiche. Devono essere eseguiti soltanto su uno staging isolato, con database, Supabase, e-mail e Stripe test separati dalla produzione.
+Gli E2E creano utenti e ordini e possono inviare notifiche. Devono essere eseguiti normalmente su uno staging isolato, con database, Supabase, e-mail e Stripe test separati dalla produzione.
 
 Configurazione minima:
 
@@ -19,7 +19,18 @@ E2E_RIDER_PASSWORD=...
 E2E_ALLOW_REGISTRATION=1
 ```
 
-Playwright rifiuta esplicitamente localhost, gli host di produzione conosciuti, l'origine `NEXT_PUBLIC_SITE_URL`, staging non confermato e credenziali mancanti.
+Playwright rifiuta esplicitamente localhost, staging non confermato e credenziali mancanti.
+
+Eccezione pre-go-live: la produzione puo' essere usata soltanto mentre il sito e'
+inattivo e dopo autorizzazione esplicita. In quel caso non impostare la conferma
+staging e usare entrambe le protezioni:
+
+```dotenv
+E2E_ALLOW_PRODUCTION=1
+E2E_CONFIRM_SITE_INACTIVE=1
+```
+
+Senza entrambe le variabili il runner rifiuta sempre gli host di produzione.
 
 ## Gate automatici
 
