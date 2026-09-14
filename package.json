@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "release:preflight": "node scripts/release-preflight.mjs",
     "seed": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
     "sync-catalog": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/sync-catalog.ts --dry-run",
     "sync-catalog:apply": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/sync-catalog.ts --apply --expect-categories=9 --expect-products=63",

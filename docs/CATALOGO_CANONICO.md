@@ -12,9 +12,10 @@
 `prisma/seed.ts` e `prisma/sync-catalog.ts` non contengono copie del catalogo:
 consumano entrambi queste fonti.
 
-Le ricette complete delle schiacciatine non sono ancora disponibili. Nel
-catalogo restano quindi `null`; i componenti presenti nel registro allergeni
-sono parziali e non devono essere presentati come ricette commerciali.
+Le ricette ufficiali delle schiacciatine sono registrate in
+`SCHIACCIATINA_CATALOG` e vengono propagate a schede, carrello e snapshot
+dell'ordine. `La Cruda`, assente dal documento aggiornato, resta disattivata e
+senza una ricetta inventata.
 
 ## Aggiornamento di un database esistente
 
