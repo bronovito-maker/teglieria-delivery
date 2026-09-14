@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
-import { OrderingAvailabilityGate } from "@/components/client/ServiceAvailabilityNotice";
+import { OrderingAvailabilityGate, useServiceAvailability } from "@/components/client/ServiceAvailabilityNotice";
 import { safeJsonLd } from "@/lib/json-ld";
 import CartDrawer from "@/components/client/CartDrawer";
 import ProductModal from "@/components/client/ProductModal";
@@ -22,6 +22,8 @@ function MenuContent() {
   const searchParams = useSearchParams();
   const { setOrderType, syncPrices } = useCartStore();
   const { user, loading: authLoading } = useCustomerAuth();
+  const services = useServiceAvailability();
+  const browseOnly = services?.allDisabled === true;
   const [categories, setCategories] = useState<CategoryWithProducts[]>([]);
   const [promotions, setPromotions] = useState<ClubPromotionWithItems[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -123,6 +125,13 @@ function MenuContent() {
 
     loadMenu();
   }, [authLoading, router, searchParams, setOrderType, syncPrices, user?.id]);
+
+  useEffect(() => {
+    if (browseOnly) {
+      setCartOpen(false);
+      setSelectedProduct(null);
+    }
+  }, [browseOnly]);
 
   // Scroll Reveal Logic
   useEffect(() => {
@@ -265,8 +274,8 @@ function MenuContent() {
               return (
                 <article
                 key={product.id}
-                onClick={() => setSelectedProduct(product)}
-                className={`reveal menu-reveal-delay-${Math.min(pIdx, 9)} group relative flex min-h-[7.5rem] items-center justify-between rounded-[1.5rem] border border-charcoal/5 bg-white px-5 py-5 text-left shadow-[0_8px_20px_rgba(26,26,26,0.025)] transition-all hover:border-terracotta/20 hover:shadow-lg sm:px-6 sm:py-6`}
+                onClick={() => { if (!browseOnly) setSelectedProduct(product); }}
+                className={`reveal menu-reveal-delay-${Math.min(pIdx, 9)} group relative flex min-h-[7.5rem] items-center justify-between rounded-[1.5rem] border border-charcoal/5 bg-white px-5 py-5 text-left shadow-[0_8px_20px_rgba(26,26,26,0.025)] transition-all sm:px-6 sm:py-6 ${browseOnly ? "cursor-default" : "hover:border-terracotta/20 hover:shadow-lg cursor-pointer"}`}
               >
                 {/* Subtle Hover Gradient */}
                 <div className="absolute inset-0 bg-gradient-to-br from-terracotta/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
@@ -284,7 +293,7 @@ function MenuContent() {
                 <div className="min-w-0 flex-1 relative z-10 pr-1 sm:pr-3">
                   <div className="mb-1.5 flex flex-wrap items-center gap-2.5">
                     <h3 className="font-display text-[1.45rem] leading-[.96] tracking-tight text-charcoal transition-colors group-hover:text-terracotta sm:text-[1.85rem]">
-                      <button type="button" aria-label={`Apri ${product.name}`} onClick={() => setSelectedProduct(product)} className="text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-terracotta">{product.name}</button>
+                      <button type="button" disabled={browseOnly} aria-label={`Apri ${product.name}`} onClick={() => setSelectedProduct(product)} className="text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-terracotta disabled:cursor-default">{product.name}</button>
                     </h3>
                     {pIdx === 0 && (
                       <span className="px-2 py-0.5 rounded-full bg-marigold/10 text-marigold text-[8px] font-brand font-bold uppercase tracking-widest border border-marigold/20">
@@ -318,7 +327,7 @@ function MenuContent() {
 
                 <div className="relative z-10 flex shrink-0 flex-col items-end justify-center gap-2.5 pl-1 sm:pl-3">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-charcoal/5 text-charcoal/40 shadow-sm transition-all group-hover:bg-terracotta group-hover:text-white active:scale-90 sm:h-10 sm:w-10">
-                    <span className="text-xl font-light">+</span>
+                    <span className="text-xl font-light">{browseOnly ? "·" : "+"}</span>
                   </div>
                 </div>
                 </article>
@@ -398,7 +407,7 @@ function MenuContent() {
         />
       )}
 
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
+      {!browseOnly && <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />}
     </div>
   );
 }

@@ -33,7 +33,14 @@ export default function MobileTopBar() {
           LA <span className="text-terracotta">TEGLIERIA</span>
         </Link>
 
-        {!services?.allDisabled && <Link
+        {services?.allDisabled ? (
+          <Link
+            href="/menu"
+            className="ml-auto inline-flex min-h-10 items-center rounded-full border border-charcoal/10 bg-white px-4 text-[10px] font-brand font-bold uppercase tracking-widest text-charcoal"
+          >
+            Menu
+          </Link>
+        ) : <Link
           href="/menu?openCart=1"
           aria-label={hydrated && itemCount > 0 ? `Apri carrello, ${itemCount} articoli` : "Apri carrello"}
           className="ml-auto inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] px-3.5 py-2 text-[10px] font-brand font-bold uppercase tracking-[0.12em] text-white shadow-[0_7px_16px_rgba(185,85,33,0.18)] transition-transform active:scale-95 sm:px-4"

@@ -36,7 +36,14 @@ function ServiceMessage({ services }: { services: PublicServices }) {
 export function LandingOrderAction() {
   const services = useServiceAvailability();
   if (!services) return <div className="mt-12 h-12 w-full max-w-[22rem] animate-pulse rounded-full bg-charcoal/10" />;
-  if (services.allDisabled) return <div className="mt-10 w-full max-w-xl"><ServiceMessage services={services} /></div>;
+  if (services.allDisabled) return (
+    <div className="mt-10 flex w-full max-w-xl flex-col items-center gap-4">
+      <ServiceMessage services={services} />
+      <Link href="/menu" className="flex min-h-12 w-full max-w-[22rem] items-center justify-center rounded-full border border-charcoal/15 bg-white px-6 font-brand font-bold uppercase tracking-widest text-charcoal">
+        Consulta il menu
+      </Link>
+    </div>
+  );
   return (
     <div className="mt-10 flex w-full max-w-xl flex-col items-center gap-4">
       {(!services.delivery.active || !services.pickup.active) && <ServiceMessage services={services} />}
@@ -50,8 +57,8 @@ export function OrderingAvailabilityGate() {
   const router = useRouter();
   const pathname = usePathname();
   useEffect(() => {
-    if (services?.allDisabled && (pathname === "/menu" || pathname === "/ordine")) router.replace("/");
+    if (services?.allDisabled && pathname === "/ordine") router.replace("/");
   }, [pathname, router, services]);
-  if (!services || services.allDisabled || (services.delivery.active && services.pickup.active)) return null;
+  if (!services || (services.delivery.active && services.pickup.active)) return null;
   return <div className="mb-5"><ServiceMessage services={services} /></div>;
 }
