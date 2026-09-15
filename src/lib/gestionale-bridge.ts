@@ -6,7 +6,7 @@ import { Acknowledgment, canAdvanceStatus, statusFromBackend } from "./gestional
 // both commit, or neither does. No HTTP call can delay the customer's checkout.
 export async function enqueueGestionaleOrder(tx: Prisma.TransactionClient, orderId: string) {
   if (process.env.GESTIONALE_BRIDGE_ENABLED !== "true") return;
-  await tx.gestionaleOrder.create({ data: { orderId } });
+  await tx.gestionaleOrder.create({ data: { orderId, payloadVersion: 1 } });
 }
 
 export async function pollGestionaleOrders() {
@@ -27,7 +27,7 @@ export async function pollGestionaleOrders() {
     });
     // Only the committed server snapshots are exported. Never recalculate menu
     // prices here and never export customer email, auth IDs or tracking tokens.
-    return pending.map(({ order, backendOrderId }) => ({
+    return pending.map(({ order, backendOrderId, payloadVersion }) => ({
       id: order.id, backendOrderId, orderCode: order.orderCode,
       createdAt: order.createdAt, type: order.type, status: order.status,
       customerName: order.customerName, customerPhone: order.customerPhone,
@@ -39,6 +39,7 @@ export async function pollGestionaleOrders() {
       deliveryCost: order.deliveryCost, items: order.items.map(item => ({
         id: item.id, productId: item.productId, productName: item.productName,
         quantity: item.quantity, unitPrice: item.unitPrice, totalPrice: item.totalPrice,
+        ...(payloadVersion >= 1 ? { standardUnitPrice: item.standardUnitPrice } : {}),
         variant: item.variant, additions: item.additions, removals: item.removals,
         notes: item.notes, ingredientSnapshot: item.ingredientSnapshot,
       })),
