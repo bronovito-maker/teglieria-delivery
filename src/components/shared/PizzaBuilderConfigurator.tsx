@@ -9,6 +9,7 @@ import {
   getPizzaMenuFlavor,
   pizzaIngredientData,
   PIZZA_BUILDER_CONFIG,
+  AVAILABLE_PIZZA_INGREDIENTS,
   type PizzaBuilderSelection,
   type PizzaFormat,
 } from "@/lib/pizza-builder";
@@ -126,7 +127,7 @@ export default function PizzaBuilderConfigurator({
         {slots.map((slot, index) => {
           const flavor = getPizzaMenuFlavor(slot.flavor);
           const includedIngredients = new Set<string>(flavor?.ingredients ?? []);
-          const extraIngredients = PIZZA_BUILDER_CONFIG.ingredients.filter((row) => !includedIngredients.has(row[0]));
+          const extraIngredients = AVAILABLE_PIZZA_INGREDIENTS.filter((row) => !includedIngredients.has(row[0]));
           const slotCalculation = slotCalculations[index];
           return (
             <section key={index} className="rounded-3xl border border-charcoal/8 bg-white p-4 sm:p-5">
