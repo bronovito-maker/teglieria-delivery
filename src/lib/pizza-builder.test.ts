@@ -77,12 +77,12 @@ describe("calculatePizzaConfiguration", () => {
 });
 
 describe("production ingredient availability", () => {
-  it.each(["Olive nere", "Carciofi"])("blocks new purchases of %s but preserves historical rendering and prices", name => {
+  it.each(["Carciofi"])("blocks new purchases of %s but preserves historical rendering and prices", name => {
     const selection = parsePizzaBuilderSelection({format:"MEZZA", gusti:1, slots:[{base:"ROSSA",ingredients:[name]}]});
     const old = calculatePizzaConfiguration(selection);
     expect(old.total).toBeGreaterThan(0);
     expect(AVAILABLE_PIZZA_INGREDIENTS.some(row => row[0] === name)).toBe(false);
     expect(() => calculateAuthoritativePizzaLine({selection,quantity:1,claimedUnitPrice:old.total,claimedTotalPrice:old.total})).toThrow("PIZZA_INGREDIENT_UNAVAILABLE");
   });
-  it("keeps available ingredients selectable",()=>{expect(AVAILABLE_PIZZA_INGREDIENTS.some(row=>row[0]==="Melanzane sotto pesto")).toBe(true);});
+  it("keeps available ingredients selectable",()=>{expect(AVAILABLE_PIZZA_INGREDIENTS.some(row=>row[0]==="Melanzane sotto pesto")).toBe(true);expect(AVAILABLE_PIZZA_INGREDIENTS.some(row=>row[0]==="Olive nere")).toBe(true);});
 });

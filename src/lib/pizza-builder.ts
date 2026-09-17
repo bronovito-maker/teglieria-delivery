@@ -11,7 +11,7 @@ export type { PizzaFormat, PizzaMenuFlavor } from "./catalog";
 
 // Owner-confirmed unavailable ingredients, matching the production gestionale.
 // Historical configurations/prices stay readable; only new purchases are blocked.
-export const UNAVAILABLE_PIZZA_INGREDIENTS = new Set<string>(["Olive nere", "Carciofi"]);
+export const UNAVAILABLE_PIZZA_INGREDIENTS = new Set<string>(["Carciofi"]);
 export const AVAILABLE_PIZZA_INGREDIENTS = PIZZA_BUILDER_CONFIG.ingredients.filter(row => !UNAVAILABLE_PIZZA_INGREDIENTS.has(row[0]));
 
 export type PizzaIngredient = { name: string; grams: number; prices: Record<string, number> };

@@ -340,7 +340,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `Il minimo ordine è ${MIN_ORDER_SUBTOTAL.toFixed(2)} euro, esclusa la consegna.` }, { status: 400 });
     }
     if (err instanceof Error && err.message === "PIZZA_INGREDIENT_UNAVAILABLE") {
-      return NextResponse.json({ error: "Olive nere e carciofi non sono disponibili. Modifica la composizione della pizza nel carrello.", code: "PIZZA_INGREDIENT_UNAVAILABLE" }, { status: 409 });
+      return NextResponse.json({ error: "I carciofi non sono disponibili. Modifica la composizione della pizza nel carrello.", code: "PIZZA_INGREDIENT_UNAVAILABLE" }, { status: 409 });
     }
     if (err instanceof Error && (err.message === "STALE_CART" || err.message === "INVALID_CART_PRICE")) {
       return NextResponse.json({ error: "Il menu è cambiato. Ricarica la pagina e riprova." }, { status: 409 });
