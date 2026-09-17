@@ -520,7 +520,7 @@ export async function DELETE(
 
   const order = await prisma.order.findUnique({
     where: { id },
-    select: { id: true, orderCode: true, status: true },
+    select: { id: true, orderCode: true, status: true, gestionaleOrder: { select: { orderId: true } } },
   });
 
   if (!order) {
@@ -555,10 +555,18 @@ export async function DELETE(
         entityId: id,
         actorEmail: user.email,
         actorId: user.id,
-        metadata: { previousStatus: order.status, verificationMethod: verification.method },
+        metadata: { previousStatus: order.status, verificationMethod: verification.method, cancellationRetainedForGestionale: !!order.gestionaleOrder },
       },
     }),
-    prisma.order.delete({ where: { id } }),
+    // Keep the committed snapshot and outbox until the cancellation reaches
+    // Banco. A hard delete cascades to GestionaleOrder and loses the message.
+    ...(order.gestionaleOrder ? [
+      prisma.order.update({ where: { id }, data: {
+        status: "CANCELLED",
+        ...(order.status !== "CANCELLED" ? { statusHistory: { create: { status: "CANCELLED" as const } } } : {}),
+      } }),
+      prisma.gestionaleOrder.update({ where: { orderId: id }, data: { nextPollAt: new Date(), lastError: null } }),
+    ] : [prisma.order.delete({ where: { id } })]),
   ]);
 
   writeAuditLog({

@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { orderFindUnique, orderUpdateMany, orderDelete, auditEventCreate, transaction, riderFindFirst, getUser, signInWithPassword } = vi.hoisted(() => ({
+const { orderFindUnique, orderUpdateMany, orderUpdate, gestionaleUpdate, orderDelete, auditEventCreate, transaction, riderFindFirst, getUser, signInWithPassword } = vi.hoisted(() => ({
   orderFindUnique: vi.fn(),
   orderUpdateMany: vi.fn(),
+  orderUpdate: vi.fn(),
+  gestionaleUpdate: vi.fn(),
   orderDelete: vi.fn(),
   auditEventCreate: vi.fn(),
   transaction: vi.fn(),
@@ -13,8 +15,9 @@ const { orderFindUnique, orderUpdateMany, orderDelete, auditEventCreate, transac
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    order: { findUnique: orderFindUnique, updateMany: orderUpdateMany, delete: orderDelete },
+    order: { findUnique: orderFindUnique, updateMany: orderUpdateMany, update: orderUpdate, delete: orderDelete },
     auditEvent: { create: auditEventCreate },
+    gestionaleOrder: { update: gestionaleUpdate },
     rider: { findFirst: riderFindFirst },
     $transaction: transaction,
   },
@@ -255,4 +258,20 @@ describe("DELETE /api/ordini/[id] permanent deletion", () => {
     expect(auditEventCreate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: "order.delete", entityId: "order-1" }) }));
     expect(orderDelete).toHaveBeenCalledWith({ where: { id: "order-1" } });
   });
+  it("retains cancellation for a queued order without requiring Banco acceptance", async () => {
+    const user = { id: "admin-1", email: "admin@example.com", app_metadata: { role: "admin" } };
+    getUser.mockResolvedValue({ data: { user } });
+    signInWithPassword.mockResolvedValue({ data: { user }, error: null });
+    orderFindUnique.mockResolvedValue({ id: "order-1", orderCode: "D001", status: "RECEIVED", gestionaleOrder: { orderId: "order-1" } });
+    const response = await DELETE(new Request("https://www.lateglieria.it/api/ordini/order-1", {
+      method: "DELETE", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ adminPassword: "password", confirmation: "D001" }),
+    }), { params: Promise.resolve({ id: "order-1" }) });
+    expect(response.status).toBe(200);
+    expect(orderDelete).not.toHaveBeenCalled();
+    expect(orderUpdate).toHaveBeenCalledWith({ where: { id: "order-1" }, data: { status: "CANCELLED", statusHistory: { create: { status: "CANCELLED" } } } });
+    expect(gestionaleUpdate).toHaveBeenCalledWith({ where: { orderId: "order-1" }, data: { nextPollAt: expect.any(Date), lastError: null } });
+    expect(orderUpdate.mock.calls[0][0].data).not.toHaveProperty("paymentStatus");
+  });
+
 });
