@@ -1,3 +1,4 @@
+import { maintenancePageResponse } from "@/lib/site-maintenance";
 import { updateSession } from "@/lib/supabase/middleware";
 import { NextRequest } from "next/server";
 
@@ -31,6 +32,9 @@ function buildContentSecurityPolicy(nonce: string): string {
 }
 
 export async function proxy(request: NextRequest) {
+  const maintenance = maintenancePageResponse(request.nextUrl.pathname);
+  if (maintenance) return maintenance;
+
   const nonce = btoa(crypto.randomUUID());
   const contentSecurityPolicy = buildContentSecurityPolicy(nonce);
   const requestHeaders = new Headers(request.headers);

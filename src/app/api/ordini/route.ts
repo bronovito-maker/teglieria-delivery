@@ -1,3 +1,4 @@
+import { maintenanceOrderResponse } from "@/lib/site-maintenance";
 import { validBeverageChoice } from "@/lib/beverage-choice";
 import { enqueueGestionaleOrder } from "@/lib/gestionale-bridge";
 import { readRegistry } from "@/lib/allergens/server";
@@ -65,6 +66,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const maintenance = maintenanceOrderResponse();
+  if (maintenance) return maintenance;
+
   const sameOriginError = enforceSameOrigin(request);
   if (sameOriginError) return sameOriginError;
 

@@ -1,3 +1,4 @@
+import { maintenanceOrderResponse } from "@/lib/site-maintenance";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
@@ -14,6 +15,8 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const maintenance = maintenanceOrderResponse();
+  if (maintenance) return maintenance;
   const sameOriginError = enforceSameOrigin(request);
   if (sameOriginError) return sameOriginError;
   const ip = getClientIp(request.headers);
