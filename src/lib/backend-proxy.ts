@@ -5,7 +5,13 @@ export async function backendProxy(request: NextRequest, prefix: 'api'|'media') 
  const incoming=new URL(request.url);
  if (!['GET','HEAD','OPTIONS'].includes(request.method)) {
   const origin=request.headers.get('origin');
-  if ((origin && origin!==incoming.origin) || (!origin && request.headers.get('sec-fetch-site')==='cross-site')) {
+  // Local Next receives loopback Host behind HTTPS; use the explicitly configured
+  // public origin, never client-controlled forwarding headers. Vercel uses its request URL.
+  let expectedOrigin=incoming.origin;
+  if(!process.env.VERCEL && process.env.UNIFIED_WEB_ORIGIN) {
+   try {expectedOrigin=new URL(process.env.UNIFIED_WEB_ORIGIN).origin;} catch {return Response.json({error:'Origine sito non configurata'},{status:503});}
+  }
+  if ((origin && origin!==expectedOrigin) || (!origin && request.headers.get('sec-fetch-site')==='cross-site')) {
    return Response.json({error:'Origine non consentita'},{status:403});
   }
  }
