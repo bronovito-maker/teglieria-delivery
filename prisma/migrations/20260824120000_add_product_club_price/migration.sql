@@ -1,1 +1,0 @@
-ALTER TABLE "Product" ADD COLUMN "clubPrice" DECIMAL(8,2);

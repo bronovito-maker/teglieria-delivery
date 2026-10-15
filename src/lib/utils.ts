@@ -19,6 +19,7 @@ export function formatDate(date: Date | string): string {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
+    timeZone: "Europe/Rome",
   }).format(d);
 }
 

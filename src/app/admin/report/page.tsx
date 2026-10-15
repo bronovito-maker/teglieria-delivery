@@ -7,6 +7,7 @@ import { formatCurrency } from "@/lib/utils";
 import { getRomeDateString } from "@/lib/order-time-slots";
 
 type Report = {
+  canonicalFinance: { gross_revenue_cents: number; vat_cents: number; sales_count: number };
   date: string;
   totalOrders: number;
   totalRevenue: number;
@@ -52,7 +53,7 @@ export default function ReportPage() {
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-display tracking-tight text-charcoal leading-none">
             Analitica <span className="text-terracotta">Report.</span>
           </h1>
-          <p className="font-body italic text-charcoal/45 mt-3 text-sm">Bilancio giornaliero, flussi di vendita e marginalità delivery</p>
+          <p className="font-body italic text-charcoal/45 mt-3 text-sm">Ordini prenotati e vendite registrate nel gestionale</p>
         </div>
         <input
           type="date"
@@ -62,27 +63,21 @@ export default function ReportPage() {
         />
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-12">
+      <p className="mb-6 text-sm">Incasso registrato dal gestionale: {formatCurrency(report.canonicalFinance.gross_revenue_cents / 100)} · di cui IVA: {formatCurrency(report.canonicalFinance.vat_cents / 100)} · vendite: {report.canonicalFinance.sales_count}. Il valore degli ordini sotto comprende anche prenotazioni ancora da pagare e non è l’incasso di cassa.</p>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-12">
         <div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] border border-charcoal/5 p-8 shadow-sm reveal active text-center">
           <p className="text-4xl font-brand font-semibold text-charcoal mb-2">{report.totalOrders}</p>
           <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-semibold text-charcoal/30">Volume Ordini</p>
         </div>
         <div className="col-span-2 md:col-span-1 bg-white/70 backdrop-blur-xl rounded-[2.5rem] border border-charcoal/5 p-8 shadow-sm reveal active text-center">
           <p className="text-4xl font-brand font-semibold text-terracotta mb-2">{formatCurrency(report.totalRevenue)}</p>
-          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-semibold text-charcoal/30">Incasso Lordo</p>
+          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-semibold text-charcoal/30">Valore ordini</p>
         </div>
         <div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] border border-charcoal/5 p-8 shadow-sm reveal active text-center">
           <p className="text-4xl font-brand font-semibold text-marigold mb-2">{report.cancelledOrders}</p>
           <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-semibold text-charcoal/30">Annullati</p>
         </div>
-        <div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] border border-charcoal/5 p-8 shadow-sm reveal active text-center">
-          <p className="text-3xl font-brand font-semibold text-charcoal mb-2">{formatCurrency(report.financial.riderCompensation)}</p>
-          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-semibold text-charcoal/30">Costo Consegna</p>
-        </div>
-        <div className="col-span-2 md:col-span-1 bg-charcoal text-white rounded-[2.5rem] p-8 shadow-2xl reveal active text-center">
-          <p className="text-3xl font-brand font-semibold mb-2">{formatCurrency(report.financial.netAfterRiderCompensation)}</p>
-          <p className="text-[9px] uppercase tracking-[0.2em] font-brand font-semibold text-white/40">Netto Store</p>
-        </div>
+
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">

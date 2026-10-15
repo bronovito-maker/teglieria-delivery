@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/auth/client";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -11,7 +11,6 @@ const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: "📊" },
   { href: "/admin/ordini", label: "Ordini", icon: "📋" },
   { href: "/admin/ordini/nuovo", label: "Nuovo Ordine", icon: "➕" },
-  { href: "/admin/logistica", label: "Logistica", icon: "🛵" },
   { href: "/admin/prodotti", label: "Prodotti", icon: "🍕" },
   { href: "/admin/categorie", label: "Categorie", icon: "📁" },
   { href: "/admin/promo-club", label: "Promo Club", icon: "⭐" },

@@ -1,12 +1,16 @@
 "use client";
+import { safeSessionStorage } from "@/lib/browser-storage";
+import CancelOrder from "@/components/account/orders/CancelOrder";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { formatOrderTimeSlot, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/lib/constants";
-import { formatCurrency, formatTime, formatOrderCode } from "@/lib/utils";
+import { formatCurrency, formatDate, formatTime, formatOrderCode } from "@/lib/utils";
 import { useCustomerAuth } from "@/components/client/CustomerAuthProvider";
 import type { OrderWithItems } from "@/types";
+
+import {settleCheckout} from "@/lib/pending-checkout";
 
 const STATUS_STEPS = ["RECEIVED", "CONFIRMED", "READY", "OUT", "DELIVERED"];
 
@@ -18,29 +22,27 @@ export default function StatoOrdinePage() {
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [showRegisterBanner, setShowRegisterBanner] = useState(false);
-  const [guestData, setGuestData] = useState<{ name: string; email: string; phone: string } | null>(null);
   const [retryingPayment, setRetryingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState("");
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {const timer=setInterval(()=>setNow(Date.now()),1000);return ()=>clearInterval(timer);},[]);
+  const paymentSeconds = order?.paymentReservationExpiresAt
+    ? Math.max(0, Math.ceil((Date.parse(order.paymentReservationExpiresAt)-now)/1000)) : null;
+
 
   useEffect(() => {
     if (authLoading || user) return;
-    const raw = sessionStorage.getItem("guestOrderData");
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw);
-        setGuestData(parsed);
-        setShowRegisterBanner(true);
-      } catch {}
-    }
+    safeSessionStorage.removeItem("guestOrderData"); // Remove obsolete contact prefill from earlier sandbox versions.
+    setShowRegisterBanner(safeSessionStorage.getItem("guestOrderCompleted") === "true");
   }, [authLoading, user]);
 
   useEffect(() => {
     let timeout: NodeJS.Timeout;
     let cancelled = false;
 
-    const scheduleNext = (status?: string) => {
+    const scheduleNext = (status?: string, refund?: string) => {
       if (cancelled) return;
-      if (status === "DELIVERED" || status === "CANCELLED") return;
+      if (status === "DELIVERED" || (status === "CANCELLED" && !["QUEUED","RETRYING","PROCESSING"].includes(refund||""))) return;
       const ms = status === "RECEIVED" ? 12000 : 8000;
       timeout = setTimeout(fetchOrder, ms);
     };
@@ -61,13 +63,14 @@ export default function StatoOrdinePage() {
         }
         const data = await res.json();
         setOrder(data);
+        settleCheckout(data);
         if (token) {
           window.history.replaceState(null, "", window.location.pathname);
         }
         setLastUpdatedAt(new Date());
         setError(false);
 
-        scheduleNext(data.status);
+        scheduleNext(data.status,data.automaticRefundStatus);
       } catch {
         setError(true);
         scheduleNext();
@@ -129,11 +132,14 @@ export default function StatoOrdinePage() {
         </p>
       </div>
 
+      {order.acceptanceReview && <p className="mb-5 rounded-2xl bg-amber-50 p-5 text-sm">Pagamento ricevuto. Il locale sta verificando la disponibilità prima di confermare la preparazione.</p>}
+      {order.automaticRefundStatus && order.automaticRefundStatus!=="NONE" && <p role="status" className="mb-5 rounded-2xl bg-white p-5 text-sm">{order.automaticRefundStatus==="FAILED"?"Il sistema di pagamento richiede una verifica del rimborso. Contatta il locale con il codice ordine.":order.automaticRefundStatus==="COMPLETED"?"Rimborso integrale del pagamento online confermato.":"Rimborso integrale del pagamento online richiesto automaticamente. Stiamo attendendo la conferma del sistema di pagamento."}</p>}
       {order.status === "CANCELLED" ? (
         <div className="bg-charcoal border border-charcoal rounded-[2.5rem] p-10 text-center mb-10 shadow-2xl">
           <div className="text-4xl mb-6">✕</div>
           <p className="text-white font-display tracking-widest text-xl mb-2">Ordine annullato</p>
-          <p className="text-sm text-white/50 font-body italic">Contatta il locale per maggiori informazioni.</p>
+          <p className="text-sm text-white/50 font-body italic">{order.paymentReviewRequired ? "Il pagamento è arrivato dopo la liberazione della fascia. Contatta il locale per verificarlo: la prenotazione non è stata riattivata." : order.paymentReservationStatus === "EXPIRED" ? "I 15 minuti per pagare sono terminati. La fascia è tornata disponibile." : "Contatta il locale per maggiori informazioni."}</p>
+          {order.paymentReservationStatus === "EXPIRED" && <Link href="/menu" className="mt-5 inline-block rounded-full bg-white px-5 py-3 text-charcoal">Scegli una nuova fascia</Link>}
         </div>
       ) : (
         <>
@@ -174,12 +180,13 @@ export default function StatoOrdinePage() {
               <p className="text-xs text-charcoal/45 font-body italic mt-2">
                 {order.paymentStatus === "FAILED"
                   ? "Il pagamento non è andato a buon fine. Puoi riprovare con la carta."
-                  : "Completa il pagamento con carta per confermare l&apos;ordine."}
+                  : "Completa il pagamento entro 15 minuti. La precedenza continua anche se chiudi questa pagina."}
               </p>
+              {paymentSeconds !== null && order.paymentReservationStatus === "ACTIVE" && <p aria-live="polite" className="mt-3 font-bold">Precedenza: {Math.floor(paymentSeconds/60)}:{String(paymentSeconds%60).padStart(2,"0")}</p>}
               <button
                 type="button"
                 onClick={retryPayment}
-                disabled={retryingPayment}
+                disabled={retryingPayment || paymentSeconds === 0}
                 className="mt-4 rounded-full bg-terracotta px-5 py-2.5 text-xs font-brand font-bold uppercase tracking-widest text-white disabled:opacity-50"
               >
                 {retryingPayment ? "Apertura pagamento..." : "Riprova pagamento"}
@@ -190,21 +197,23 @@ export default function StatoOrdinePage() {
           {order.status === "OUT" && (
             <div className="mb-6 rounded-[1.4rem] border border-terracotta/20 bg-terracotta/8 p-5 text-center sm:mb-8">
               <p className="text-xs font-brand font-bold uppercase tracking-widest text-terracotta">
-                Il rider è in arrivo
+                Ordine in consegna
               </p>
               <p className="text-xs text-charcoal/45 font-body italic mt-2">
-                Siamo agli ultimi minuti. Tieni il telefono a portata per eventuali chiamate.
+                Il locale ha indicato la partenza della consegna. Non mostriamo la posizione del fattorino.
               </p>
             </div>
           )}
         </>
       )}
 
+      {order.requiresCapacityDecision && order.status === "RECEIVED" && <div role="status" className="mb-6 rounded-2xl bg-amber-50 p-5 text-sm">Richiesta ricevuta per la nona teglia della fascia. La cassa deve confermare l’orario oppure spostarlo: qui vedrai la decisione.</div>}
+      {!!order.scheduleChanges?.length && <section role="status" className="mb-6 rounded-2xl bg-amber-50 p-5"><h2 className="font-bold">Orario aggiornato dalla cassa</h2>{order.scheduleChanges.map((change,index)=><p key={index} className="mt-2 text-sm">{formatDate(change.service_at)} alle {formatTime(change.service_at)} — {change.reason}</p>)}</section>}
       {/* Orario stimato */}
       {order.estimatedTime && order.status !== "CANCELLED" && order.status !== "DELIVERED" && (
         <div className="mb-6 rounded-[1.8rem] border border-charcoal/5 bg-white p-7 text-center shadow-[0_10px_24px_rgba(26,26,26,0.035)] sm:mb-8">
           <p className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-charcoal/30 mb-2">
-            {order.type === "DELIVERY" ? "Consegna prevista" : "Pronto per il ritiro"}
+            {order.type === "DELIVERY" ? "Consegna prevista" : "Ritiro previsto"}
           </p>
           <p className="text-6xl font-brand font-bold text-charcoal tabular-nums leading-none">
             {formatTime(order.estimatedTime)}
@@ -225,6 +234,12 @@ export default function StatoOrdinePage() {
         </header>
 
         <div className="space-y-4 font-body text-sm font-medium italic text-charcoal/60">
+          {order.pickupTime && (
+            <div className="flex justify-between items-center gap-4">
+              <span className="text-charcoal/30 not-italic uppercase text-[10px] font-brand">Data prenotazione</span>
+              <span>{formatDate(order.pickupTime)}</span>
+            </div>
+          )}
           {order.timeSlot && (
             <div className="flex justify-between items-center">
               <span className="text-charcoal/30 not-italic uppercase text-[10px] font-brand">Fascia richiesta</span>
@@ -295,15 +310,15 @@ export default function StatoOrdinePage() {
         <div className="mt-6 rounded-[1.6rem] border border-terracotta/10 bg-white p-6 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-500 sm:mt-8">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
-              <p className="text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-terracotta mb-1">La prossima pizza in 10 secondi</p>
+              <p className="text-[10px] font-brand font-bold uppercase tracking-[0.3em] text-terracotta mb-1">Il tuo account</p>
               <h3 className="text-lg font-display tracking-tight text-charcoal leading-tight">
-                Riordina con un click<span className="text-terracotta">.</span>
+                Vuoi registrarti<span className="text-terracotta">.</span>
               </h3>
             </div>
             <button
               onClick={() => {
                 setShowRegisterBanner(false);
-                sessionStorage.removeItem("guestOrderData");
+                safeSessionStorage.removeItem("guestOrderCompleted");
               }}
               className="text-charcoal/20 hover:text-charcoal/50 transition-colors shrink-0 p-1 text-lg leading-none"
               aria-label="Chiudi"
@@ -312,19 +327,19 @@ export default function StatoOrdinePage() {
             </button>
           </div>
           <p className="font-body italic text-charcoal/40 text-sm mb-5 leading-relaxed">
-            I tuoi dati sono già qui — bastano 20 secondi per non doverli ridigitare mai più.
+            Puoi creare un account per consultare i tuoi prossimi ordini.
           </p>
           <Link
-            href={`/registrati?name=${encodeURIComponent(guestData?.name || "")}&email=${encodeURIComponent(guestData?.email || "")}&phone=${encodeURIComponent(guestData?.phone || "")}`}
-            onClick={() => sessionStorage.removeItem("guestOrderData")}
+            href="/registrati"
+            onClick={() => safeSessionStorage.removeItem("guestOrderCompleted")}
             className="block w-full text-center py-3.5 bg-terracotta text-white rounded-2xl font-brand font-bold uppercase tracking-[0.2em] text-[11px] hover:brightness-110 active:scale-95 transition-all shadow-[0_8px_20px_rgba(230,106,38,0.3)]"
           >
-            Riordina in 1 click la prossima volta
+            Crea un account
           </Link>
           <button
             onClick={() => {
               setShowRegisterBanner(false);
-              sessionStorage.removeItem("guestOrderData");
+              safeSessionStorage.removeItem("guestOrderData");
             }}
             className="block w-full text-center mt-3 text-[10px] font-brand font-bold uppercase tracking-widest text-charcoal/25 hover:text-charcoal/50 transition-colors py-2"
           >
@@ -333,6 +348,7 @@ export default function StatoOrdinePage() {
         </div>
       )}
 
+      <CancelOrder order={order} onCancelled={()=>setOrder({...order,status:"CANCELLED"})} />
       <div className="mt-8 flex flex-col gap-4 items-center">
         <Link
           href="/menu"

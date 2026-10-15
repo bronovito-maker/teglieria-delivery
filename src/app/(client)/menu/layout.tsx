@@ -1,10 +1,6 @@
-import { createClient } from "@/lib/supabase/server";
-import { getMenuData } from "@/lib/menu-data";
-import { MenuInitialDataProvider, type InitialMenuData } from "@/components/client/MenuInitialData";
-
-export default async function MenuLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const payload = JSON.parse(JSON.stringify(await getMenuData(user))) as InitialMenuData;
-  return <MenuInitialDataProvider data={payload}>{children}</MenuInitialDataProvider>;
+import { backendFetch } from '@/lib/auth/server';
+import {MenuInitialDataProvider,type InitialMenuData} from '@/components/client/MenuInitialData';
+export default async function MenuLayout({children}:{children:React.ReactNode}) {
+ const response=await backendFetch('menu');if(!response.ok)throw new Error('Catalogo backend non disponibile');
+ const payload=await response.json() as InitialMenuData;return <MenuInitialDataProvider data={payload}>{children}</MenuInitialDataProvider>;
 }

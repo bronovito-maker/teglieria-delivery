@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { createClientId } from "@/lib/client-id";
 import Link from "next/link";
 import { dependsOn, resolveNode, type AllergenNode, type PublicRegistry } from "@/lib/allergens/core";
 type AdminData = PublicRegistry & { products: Array<{ id: string; name: string; active: boolean; category: { name: string; active: boolean } }>; audit: Array<{ id: string; version: number; actorId: string; reason: string; createdAt: string }> };
@@ -38,7 +39,7 @@ export default function AdminAllergeni() {
     {data && <>
       <div className="rounded-xl border border-amber-500 bg-amber-50 p-4"><strong>Versione {data.version} · {pending.length} prodotti pubblicati con verifiche incomplete</strong><p className="mt-2 text-sm">{pending.map(p => `${p.name} (${p.category.name})`).join(", ") || "Nessuna verifica pendente"}</p></div>
       <label className="block">Ingrediente o ricetta<select value={id} onChange={e => select(e.target.value)} className="mt-2 block w-full rounded border bg-white p-3"><option value="">Seleziona…</option>{Object.entries(data.graph.nodes).sort((a,b) => a[1].name.localeCompare(b[1].name)).map(([key,n]) => <option key={key} value={key}>{n.name} · {n.status} ({key})</option>)}</select></label>
-      <button type="button" className="rounded border px-4 py-2" onClick={() => { setId(`item:${crypto.randomUUID()}`); setNode({ name: "", allergens: [], components: [], status: "TO_VERIFY" }); }}>Nuovo ingrediente / ricetta</button>
+      <button type="button" className="rounded border px-4 py-2" onClick={() => { setId(`item:${createClientId()}`); setNode({ name: "", allergens: [], components: [], status: "TO_VERIFY" }); }}>Nuovo ingrediente / ricetta</button>
       {node && <form onSubmit={save} className="space-y-5 rounded-2xl border bg-white p-5">
         <label className="block">Nome<input required value={node.name} onChange={e => setNode({ ...node, name: e.target.value })} className="block w-full rounded border p-2" /></label>
         <fieldset><legend className="mb-3 font-bold">ALLERGENI diretti del componente</legend><div className="grid gap-2 sm:grid-cols-2">{data.graph.master.map(a => <label key={a.id} className="flex gap-2"><input type="checkbox" checked={node.allergens.includes(a.id)} onChange={e => setNode({ ...node, allergens: e.target.checked ? [...node.allergens, a.id] : node.allergens.filter(id => id !== a.id) })} />{a.id} - {a.name}</label>)}</div></fieldset>

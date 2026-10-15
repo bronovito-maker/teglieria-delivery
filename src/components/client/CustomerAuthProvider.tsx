@@ -8,8 +8,8 @@ import {
   useMemo,
   useState,
 } from "react";
-import type { AuthError, Session, User } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/client";
+import type { AuthError, Session, User } from "@/types/auth";
+import { createClient } from "@/lib/auth/client";
 
 type CustomerAuthContextValue = {
   user: User | null;

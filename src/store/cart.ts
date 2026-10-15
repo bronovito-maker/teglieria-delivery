@@ -1,9 +1,11 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { safeLocalStorage } from "@/lib/browser-storage";
 import type { CartItem } from "@/types";
 import { calculateMoneySummary, fromCents, toCents } from "@/lib/money";
+import { createClientId } from "@/lib/client-id";
 
 type OrderType = "ASPORTO" | "DELIVERY";
 
@@ -106,7 +108,7 @@ export const useCartStore = create<CartStore>()(
 
           if (existingIndex === -1) {
             return {
-              items: [...state.items, { ...item, totalPrice: computeTotalPrice(item), id: crypto.randomUUID() }],
+              items: [...state.items, { ...item, totalPrice: computeTotalPrice(item), id: createClientId() }],
             };
           }
 
@@ -195,6 +197,6 @@ export const useCartStore = create<CartStore>()(
           };
         }),
     }),
-    { name: "teglieria-cart" }
+    { name: "teglieria-cart", storage: createJSONStorage(() => safeLocalStorage) }
   )
 );

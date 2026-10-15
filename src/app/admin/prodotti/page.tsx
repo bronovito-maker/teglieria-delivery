@@ -114,12 +114,12 @@ export default function ProdottiPage() {
               <div className="min-w-0">
                 <dt className="text-[9px] font-brand font-semibold uppercase tracking-[0.18em] text-charcoal/35">Prezzo</dt>
                 <dd className="mt-1 text-sm font-brand font-semibold text-charcoal">{product.configuration ? "Prezzo variabile" : formatCurrency(Number(product.price))}</dd>
-                {product.configuration && <span className="mt-1 block text-[10px] font-brand uppercase tracking-wider text-terracotta">Prodotto configurabile</span>}
+                {Boolean(product.configuration) && <span className="mt-1 block text-[10px] font-brand uppercase tracking-wider text-terracotta">Prodotto configurabile</span>}
               </div>
             </dl>
             <div className="mt-5 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap" aria-label={`Azioni per ${product.name}`}>
               <Link href={`/admin/prodotti/${product.id}`} className={`${actionClass} border-charcoal/10 text-charcoal hover:border-charcoal/30`}>Modifica</Link>
-              {product.configuration && (
+              {Boolean(product.configuration) && (
                 <Link href={`/admin/ordini/nuovo?product=${encodeURIComponent(product.id)}`} className={`${actionClass} border-terracotta bg-terracotta text-white hover:bg-terracotta/90`}>Configura</Link>
               )}
               <button type="button" onClick={() => setDeleteTarget(product)} className={`${actionClass} border-red-100 text-red-500 hover:border-red-300 hover:text-red-700`}>Elimina</button>
@@ -159,7 +159,7 @@ export default function ProdottiPage() {
                 <td className="px-4 py-4 xl:px-6">
                   <div className="flex flex-wrap justify-end gap-2" aria-label={`Azioni per ${product.name}`}>
                     <Link href={`/admin/prodotti/${product.id}`} className={`${actionClass} border-transparent px-3 text-charcoal hover:text-terracotta`}>Modifica</Link>
-                    {product.configuration && <Link href={`/admin/ordini/nuovo?product=${encodeURIComponent(product.id)}`} className={`${actionClass} border-terracotta/30 px-3 text-terracotta hover:bg-terracotta hover:text-white`}>Configura</Link>}
+                    {Boolean(product.configuration) && <Link href={`/admin/ordini/nuovo?product=${encodeURIComponent(product.id)}`} className={`${actionClass} border-terracotta/30 px-3 text-terracotta hover:bg-terracotta hover:text-white`}>Configura</Link>}
                     <button type="button" onClick={() => setDeleteTarget(product)} className={`${actionClass} border-transparent px-3 text-red-400 hover:text-red-600`}>Elimina</button>
                   </div>
                 </td>

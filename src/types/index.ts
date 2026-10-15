@@ -11,7 +11,7 @@ import type {
   DeliveryZone,
   OrderStatusLog,
   PaymentRefund,
-} from "@prisma/client";
+} from "@/types/models";
 
 export type ClubPromotionWithItems = {
   id: string;

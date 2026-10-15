@@ -16,6 +16,7 @@ export default function AccountOrdersPage() {
           <CustomerLogoutButton className="shrink-0 rounded-full border border-charcoal/10 px-4 py-2 text-[10px] font-brand font-bold uppercase tracking-[0.12em] text-charcoal/55 transition-colors hover:border-terracotta/30 hover:text-terracotta disabled:cursor-wait disabled:opacity-50" />
         </header>
 
+        <p className="mb-6 rounded-2xl bg-white p-5">I prezzi Club sono riservati alle teglie intere e mezze ordinate dal sito con consegna a domicilio.</p>
         <OrdersDashboard />
       </div>
     </main>

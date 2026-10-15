@@ -4,7 +4,7 @@ import MobileTopBar from "@/components/client/MobileTopBar";
 
 export const metadata: Metadata = {
   title: "Cookie Policy — La Teglieria",
-  description: "Informativa sull'uso dei cookie, del Meta Pixel e dei servizi di terze parti ai sensi del D.Lgs. 69/2012 e del GDPR.",
+  description: "Informazioni sui cookie tecnici e sulla memoria locale del sito.",
 };
 
 export default function CookiePolicyPage() {
@@ -24,7 +24,7 @@ export default function CookiePolicyPage() {
             Cookie <span className="text-terracotta">Policy</span>
           </h1>
           <p className="text-sm text-charcoal/40 font-body">
-            Ultimo aggiornamento: <strong className="text-charcoal/60">Aprile 2026</strong>
+            Ultimo aggiornamento: <strong className="text-charcoal/60">14 ottobre 2026</strong>
           </p>
         </header>
 
@@ -46,9 +46,12 @@ export default function CookiePolicyPage() {
               </div>
               <div className="divide-y divide-charcoal/5">
                 {[
-                  { nome: "sb-access-token", scopo: "Sessione di autenticazione utente (Supabase)", durata: "Sessione" },
-                  { nome: "sb-refresh-token", scopo: "Rinnovo automatico della sessione (Supabase)", durata: "7 giorni" },
-                  { nome: "cart-storage", scopo: "Persistenza del carrello ordine (localStorage)", durata: "Sessione" },
+                  { nome: "lt_web_session", scopo: "Sessione di autenticazione protetta HttpOnly", durata: "7 giorni" },
+                  { nome: "lt_order_…", scopo: "Accesso allo stato del proprio ordine", durata: "7 giorni" },
+                  { nome: "lt_oauth_state", scopo: "Sicurezza dell’accesso Google, quando richiesto", durata: "10 minuti" },
+                  { nome: "teglieria-cart", scopo: "Carrello e modalità asporto/delivery in localStorage", durata: "Fino alla rimozione dal browser" },
+                  { nome: "teglieria-pending-checkout", scopo: "Ripresa del pagamento in localStorage, incluso il collegamento personale all’ordine", durata: "Rimosso alla rilevazione del pagamento o annullamento; può restare se non si riapre il sito" },
+                  { nome: "guestOrderCompleted", scopo: "Indicatore senza contatti personali per proporre la registrazione dopo un ordine ospite", durata: "Sessione della scheda o chiusura della proposta" },
                 ].map((c) => (
                   <div key={c.nome} className="px-5 py-4 grid grid-cols-3 gap-4 text-sm">
                     <code className="text-terracotta font-mono text-xs break-all">{c.nome}</code>
@@ -58,27 +61,7 @@ export default function CookiePolicyPage() {
                 ))}
               </div>
               <div className="px-5 py-3 bg-charcoal/[0.02] border-t border-charcoal/5">
-                <p className="text-xs text-charcoal/40">Questi cookie sono indispensabili per il funzionamento del servizio. Non richiedono consenso.</p>
-              </div>
-            </div>
-
-            <div className="bg-white/60 border border-charcoal/5 rounded-2xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-charcoal/5 bg-charcoal/[0.02]">
-                <p className="text-xs font-brand font-bold uppercase tracking-widest text-charcoal">Funzionali</p>
-              </div>
-              <div className="divide-y divide-charcoal/5">
-                {[
-                  { nome: "order-type", scopo: "Ricorda la preferenza delivery/asporto", durata: "30 giorni" },
-                ].map((c) => (
-                  <div key={c.nome} className="px-5 py-4 grid grid-cols-3 gap-4 text-sm">
-                    <code className="text-terracotta font-mono text-xs break-all">{c.nome}</code>
-                    <span className="text-charcoal/60 col-span-1">{c.scopo}</span>
-                    <span className="text-charcoal/40 text-xs text-right">{c.durata}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="px-5 py-3 bg-charcoal/[0.02] border-t border-charcoal/5">
-                <p className="text-xs text-charcoal/40">Migliorano l&apos;esperienza d&apos;uso ma non sono strettamente necessari. Puoi disabilitarli dal browser.</p>
+                <p className="text-xs text-charcoal/40">I cookie strettamente necessari non richiedono consenso preventivo. La memoria del carrello e del pagamento serve alle funzioni richieste: non è profilazione. Non è previsto un pulsante “Accetta tutti” perché non attiviamo cookie facoltativi.</p>
               </div>
             </div>
 
@@ -90,7 +73,6 @@ export default function CookiePolicyPage() {
                 {[
                   { nome: "Google Maps", scopo: "Geocodifica indirizzi e calcolo distanze per la consegna", durata: "Variabile" },
                   { nome: "Google OAuth", scopo: "Autenticazione tramite account Google (solo se usato)", durata: "Sessione" },
-                  { nome: "Meta Pixel", scopo: "Misurazione delle visite e delle conversioni delle campagne pubblicitarie Meta", durata: "Variabile" },
                 ].map((c) => (
                   <div key={c.nome} className="px-5 py-4 grid grid-cols-3 gap-4 text-sm">
                     <span className="text-terracotta font-brand font-semibold text-xs">{c.nome}</span>
@@ -105,16 +87,13 @@ export default function CookiePolicyPage() {
                   <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-terracotta underline underline-offset-2">
                     Privacy Policy di Google
                   </a>{" "}
-                  e la{" "}
-                  <a href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener noreferrer" className="text-terracotta underline underline-offset-2">
-                    Privacy Policy di Meta
-                  </a>.
+.
                 </p>
               </div>
             </div>
 
             <p className="text-sm bg-marigold/10 border border-marigold/20 rounded-2xl px-5 py-4 text-charcoal/70">
-              <strong className="text-charcoal">Usiamo Meta Pixel</strong> per misurare l&apos;efficacia delle campagne pubblicitarie e migliorare le comunicazioni promozionali. Puoi limitare il tracciamento dalle impostazioni privacy del browser e dalle preferenze del tuo account Meta.
+              Non carichiamo Meta Pixel, Google Analytics, Vercel Analytics o il widget chat Zirel. La mappa del locale si apre su Google soltanto scegliendo il relativo collegamento. I servizi Google di indirizzo e accesso si aprono su richiesta esplicita dopo la dichiarazione di maggiore età e la lettura dell’informativa. Non chiediamo il GPS del cliente. Il portale e il tracciamento rider sono esclusi dalla V1.
             </p>
           </section>
 

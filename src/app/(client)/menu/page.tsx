@@ -22,7 +22,7 @@ function MenuContent() {
   const initialMenu = useInitialMenuData();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setOrderType, syncPrices } = useCartStore();
+  const { orderType, setOrderType, syncPrices } = useCartStore();
   const { user, loading: authLoading } = useCustomerAuth();
   const services = useServiceAvailability();
   const browseOnly = services?.allDisabled === true;
@@ -98,12 +98,14 @@ function MenuContent() {
       router.replace("/menu", { scroll: false });
     }
 
+    let cancelled = false;
     const loadMenu = async () => {
       if (!initialMenu) setIsLoading(true);
       try {
-        const response = await fetch("/api/menu", { cache: "no-store" });
+        const response = await fetch(`/api/menu?type=${type === "DELIVERY" || type === "ASPORTO" ? type : orderType}`, { cache: "no-store" });
         if (!response.ok) throw new Error("Menu unavailable");
         const data = await response.json();
+        if (cancelled) return;
         const menuCategories = Array.isArray(data) ? data : data.categories;
         if (!Array.isArray(menuCategories)) throw new Error("Invalid menu response");
         setIsClubMember(!Array.isArray(data) && data.isClubMember === true);
@@ -117,13 +119,16 @@ function MenuContent() {
           imageFit: product.category.name === "Bevande analcoliche" || product.category.name === "Birre" ? "contain" : "cover",
           ingredients: product.ingredients,
         })));
+      } catch {
+        if (!cancelled) setIsClubMember(null);
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
 
-    loadMenu();
-  }, [authLoading, initialMenu, router, searchParams, setOrderType, syncPrices, user?.id]);
+    void loadMenu();
+    return () => { cancelled = true; };
+  }, [authLoading, initialMenu, router, searchParams, orderType, setOrderType, syncPrices, user?.id]);
 
   useEffect(() => {
     if (browseOnly) {
@@ -208,12 +213,12 @@ function MenuContent() {
         </p>
         {authChecked && isClubMember !== null && (isClubMember ? (
           <div data-testid="club-banner-active" className="mt-7 rounded-full border border-green-200 bg-green-50 px-5 py-3 text-center">
-            <p className="font-brand text-[11px] font-bold uppercase tracking-[0.14em] text-green-700">Sei membro del Club! Prezzi riservati applicati automaticamente</p>
+            <p className="font-brand text-[11px] font-bold uppercase tracking-[0.14em] text-green-700">Sei membro del Club! Prezzi riservati solo per delivery dal sito</p>
           </div>
         ) : (
           <div data-testid="club-banner-login" className="mt-7 max-w-md rounded-[1.25rem] border border-marigold/30 bg-marigold/10 px-5 py-4 text-left">
-            <p className="font-brand text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal/70">Prezzi Club online</p>
-            <p className="mt-1 text-sm leading-relaxed text-charcoal/65">Registrati o accedi: il tuo account attiva automaticamente i prezzi speciali sugli ordini effettuati dal sito.</p>
+            <p className="font-brand text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal/70">Prezzi Club per delivery</p>
+            <p className="mt-1 text-sm leading-relaxed text-charcoal/65">Registrati o accedi: prezzi Club su mezze teglie e teglie intere, solo con consegna a domicilio ordinata dal sito.</p>
             <Link href="/registrati" className="mt-2 inline-block text-xs font-bold text-terracotta underline underline-offset-2">Registrati e risparmia</Link>
           </div>
         ))}
@@ -316,9 +321,9 @@ function MenuContent() {
                         {product.configuration ? "Scegli formato e gusti" : formatCurrency(Number(product.price))}
                       </span>
                     </div>
-                    {authChecked && isClubMember === false && !product.configuration && product.clubPrice != null && Number(product.clubPrice) < Number(product.price) && (
+                    {authChecked && isClubMember === false && !Boolean(product.configuration) && product.clubPrice != null && Number(product.clubPrice) < Number(product.price) && (
                       <p data-testid="club-price-offer" className="mt-1 text-[10px] font-brand font-semibold leading-tight tracking-[0.04em] text-terracotta/80">
-                        Prezzo Club: {formatCurrency(Number(product.clubPrice))} · registrati e risparmia
+                        Prezzo Club: {formatCurrency(Number(product.clubPrice))} · solo delivery dal sito
                       </p>
                     )}
                   </div>

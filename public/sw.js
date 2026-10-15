@@ -1,4 +1,4 @@
-const CACHE_NAME = "teglieria-pwa-v2";
+const CACHE_NAME = "teglieria-pwa-v4";
 const OFFLINE_URL = "/offline";
 const CORE_ASSETS = [
   "/",
@@ -32,7 +32,7 @@ self.addEventListener("activate", (event) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((key) => key !== CACHE_NAME)
+          .filter((key) => key.startsWith("teglieria-pwa-") && key !== CACHE_NAME)
           .map((key) => caches.delete(key))
       )
     )
@@ -44,6 +44,10 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
   const requestUrl = new URL(event.request.url);
+  // Never persist authenticated API responses, uploads or private pages,
+  // even when an endpoint happens to end in a file extension.
+  if (requestUrl.origin !== self.location.origin ||
+      /^\/(api|media|admin|account|rider|stato-ordine|sandbox)(\/|$)/.test(requestUrl.pathname)) return;
   const isNavigation = event.request.mode === "navigate";
 
   if (isNavigation) {
@@ -82,7 +86,7 @@ self.addEventListener("fetch", (event) => {
 
   // For same-origin static assets (files with extension) use cache first.
   // Skip Next.js prefetch/RSC requests and API routes — let them go to network normally.
-  const isStaticAsset = /\.[a-z0-9]+$/i.test(requestUrl.pathname);
+  const isStaticAsset = /^(\/_next\/static\/|\/icons\/|\/images\/)/.test(requestUrl.pathname) || requestUrl.pathname === "/manifest.webmanifest";
   if (requestUrl.origin === self.location.origin && isStaticAsset) {
     event.respondWith(
       caches.match(event.request).then((cached) => {

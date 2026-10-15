@@ -1,37 +1,31 @@
 "use client";
+import {useProviderAvailability} from "@/lib/use-provider-availability";
+import ServicePolicy, { policyPayload } from "@/components/client/ServicePolicy";
 
-import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, Suspense } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/auth/client";
 
 function RegisterForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const providers=useProviderAvailability();
   const supabase = createClient();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
 
-  useEffect(() => {
-    // Pre-compila dai parametri URL (provenienti dal banner post-ordine)
-    const n = searchParams.get("name") || "";
-    const e = searchParams.get("email") || "";
-    const p = searchParams.get("phone") || "";
-    if (n) setName(n);
-    if (e) setEmail(e);
-    if (p) setPhone(p);
-  }, [searchParams]);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [policyAccepted, setPolicyAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
   async function handleOAuth(provider: "google") {
+    if (!policyAccepted) { setError("Conferma maggiore età e lettura dell’informativa prima di usare Google."); return; }
     setError(null);
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider,
+      policy: policyPayload(policyAccepted),
       options: {
         redirectTo: `${window.location.origin}/api/auth/callback?type=customer&next=/menu`,
       },
@@ -43,12 +37,14 @@ function RegisterForm() {
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
+    if (!policyAccepted) { setError("Conferma maggiore età e lettura dell’informativa prima di continuare."); return; }
     setLoading(true);
     setError(null);
 
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
+      policy: policyPayload(policyAccepted),
       options: {
         data: { full_name: name, phone },
       },
@@ -86,11 +82,10 @@ function RegisterForm() {
         <div className="w-full max-w-sm text-center space-y-6">
           <div className="text-5xl">📬</div>
           <h1 className="text-3xl font-display tracking-tight text-charcoal">
-            Controlla la <span className="text-terracotta">Email!</span>
+            Account <span className="text-terracotta">creato</span>
           </h1>
           <p className="font-body italic text-charcoal/50 leading-relaxed">
-            Abbiamo inviato un link di conferma a <strong className="not-italic text-charcoal">{email}</strong>.<br />
-            Clicca il link per attivare il tuo account.
+            Puoi usare il tuo account <strong className="not-italic text-charcoal">{email}</strong> per ordinare. La verifica dell’indirizzo email non è ancora disponibile in questa versione di prova.
           </p>
           <Link
             href="/accedi"
@@ -114,10 +109,11 @@ function RegisterForm() {
             Registrati<span className="text-terracotta">.</span>
           </h1>
           <p className="font-body italic text-charcoal/40 mt-2 text-sm">
-            Registrati per attivare automaticamente i prezzi Club sugli ordini effettuati dal sito.
+            Registrati per attivare i prezzi Club su mezze teglie e teglie intere ordinate dal sito con consegna a domicilio.
           </p>
         </div>
 
+        <ServicePolicy accepted={policyAccepted} onChange={setPolicyAccepted} />
         <form onSubmit={handleRegister} className="space-y-4">
           <div className="space-y-1.5">
             <label className="text-[10px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/40 ml-1 block">
@@ -240,7 +236,7 @@ function RegisterForm() {
             <span className="text-[10px] font-brand font-bold uppercase tracking-widest text-charcoal/25">oppure</span>
             <div className="flex-1 h-px bg-charcoal/10" />
           </div>
-          <button
+          {providers.googleLoginEnabled && (<button
             type="button"
             onClick={() => handleOAuth("google")}
             className="w-full py-3.5 bg-white border border-charcoal/10 rounded-2xl font-brand font-bold uppercase tracking-[0.15em] text-[11px] text-charcoal hover:border-charcoal/25 active:scale-95 transition-all min-h-[52px] flex items-center justify-center gap-3 shadow-sm"
@@ -252,7 +248,7 @@ function RegisterForm() {
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
             Registrati con Google
-          </button>
+          </button>)}
         </div>
 
         <p className="text-center text-[11px] font-brand font-bold uppercase tracking-widest text-charcoal/30">

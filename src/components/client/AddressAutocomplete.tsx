@@ -1,94 +1,9 @@
 "use client";
-
 import { useState } from "react";
 import GooglePlaceAutocomplete from "@/components/shared/GooglePlaceAutocomplete";
-
-interface Props {
-  value: string;
-  onChange: (value: string) => void;
-  onCoordinatesChange?: (coordinates: { lat: number; lng: number } | null) => void;
-  required?: boolean;
-  placeholder?: string;
-}
-
-export default function AddressAutocomplete({ value, onChange, onCoordinatesChange, required, placeholder }: Props) {
-  const [locating, setLocating] = useState(false);
-  const [geoError, setGeoError] = useState("");
-
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-  async function handleGeolocate() {
-    if (!navigator.geolocation) {
-      setGeoError("Geolocalizzazione non disponibile");
-      return;
-    }
-    setLocating(true);
-    setGeoError("");
-
-    navigator.geolocation.getCurrentPosition(
-      async ({ coords }) => {
-        try {
-          const res = await fetch(
-            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${coords.latitude},${coords.longitude}&key=${apiKey}&language=it&result_type=street_address`
-          );
-          const data = await res.json();
-          const address = data.results?.[0]?.formatted_address;
-          if (address) {
-            onChange(address);
-            onCoordinatesChange?.({ lat: coords.latitude, lng: coords.longitude });
-          } else {
-            setGeoError("Indirizzo non trovato");
-          }
-        } catch {
-          setGeoError("Errore nel recupero dell'indirizzo");
-        }
-        setLocating(false);
-      },
-      () => {
-        setGeoError("Accesso alla posizione negato");
-        setLocating(false);
-      },
-      { timeout: 8000 }
-    );
-  }
-
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center gap-2">
-        <div className="min-w-0 flex-1">
-          <GooglePlaceAutocomplete
-            value={value}
-            onChange={onChange}
-            onCoordinatesChange={onCoordinatesChange}
-            required={required}
-            placeholder={placeholder ?? "Via, Piazza, Numero civico"}
-            className="client-address-autocomplete"
-          />
-        </div>
-        <button
-          type="button"
-          onClick={handleGeolocate}
-          disabled={locating}
-          title="Usa la mia posizione"
-          aria-label="Usa la mia posizione"
-          className="shrink-0 w-12 h-12 flex items-center justify-center rounded-2xl bg-white border border-charcoal/10 text-charcoal/50 hover:text-terracotta hover:border-terracotta/30 transition-all disabled:opacity-40 shadow-sm"
-        >
-          {locating ? (
-            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
-          ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-            </svg>
-          )}
-        </button>
-      </div>
-      {geoError && (
-        <p className="text-xs text-red-400 ml-2">{geoError}</p>
-      )}
-    </div>
-  );
+type Props = {value:string;onChange:(value:string)=>void;onCoordinatesChange?:(coordinates:{lat:number;lng:number;address?:string}|null)=>void;required?:boolean;placeholder?:string};
+export default function AddressAutocomplete(props:Props) {
+ const [enabled,setEnabled]=useState(false);
+ if (!enabled) return <div className="rounded-xl border p-4 text-sm"><p>Per cercare l’indirizzo e verificare la zona di consegna usiamo Google: vengono trasmessi l’indirizzo digitato e i dati tecnici della connessione. Non richiediamo la tua posizione GPS.</p><button type="button" className="mt-3 underline" onClick={()=>setEnabled(true)}>Apri ricerca indirizzo con Google</button><p className="mt-2">Puoi scegliere l’asporto senza usare questo servizio.</p></div>;
+ return <GooglePlaceAutocomplete {...props} className="client-address-autocomplete" />;
 }

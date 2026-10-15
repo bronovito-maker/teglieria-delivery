@@ -1,19 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/auth/client";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -56,7 +55,7 @@ export default function AdminLogin() {
     setError("");
     setLoading(true);
 
-    const authClient = createClient({ persistSession: rememberMe });
+    const authClient = createClient();
     const { error } = await authClient.auth.signInWithPassword({ email, password });
 
     if (error) {
@@ -163,22 +162,7 @@ export default function AdminLogin() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between px-1 py-1">
-                <span className="text-[10px] uppercase font-brand font-bold tracking-widest text-charcoal/40">
-                  Rimani connesso
-                </span>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={rememberMe}
-                  onClick={() => setRememberMe((prev) => !prev)}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-terracotta/30 ${
-                    rememberMe ? "bg-terracotta" : "bg-charcoal/10"
-                  }`}
-                >
-                  <span className={`h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-300 ${rememberMe ? "translate-x-6" : "translate-x-1"}`} />
-                </button>
-              </div>
+              <p className="text-xs text-charcoal/60">La sessione dura fino a 7 giorni. Su una postazione condivisa premi Esci al termine.</p>
 
               {error && (
                 <div className="p-4 bg-red-50 rounded-2xl border border-red-100 animate-in slide-in-from-top-2">

@@ -12,7 +12,6 @@ export default function OrderDetailPage() {
   const router = useRouter();
   const [order, setOrder] = useState<OrderWithItems | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deletePassword, setDeletePassword] = useState("");
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [deleteError, setDeleteError] = useState("");
   const [deleting, setDeleting] = useState(false);
@@ -27,39 +26,17 @@ export default function OrderDetailPage() {
   useEffect(() => { fetchOrder(); }, [fetchOrder]);
 
   async function updateStatus(status: string) {
-    if (status === "CANCELLED" && !window.confirm("Annullare l'ordine? Rimarrà nello storico e il cliente riceverà un'e-mail.")) return;
-    await fetch(`/api/ordini/${id}`, {
+    if (status === "CANCELLED" && !window.confirm("Annullare l'ordine? Rimarrà nello storico e il cliente vedrà lo stato aggiornato sul sito.")) return;
+    const response = await fetch(`/api/ordini/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
+    if (!response.ok) { const data = await response.json().catch(() => ({})); window.alert(data.error || "Aggiornamento non riuscito"); return; }
     fetchOrder();
   }
   
-  async function adjustTime(minutes: number) {
-    if (!order) return;
-    // Priority: estimatedTime → pickupTime (requested slot) → now
-    const baseDate = order.estimatedTime
-      ? new Date(order.estimatedTime)
-      : order.pickupTime
-      ? new Date(order.pickupTime)
-      : new Date();
-    const newDate = new Date(baseDate.getTime() + minutes * 60000);
-    
-    await fetch(`/api/ordini/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ estimatedTime: newDate.toISOString() }),
-    });
-    fetchOrder();
-  }
-
-  function handlePrint() {
-    window.open(`/api/ordini/${id}/stampa`, "_blank", "width=400,height=600");
-  }
-
   function openDeleteModal() {
-    setDeletePassword("");
     setDeleteConfirmation("");
     setDeleteError("");
     setShowDeleteModal(true);
@@ -68,17 +45,18 @@ export default function OrderDetailPage() {
   async function handleDeleteOrder() {
     if (!order) return;
     setDeleteError("");
+    if (deleteConfirmation.trim() !== (order.orderCode ?? order.id)) { setDeleteError("Conferma il codice ordine"); return; }
     setDeleting(true);
 
     const res = await fetch(`/api/ordini/${id}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ adminPassword: deletePassword, confirmation: deleteConfirmation }),
+      body: JSON.stringify({ confirmation: deleteConfirmation }),
     });
 
     if (!res.ok) {
-      const data = await res.json().catch(() => ({ error: "Errore durante l'eliminazione ordine" }));
-      setDeleteError(data.error || "Errore durante l'eliminazione ordine");
+      const data = await res.json().catch(() => ({ error: "Errore durante l’annullamento ordine" }));
+      setDeleteError(data.error || "Errore durante l’annullamento ordine");
       setDeleting(false);
       return;
     }
@@ -116,15 +94,12 @@ export default function OrderDetailPage() {
           <h1 className="text-3xl md:text-4xl font-display font-semibold tracking-tight text-charcoal">Ordine #{formatOrderCode(order)}</h1>
         </div>
         <div className="flex gap-2">
-          <button onClick={handlePrint}
-            className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm font-brand font-semibold transition-colors">
-            Stampa
-          </button>
+
           <button
             onClick={openDeleteModal}
             className="px-4 py-2 rounded-lg text-sm font-brand font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors"
           >
-            Elimina ordine
+            Annulla ordine
           </button>
           {order.paymentMethod === "STRIPE" && ["PAID", "PARTIALLY_REFUNDED"].includes(order.paymentStatus) && (
             <button
@@ -163,17 +138,7 @@ export default function OrderDetailPage() {
             {/* Timing Just Eat Style */}
             <div className="flex items-center gap-2">
               <span className="text-sm font-brand font-semibold">Stima: {order.estimatedTime ? formatTime(order.estimatedTime) : "--:--"}</span>
-              <div className="flex border rounded overflow-hidden">
-                <button
-                  onClick={() => adjustTime(-15)}
-                  className="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-xs font-brand font-semibold border-r">-15&apos;</button>
-                <button 
-                  onClick={() => adjustTime(15)}
-                  className="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-xs font-brand font-semibold border-r">+15&apos;</button>
-                <button 
-                  onClick={() => adjustTime(30)}
-                  className="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-xs font-brand font-semibold">+30&apos;</button>
-              </div>
+              <p className="text-xs text-gray-500">Per spostare la fascia usa “Sposta orario” nel gestionale. Stampa e documenti si gestiscono dalla cassa.</p>
             </div>
           </div>
 
@@ -190,11 +155,7 @@ export default function OrderDetailPage() {
                 <p className="font-brand font-semibold">{order.address}</p>
                 {order.addressDetail && <p className="font-body">{order.addressDetail}</p>}
                 {order.deliveryZone && <p className="text-gray-500 font-body">Zona: {order.deliveryZone}</p>}
-                {order.rider ? (
-                  <p className="mt-1 text-sm font-brand font-semibold text-orange-600">🛵 {order.rider.name}</p>
-                ) : (
-                  <p className="mt-1 text-xs text-gray-400 italic font-body">Nessun fattorino assegnato</p>
-                )}
+
               </div>
             )}
             <div className="mt-2 pt-2 border-t col-span-2 flex items-center gap-2">
@@ -239,12 +200,12 @@ export default function OrderDetailPage() {
                 <div>
                   <span className="font-brand font-semibold">{item.quantity}x {item.productName}</span>
                   {item.variant && <span className="text-gray-500 font-body"> ({formatPizzaVariant(item.variant)})</span>}
-                  {item.additions && (
+                  {Boolean(item.additions) && (
                     <p className="text-xs text-gray-500 font-body">
                       + {(item.additions as any[]).map((a: any) => a.name).join(", ")}
                     </p>
                   )}
-                  {item.removals && (
+                  {Boolean(item.removals) && (
                     <p className="text-xs text-gray-500 font-body">
                       - {(item.removals as any[]).map((r: any) => r.name).join(", ")}
                     </p>
@@ -301,7 +262,7 @@ export default function OrderDetailPage() {
           <div className="w-full max-w-lg rounded-3xl border border-red-100/80 bg-white shadow-[0_20px_45px_rgba(31,38,135,0.12)]">
             <div className="px-5 py-4 border-b border-red-100/80 flex items-center justify-between">
               <div>
-                <p className="text-[11px] uppercase tracking-[0.14em] text-[#D96A2B]/80 font-brand font-semibold">Eliminazione ordine</p>
+                <p className="text-[11px] uppercase tracking-[0.14em] text-[#D96A2B]/80 font-brand font-semibold">Annullamento ordine</p>
                 <h3 className="text-xl font-display font-semibold text-charcoal">Ordine #{formatOrderCode(order)}</h3>
               </div>
               <button
@@ -314,24 +275,8 @@ export default function OrderDetailPage() {
 
             <div className="p-5 space-y-4">
               <p className="text-sm text-gray-600 font-body">
-                Stai per eliminare definitivamente questo ordine.
+                L’ordine verrà annullato e resterà nello storico. Il cliente vedrà l’annullamento sul sito; se ha pagato online, verrà richiesto il rimborso previsto.
               </p>
-
-              <div>
-                <label className="block text-sm font-brand font-semibold text-gray-700 mb-1.5">
-                  Password del tuo account Admin
-                </label>
-                <input
-                  type="password"
-                  value={deletePassword}
-                  onChange={(e) => setDeletePassword(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-red-100 rounded-xl focus:ring-2 focus:ring-[#D96A2B] focus:border-[#D96A2B] outline-none"
-                  placeholder="Inserisci la password con cui hai effettuato l'accesso"
-                />
-                <p className="mt-2 text-xs text-gray-500 font-body">
-                  Per impostazione predefinita viene eseguita una nuova autenticazione Supabase.
-                </p>
-              </div>
 
               <div>
                 <label className="block text-sm font-brand font-semibold text-gray-700 mb-1.5">
@@ -359,10 +304,10 @@ export default function OrderDetailPage() {
               <button
                 type="button"
                 onClick={handleDeleteOrder}
-                disabled={deleting || !deletePassword.trim() || deleteConfirmation.trim() !== (order.orderCode ?? order.id)}
+                disabled={deleting || deleteConfirmation.trim() !== (order.orderCode ?? order.id)}
                 className="px-4 py-2.5 rounded-xl bg-red-600 border border-red-600 text-white font-brand font-semibold hover:bg-red-700 disabled:opacity-50 transition-colors"
               >
-                {deleting ? "Eliminazione..." : "Conferma eliminazione"}
+                {deleting ? "Annullamento..." : "Conferma annullamento"}
               </button>
             </div>
           </div>

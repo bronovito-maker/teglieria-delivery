@@ -1,5 +1,5 @@
 // Owner-requested suspension, 18 September 2026. Set false to reopen.
-export const SITE_MAINTENANCE = true;
+export const SITE_MAINTENANCE = false;
 export const MAINTENANCE_MESSAGE = "Sito in manutenzione. È possibile ordinare da asporto o delivery a questo numero: 0586 082992";
 
 export function maintenanceOrderResponse(): Response | null {

@@ -1,37 +1,40 @@
 import { maintenancePageResponse } from "@/lib/site-maintenance";
-import { updateSession } from "@/lib/supabase/middleware";
-import { NextRequest } from "next/server";
+import { updateSession } from "@/lib/auth/middleware";
+import { NextResponse, NextRequest } from "next/server";
+import { previewAccess } from "@/lib/preview-access";
 
 function buildContentSecurityPolicy(nonce: string): string {
   const isDevelopment = process.env.NODE_ENV !== "production";
 
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' ${isDevelopment ? "'unsafe-eval'" : ""} https://maps.googleapis.com https://www.googletagmanager.com https://connect.facebook.net https://va.vercel-scripts.com https://cdn.zirel.org`
+    `script-src 'self' 'nonce-${nonce}' ${isDevelopment ? "'unsafe-eval'" : ""} https://maps.googleapis.com`
       .replace(/\s+/g, " ")
       .trim(),
-    // Zirel's embed currently uses inline event attributes. Keep inline script
-    // elements blocked and relax only event-handler attributes.
-    "script-src-attr 'unsafe-inline'",
+    // Inline event handlers are unnecessary for the application.
+    "script-src-attr 'none'",
     `style-src 'self' 'nonce-${nonce}' https://fonts.googleapis.com`,
-    // Zirel injects its stylesheet and updates display/position through style
-    // attributes. Scope the exception to styles instead of allowing inline JS.
+    // Maps and React components use dynamic style attributes.
     "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "style-src-attr 'unsafe-inline'",
-    "img-src 'self' data: https://www.facebook.com https://maps.googleapis.com https://maps.gstatic.com https://*.googleusercontent.com https://*.supabase.co https://*.zirel.org",
+    "img-src 'self' data: https://maps.googleapis.com https://maps.gstatic.com https://*.googleusercontent.com",
     "font-src 'self' data: https://fonts.gstatic.com",
-    `connect-src 'self' https://maps.googleapis.com https://places.googleapis.com https://routes.googleapis.com https://www.facebook.com https://*.supabase.co https://vitals.vercel-insights.com https://*.zirel.org https://*.up.railway.app wss://*.supabase.co ${isDevelopment ? "http: ws:" : ""}`
+    `connect-src 'self' https://maps.googleapis.com https://places.googleapis.com https://routes.googleapis.com ${isDevelopment ? "http: ws:" : ""}`
       .replace(/\s+/g, " ")
       .trim(),
-    "frame-src 'self' https://*.zirel.org https://www.google.com https://maps.google.com https://www.facebook.com",
+    "frame-src 'self' https://www.google.com https://maps.google.com",
     "frame-ancestors 'none'",
     "object-src 'none'",
     "base-uri 'self'",
-    "form-action 'self' https://www.facebook.com",
+    "form-action 'self'",
   ].join("; ");
 }
 
 export async function proxy(request: NextRequest) {
+  const privateAccess = await previewAccess(request);
+  if (privateAccess) return privateAccess;
+  const path = request.nextUrl.pathname;
+  if (/^\/(rider|admin\/logistica)(\/|$)/.test(path)) return new NextResponse("Funzione non disponibile", { status: 404, headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
   const maintenance = maintenancePageResponse(request.nextUrl.pathname);
   if (maintenance) return maintenance;
 
@@ -42,8 +45,7 @@ export async function proxy(request: NextRequest) {
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("content-security-policy", contentSecurityPolicy);
 
-  // Preserve Supabase's session refresh while forwarding the nonce to the
-  // rendered request. Attach the same CSP to the resulting response.
+  // Forward the nonce through the unified backend's navigation guard.
   const requestWithSecurityHeaders = new NextRequest(request, {
     headers: requestHeaders,
   });
@@ -56,5 +58,5 @@ export async function proxy(request: NextRequest) {
 export const config = {
   // Keep auth endpoints out of the session-refresh pass: they manage their
   // own cookies during the same request.
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/auth/password|api/auth/callback|api/auth/session|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+  matcher: ["/:path*"],
 };

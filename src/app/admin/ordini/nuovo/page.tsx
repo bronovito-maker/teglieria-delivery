@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { createClientId } from "@/lib/client-id";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import type { CategoryWithProducts, ProductWithRelations } from "@/types";
@@ -136,10 +137,12 @@ export default function NuovoOrdinePage() {
     return sum + unitPrice * l.quantity;
   }, 0);
 
+  const requestKey=useRef(createClientId());
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (lines.length === 0) return;
-    if (lines.some((line) => line.product.configuration && !line.variant)) {
+    if (lines.some((line) => Boolean(line.product.configuration) && !line.variant)) {
       setSubmitError("Configura tutte le pizze componibili prima di creare l'ordine.");
       return;
     }
@@ -163,7 +166,7 @@ export default function NuovoOrdinePage() {
 
     const res = await fetch("/api/ordini", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Idempotency-Key":requestKey.current },
       body: JSON.stringify({
         type,
         channel,

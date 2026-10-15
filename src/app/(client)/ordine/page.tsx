@@ -1,5 +1,9 @@
 "use client";
+import { safeSessionStorage, orderTrackingUrl } from "@/lib/browser-storage";
+import {useProviderAvailability} from "@/lib/use-provider-availability";
+import ServicePolicy, { orderPolicyPayload } from "@/components/client/ServicePolicy";
 import { formatPizzaVariant } from "@/lib/pizza-builder";
+import { createClientId } from "@/lib/client-id";
 import AllergenBadges from "@/components/client/AllergenBadges";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -9,7 +13,7 @@ import Image from "next/image";
 import AddressAutocomplete from "@/components/client/AddressAutocomplete";
 import { getCartItemUnitPrices, getCartPricing, useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/auth/client";
 import { useCustomerAuth } from "@/components/client/CustomerAuthProvider";
 import { calculateDeliveryFee, formatOrderTimeSlot, getRomeDateOffsetString, getRomeDateString, MIN_ORDER_SUBTOTAL, romeDateTimeToDate } from "@/lib/constants";
 import { OrderingAvailabilityGate, useServiceAvailability } from "@/components/client/ServiceAvailabilityNotice";
@@ -23,13 +27,34 @@ const STORE_POSITION = {
     : 10.3371522,
 };
 
+import {readPendingCheckout, rememberCheckout, settleCheckout, cartSignature, type PendingCheckout} from "@/lib/pending-checkout";
+
 export default function OrdinePage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const { user, loading: authLoading } = useCustomerAuth();
   const { items, orderType, setOrderType, clearCart, syncPrices } = useCartStore();
   const services = useServiceAvailability();
+  const providers=useProviderAvailability();
+  const [policyAccepted, setPolicyAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pendingCheckout,setPendingCheckout]=useState<PendingCheckout|null>(null);
+  const pendingMatchesCart=pendingCheckout?.cartSignature===cartSignature(items,orderType);
+  useEffect(()=>{
+    let cancelled=false;const pending=readPendingCheckout();setPendingCheckout(pending);
+    if(!pending)return;
+    async function refresh(){
+      try{
+        const token=new URLSearchParams(pending!.statusUrl.split('#')[1]||'').get('token');
+        const response=await fetch(`/api/ordini/${pending!.id}`,{headers:token?{'X-Order-Status-Token':token}:undefined,cache:'no-store'});
+        if(response.ok){const order=await response.json();settleCheckout(order);if(!cancelled)setPendingCheckout(readPendingCheckout());}
+      }catch{}
+    }
+    void refresh();const timer=setInterval(()=>void refresh(),12000);return()=>{cancelled=true;clearInterval(timer);};
+  },[]);
+  const priceContext = `${user?.id ?? "guest"}:${orderType}`;
+  const [loadedPriceContext, setLoadedPriceContext] = useState<string | null>(null);
+  const pricesReady = !authLoading && loadedPriceContext === priceContext;
   const [error, setError] = useState("");
   const loggedUser = useMemo(() => {
     if (!user) return null;
@@ -76,18 +101,6 @@ export default function OrdinePage() {
         if (lastAddressDetail) setAddressDetail((current) => current || lastAddressDetail);
         if (lastDeliveryZone) setDeliveryZone((current) => current || lastDeliveryZone);
 
-        // Dopo un cambio sessione riallinea i prezzi al listino Club del server.
-        try {
-          const menuResponse = await fetch("/api/menu", { cache: "no-store" });
-          const menuData = await menuResponse.json();
-          const categories = Array.isArray(menuData) ? menuData : menuData.categories;
-          if (!cancelled && Array.isArray(categories)) {
-            syncPrices(categories.flatMap((category: { products?: Array<{ id: string; price: number | string; standardPrice?: number | string | null }> }) => category.products ?? []));
-          }
-        } catch {
-          // Il checkout resta utilizzabile anche se la sincronizzazione prezzi fallisce.
-        }
-
         // I metadati possono contenere solo l'ultimo indirizzo: completa i
         // campi usando l'ultimo ordine associato all'account, se disponibile.
         try {
@@ -116,17 +129,29 @@ export default function OrdinePage() {
     return () => { cancelled = true; };
   }, [authLoading, syncPrices, user]);
 
+  useEffect(() => {
+    if (authLoading) return;
+    let cancelled = false;
+    void fetch(`/api/menu?type=${orderType}`, {cache:"no-store"}).then(async response => {
+      if (!response.ok) throw new Error("Prezzi non disponibili");
+      const data = await response.json();
+      const categories = Array.isArray(data) ? data : data.categories;
+      if (cancelled || !Array.isArray(categories)) return;
+      const products = categories.flatMap(category => category.products ?? []);
+      const availableIds = new Set(products.map(product => product.id));
+      const cart = useCartStore.getState();
+      for (const item of cart.items) {
+        if (!availableIds.has(item.productId)) cart.removeItem(item.id);
+      }
+      syncPrices(products);
+      setLoadedPriceContext(priceContext);
+    }).catch(() => { if (!cancelled) setError("Non riesco ad aggiornare i prezzi. Riprova tra poco."); });
+    return () => {cancelled = true;};
+  }, [authLoading, user, orderType, priceContext, syncPrices]);
+
   async function handleGoogleLogin() {
-    setError("");
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/api/auth/callback?type=customer&next=/ordine`,
-      },
-    });
-    if (oauthError) {
-      setError("Impossibile avviare Google. Riprova tra poco.");
-    }
+    // Account access has a separate adult declaration; a guest-order acknowledgment cannot supply it.
+    window.location.assign("/accedi?next=/ordine");
   }
   const [address, setAddress] = useState("");
   const [addressDetail, setAddressDetail] = useState("");
@@ -137,78 +162,48 @@ export default function OrdinePage() {
   const [paymentMethod, setPaymentMethod] = useState<"CONTANTI" | "STRIPE">("CONTANTI");
   const [deliveryKm, setDeliveryKm] = useState<number | null>(null);
   const [distanceLoading, setDistanceLoading] = useState(false);
-  const [slots, setSlots] = useState<{ time: string, start?: string, end?: string, label?: string, available: boolean, remaining: number }[]>([]);
+  const [slots, setSlots] = useState<{ time: string, start?: string, end?: string, label?: string, available: boolean, remaining: number, requiresCashierDecision?: boolean }[]>([]);
   const [dayClosed, setDayClosed] = useState(false);
+  const [availabilityMessage,setAvailabilityMessage]=useState("");
   const [closedDays, setClosedDays] = useState<Set<string>>(new Set());
-  const [slotsCache, setSlotsCache] = useState<Record<string, { slots: { time: string, start?: string, end?: string, label?: string, available: boolean, remaining: number }[]; closed: boolean }>>({});
+  const [unavailableDays, setUnavailableDays] = useState<Set<string>>(new Set());
   const [slotsLoading, setSlotsLoading] = useState(false);
-  const orderRequestKey = useRef(crypto.randomUUID());
+  const [availabilityRefresh, setAvailabilityRefresh] = useState(0);
+  const orderRequestKey = useRef(createClientId());
+  const capacityItems = JSON.stringify(items.map(item => ({productId:item.productId,quantity:item.quantity,variant:item.variant})));
 
-  // Pre-check availability for all 7 days shown
+  // Recheck the shared backend; availability depends on this cart, not the number of orders.
   useEffect(() => {
     let cancelled = false;
-
-    async function checkDays() {
-      const checks = Array.from({ length: 7 }, (_, i) => {
-        return getRomeDateOffsetString(i);
-      });
-      const results = await Promise.all(
-        checks.map((date) => fetch(`/api/logistica/fasce?date=${date}&type=${orderType}`).then((r) => r.json()).catch(() => ({ closed: true })))
-      );
-      if (cancelled) return;
-      const closed = new Set<string>();
-      const cachePatch: Record<string, { slots: { time: string, start?: string, end?: string, label?: string, available: boolean, remaining: number }[]; closed: boolean }> = {};
-      results.forEach((r, i) => {
-        if (r.closed || r.slots?.length === 0) closed.add(checks[i]);
-        cachePatch[`${orderType}:${checks[i]}`] = {
-          slots: Array.isArray(r.slots) ? r.slots : [],
-          closed: !!r.closed || (Array.isArray(r.slots) && r.slots.length === 0),
-        };
-      });
-      setClosedDays(closed);
-      setSlotsCache((prev) => ({ ...prev, ...cachePatch }));
-
-      // Auto-select first available day if the current selection has no slots
-      const firstOpen = checks.find((d) => !closed.has(d));
-      if (firstOpen) setSelectedDate(firstOpen);
-    }
-    checkDays();
-    return () => { cancelled = true; };
-  }, [orderType]);
-
-  useEffect(() => {
-    async function fetchSlots() {
-      const cacheKey = `${orderType}:${selectedDate}`;
-      if (slotsCache[cacheKey]) {
-        const cached = slotsCache[cacheKey];
-        setSlots(cached.slots);
-        setDayClosed(cached.closed);
-        setPickupTime("");
-        return;
-      }
+    async function refresh() {
       setSlotsLoading(true);
       try {
-        const res = await fetch(`/api/logistica/fasce?date=${selectedDate}&type=${orderType}`);
-        if (res.ok) {
-          const data = await res.json();
-          const resolvedSlots = Array.isArray(data.slots) ? data.slots : [];
-          const resolvedClosed = !!data.closed || resolvedSlots.length === 0;
-          setSlots(resolvedSlots);
-          setDayClosed(resolvedClosed);
-          setSlotsCache((prev) => ({
-            ...prev,
-            [cacheKey]: { slots: resolvedSlots, closed: resolvedClosed },
-          }));
-          setPickupTime(""); // reset orario quando cambia data
-        }
-      } catch (err) {
-        console.error("Errore fetch fasce:", err);
-      } finally {
-        setSlotsLoading(false);
-      }
+        const days = Array.from({length:7},(_,i)=>getRomeDateOffsetString(i));
+        const results = await Promise.all(days.map(async date => {
+          const response = await fetch(`/api/logistica/fasce?date=${date}&type=${orderType}&items=${encodeURIComponent(capacityItems)}`,{cache:"no-store"});
+          if (!response.ok) throw new Error("Non riesco a verificare gli orari per questo carrello.");
+          return response.json();
+        }));
+        if (cancelled) return;
+        setAvailabilityMessage(results.find(r=>r.unavailableReason==="CART_EXCEEDS_SLOT_CAPACITY")?.message || (results.every(r=>!r.slots?.length)?results.find(r=>r.unavailableReason==="STOCK_UNAVAILABLE")?.message || "":""));
+        const unavailable = new Set<string>();
+        results.forEach((r,i)=>{if(r.closed===true) unavailable.add(days[i]);});
+        setClosedDays(unavailable);
+        setUnavailableDays(new Set(days.filter((_,i)=>!results[i].slots?.some((s:{available:boolean})=>s.available))));
+        let index = days.indexOf(selectedDate);
+        if(index<0 || !results[index].slots?.some((s:{available:boolean})=>s.available)) index=results.findIndex(r=>r.slots?.some((s:{available:boolean})=>s.available));
+        if(index<0) {setSlots([]);setDayClosed(true);setPickupTime("");return;}
+        const available = results[index].slots.filter((slot:{available:boolean})=>slot.available);
+        setSelectedDate(days[index]);setSlots(available);setDayClosed(false);
+        setPickupTime(current=>available.some((slot:{time:string})=>slot.time===current)?current:available[0]?.time??"");
+      } catch(err) {
+        if(!cancelled){setSlots([]);setPickupTime("");setError(err instanceof Error?err.message:"Orari non disponibili");}
+      } finally {if(!cancelled)setSlotsLoading(false);}
     }
-    fetchSlots();
-  }, [selectedDate, orderType, slotsCache]);
+    void refresh();
+    const timer=setInterval(()=>void refresh(),15000);
+    return ()=>{cancelled=true;clearInterval(timer);};
+  },[capacityItems,orderType,selectedDate,availabilityRefresh]);
 
   // Scroll Reveal Logic
   useEffect(() => {
@@ -227,36 +222,18 @@ export default function OrdinePage() {
   const clubSavings = pricing.savings;
   const total = pricing.total;
 
-  async function handleDeliveryCoordinates(coordinates: { lat: number; lng: number } | null) {
+  const [deliveryQuoteId, setDeliveryQuoteId] = useState<string|null>(null);
+
+  async function handleDeliveryCoordinates(coordinates: { lat: number; lng: number; address?: string } | null) {
     if (!coordinates) {
+      setDeliveryQuoteId(null);
       setDeliveryKm(null);
       return;
     }
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    if (!apiKey) {
-      setDeliveryKm(null);
-      setError("Calcolo della distanza non disponibile. Contattaci per verificare la consegna.");
-      return;
-    }
+    setDeliveryQuoteId(null);
     setDistanceLoading(true);
     try {
-      const response = await fetch("https://routes.googleapis.com/directions/v2:computeRoutes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Goog-Api-Key": apiKey, "X-Goog-FieldMask": "routes.distanceMeters" },
-        body: JSON.stringify({
-          origin: {
-            location: {
-              latLng: {
-                latitude: STORE_POSITION.lat,
-                longitude: STORE_POSITION.lng,
-              },
-            },
-          },
-          destination: { location: { latLng: { latitude: coordinates.lat, longitude: coordinates.lng } } },
-          travelMode: "DRIVE",
-          routingPreference: "TRAFFIC_UNAWARE",
-        }),
-      });
+      const response = await fetch("/api/logistica/distanza",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...coordinates, address:coordinates.address??address, policy: orderPolicyPayload(policyAccepted)})});
       if (!response.ok) {
         const details = await response.json().catch(() => null);
         console.error("[Google Routes] calcolo distanza rifiutato", {
@@ -267,11 +244,12 @@ export default function OrdinePage() {
         throw new Error("Routes API error");
       }
       const data = await response.json();
-      const meters = data?.routes?.[0]?.distanceMeters;
+      const meters = typeof data?.distanceKm === "number" ? data.distanceKm*1000 : null;
       if (typeof meters !== "number" || !Number.isFinite(meters) || meters < 0) {
         throw new Error("Distance unavailable");
       }
       setDeliveryKm(meters / 1000);
+      setDeliveryQuoteId(data.quoteId);
       setError("");
     } catch {
       setDeliveryKm(null);
@@ -298,6 +276,8 @@ export default function OrdinePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!policyAccepted) { setError("Leggi l’informativa sui dati necessari alla prenotazione prima di continuare."); return; }
+    if (!pricesReady) { setError("Attendi l’aggiornamento dei prezzi."); return; }
     if (pricing.subtotalCents < MIN_ORDER_SUBTOTAL * 100) {
       setError(`Il minimo ordine è ${formatCurrency(MIN_ORDER_SUBTOTAL)}, esclusa la consegna.`);
       return;
@@ -316,12 +296,14 @@ export default function OrdinePage() {
         body: JSON.stringify({
           type: orderType,
           channel: "WEB",
+          policy: orderPolicyPayload(policyAccepted),
           customerName,
           customerPhone,
           customerEmail: customerEmail.trim() || null,
           address: orderType === "DELIVERY" ? address : null,
           addressDetail: orderType === "DELIVERY" ? addressDetail : null,
           deliveryZone: orderType === "DELIVERY" ? deliveryZone : null,
+          deliveryQuoteId: orderType === "DELIVERY" ? deliveryQuoteId : null,
           deliveryKm: orderType === "DELIVERY" ? deliveryKm : null,
           deliveryCost: orderType === "DELIVERY" ? deliveryCost : null,
           pickupTime: romeDateTimeToDate(selectedDate, pickupTime).toISOString(),
@@ -352,16 +334,19 @@ export default function OrdinePage() {
           clearCart();
           throw new Error("Il carrello conteneva prodotti non più disponibili. Svuotato automaticamente — torna al menu e riordina.");
         }
+        if (res.status === 409) setAvailabilityRefresh(value=>value+1);
         throw new Error(data?.error || "Errore nell'invio dell'ordine. Riprova.");
       }
 
       const order = await res.json();
-      clearCart();
+      if (paymentMethod === "STRIPE") {
+        try {setPendingCheckout(rememberCheckout(order,items,orderType));}catch{}
 
-      if (paymentMethod === "STRIPE" && order.checkoutUrl) {
-        window.location.assign(order.checkoutUrl);
+        window.location.assign(order.checkoutUrl || `/stato-ordine/${order.id}#token=${order.statusToken}`);
         return;
       }
+
+      clearCart();
 
       if (loggedUser) {
         // Aggiorna profilo utente con telefono e ultimo indirizzo (fire-and-forget)
@@ -375,17 +360,11 @@ export default function OrdinePage() {
           supabase.auth.updateUser({ data: updateData }).catch(() => { });
         }
       } else {
-        // Salva dati guest per proposta registrazione post-ordine
-        sessionStorage.setItem("guestOrderData", JSON.stringify({
-          name: customerName,
-          email: customerEmail,
-          phone: customerPhone,
-        }));
+        safeSessionStorage.removeItem("guestOrderData");
+        safeSessionStorage.setItem("guestOrderCompleted", "true");
       }
 
-      const trackingUrl = order.statusAccessToken
-        ? `/stato-ordine/${order.id}#token=${encodeURIComponent(order.statusAccessToken)}`
-        : `/stato-ordine/${order.id}`;
+      const trackingUrl = orderTrackingUrl(order);
       router.push(trackingUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Si è verificato un errore. Riprova.");
@@ -406,6 +385,7 @@ export default function OrdinePage() {
         </p>
       </header>
 
+        <ServicePolicy accepted={policyAccepted} onChange={setPolicyAccepted} orderOnly />
       <form onSubmit={handleSubmit} className="space-y-10 sm:space-y-12">
         {/* SECTION 1: RIEPILOGO */}
         <div className="reveal space-y-6">
@@ -522,7 +502,7 @@ export default function OrdinePage() {
                   <h2 className="text-sm font-brand font-semibold text-charcoal/70 mb-0.5">Hai già un account?</h2>
                   <p className="text-xs text-charcoal/40 font-body">Accedi e completi il checkout in pochi secondi.</p>
                 </div>
-                <button
+                {providers.googleLoginEnabled && (<button
                   type="button"
                   onClick={handleGoogleLogin}
                   className="w-full py-3 bg-white border border-charcoal/10 rounded-2xl text-sm font-brand font-semibold text-charcoal hover:border-charcoal/25 active:scale-95 transition-all flex items-center justify-center gap-3 shadow-sm"
@@ -534,7 +514,7 @@ export default function OrdinePage() {
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                   </svg>
                   Continua con Google
-                </button>
+                </button>)}
                 <p className="text-center text-xs text-charcoal/35 font-body">
                   oppure{" "}
                   <Link href="/accedi?next=/ordine" className="text-terracotta font-semibold hover:underline">
@@ -576,7 +556,7 @@ export default function OrdinePage() {
           </div>
           <div className="space-y-1.5">
             <label className="text-xs font-brand font-semibold text-charcoal/45 ml-4 tracking-[0.18em] uppercase">
-              Email <span className="text-charcoal/35 font-body normal-case tracking-normal">(facoltativa — per ricevere aggiornamenti sull&apos;ordine)</span>
+              Email <span className="text-charcoal/35 font-body normal-case tracking-normal">(facoltativa — per essere ricontattato sul tuo ordine)</span>
             </label>
             <input
               type="email"
@@ -596,13 +576,13 @@ export default function OrdinePage() {
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-500 ml-4">INDIRIZZO</label>
-                <AddressAutocomplete
+                {policyAccepted ? <AddressAutocomplete
                   value={address}
                   onChange={(value) => { setAddress(value); setDeliveryKm(null); }}
                   onCoordinatesChange={handleDeliveryCoordinates}
                   required
                   placeholder="Via, Piazza, Numero civico"
-                />
+                /> : <p>Leggi l’informativa per inserire l’indirizzo necessario alla consegna.</p>}
                 {distanceLoading && <p className="ml-4 text-xs text-charcoal/45">Calcolo della tariffa di consegna…</p>}
                 {deliveryKm != null && <p className="ml-4 text-xs text-charcoal/45">Distanza stradale: {deliveryKm.toFixed(1)} km · Consegna: {formatCurrency(deliveryCost)}</p>}
               </div>
@@ -647,15 +627,16 @@ export default function OrdinePage() {
                 const month = d.toLocaleDateString("it-IT", { month: "short", timeZone: "UTC" });
                 const isSelected = selectedDate === dateStr;
                 const isClosed = closedDays.has(dateStr);
+                const isUnavailable = unavailableDays.has(dateStr);
                 return (
                   <button
                     key={dateStr}
                     type="button"
-                    onClick={() => !isClosed && setSelectedDate(dateStr)}
-                    disabled={isClosed}
+                    onClick={() => !isUnavailable && setSelectedDate(dateStr)}
+                    disabled={isUnavailable}
                     className={`w-[74px] shrink-0 flex flex-col items-center py-3 px-1 rounded-2xl border transition-all gap-1 ${isSelected
                         ? "bg-terracotta border-terracotta text-white shadow-xl"
-                        : isClosed
+                        : isUnavailable
                           ? "bg-charcoal/3 border-charcoal/5 opacity-40 cursor-not-allowed"
                           : "bg-white/50 border-charcoal/10 text-charcoal"
                       }`}
@@ -667,7 +648,7 @@ export default function OrdinePage() {
                       {day}
                     </span>
                     <span className={`text-[9px] font-brand font-bold uppercase tracking-widest ${isSelected ? "text-white/70" : isClosed ? "text-charcoal/30" : "text-charcoal/30"}`}>
-                      {isClosed ? "chiuso" : month}
+                      {isClosed ? "chiuso" : isUnavailable ? "non disp." : month}
                     </span>
                   </button>
                 );
@@ -684,15 +665,16 @@ export default function OrdinePage() {
               const month = d.toLocaleDateString("it-IT", { month: "short", timeZone: "UTC" });
               const isSelected = selectedDate === dateStr;
               const isClosed = closedDays.has(dateStr);
+                const isUnavailable = unavailableDays.has(dateStr);
               return (
                 <button
                   key={dateStr}
                   type="button"
-                  onClick={() => !isClosed && setSelectedDate(dateStr)}
-                  disabled={isClosed}
+                  onClick={() => !isUnavailable && setSelectedDate(dateStr)}
+                  disabled={isUnavailable}
                   className={`flex flex-col items-center py-3 px-1 rounded-2xl border transition-all gap-1 ${isSelected
                       ? "bg-terracotta border-terracotta text-white shadow-xl scale-105"
-                      : isClosed
+                      : isUnavailable
                         ? "bg-charcoal/3 border-charcoal/5 opacity-40 cursor-not-allowed"
                         : "bg-white/50 border-charcoal/10 text-charcoal hover:border-terracotta"
                     }`}
@@ -704,22 +686,25 @@ export default function OrdinePage() {
                     {day}
                   </span>
                   <span className={`text-[9px] font-brand font-bold uppercase tracking-widest ${isSelected ? "text-white/70" : isClosed ? "text-charcoal/30" : "text-charcoal/30"}`}>
-                    {isClosed ? "chiuso" : month}
+                    {isClosed ? "chiuso" : isUnavailable ? "non disp." : month}
                   </span>
                 </button>
               );
             })}
           </div>
 
+          {selectedDate !== getRomeDateString() && unavailableDays.has(getRomeDateString()) && <p role="status" className="rounded-2xl bg-charcoal/5 p-4 text-sm">Oggi non ci sono più fasce prenotabili per questo carrello. È selezionato il primo giorno disponibile: {new Date(`${selectedDate}T12:00:00Z`).toLocaleDateString("it-IT", {timeZone:"Europe/Rome"})}. Controlla la data prima di confermare.</p>}
+          {availabilityMessage && <p role="alert" className="rounded-2xl bg-terracotta/10 p-4 text-sm text-terracotta">{availabilityMessage}</p>}
           {dayClosed && slots.length === 0 && (
             <div className="p-4 bg-charcoal/5 rounded-2xl text-center">
-              <p className="text-xs font-brand font-bold uppercase tracking-widest text-charcoal/40">Il locale è chiuso in questa data</p>
+              <p className="text-xs font-brand font-bold uppercase tracking-widest text-charcoal/40">Nessuna fascia disponibile per questo carrello</p>
             </div>
           )}
 
           {slotsLoading && (
             <p className="text-xs text-charcoal/40 text-center py-3 font-body italic">Aggiorniamo gli orari disponibili...</p>
           )}
+          <p className="text-sm text-charcoal/60">Mostriamo solo le fasce con spazio per il tuo ordine. La prima disponibile è già selezionata.</p>
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
             {slots.map((slot) => (
               <button
@@ -735,9 +720,11 @@ export default function OrdinePage() {
                   }`}
               >
                 {slot.label ?? slot.time}
+                {slot.requiresCashierDecision && <span className="block text-[10px]">Su conferma della cassa</span>}
               </button>
             ))}
           </div>
+          {slots.find(s=>s.time===pickupTime)?.requiresCashierDecision && <p role="status" className="text-sm text-terracotta">Questa fascia richiede la nona teglia: la cassa potrà confermare l’orario oppure spostarlo. Controlla gli aggiornamenti nella pagina dell’ordine.</p>}
           {!slotsLoading && slots.length === 0 && <p className="text-sm text-gray-400 text-center py-4">Nessun orario disponibile per questa data.</p>}
         </div>
 
@@ -756,7 +743,7 @@ export default function OrdinePage() {
               <span className="text-xl">💵</span>
               Contanti
             </button>
-            <button
+            {providers.onlinePaymentEnabled && (<button
               type="button"
               onClick={() => setPaymentMethod("STRIPE")}
                 className={`flex-1 py-4 px-6 rounded-[1.6rem] transition-all flex items-center justify-center gap-3 font-bold ${paymentMethod === "STRIPE"
@@ -766,7 +753,7 @@ export default function OrdinePage() {
             >
               <span className="text-xl">💳</span>
               Carta online
-            </button>
+            </button>)}
           </div>
         </div>
 
@@ -783,11 +770,16 @@ export default function OrdinePage() {
         </div>
 
         <div className="reveal pt-6 pb-24 md:pb-0">
+          {pendingCheckout && <div className="mb-5 rounded-2xl bg-terracotta/10 p-5 text-center">
+            <p className="mb-3 text-sm">Hai già un ordine online da verificare. Riaprirlo mantiene la scadenza originaria dei 15 minuti.</p>
+            <a href={pendingCheckout.statusUrl} className="inline-block rounded-full bg-terracotta px-5 py-3 text-white">Riprendi o controlla il tuo ordine</a>
+            {pendingMatchesCart && <p className="mt-3 text-xs">Questo carrello è già nell’ordine. Per cambiarlo, annulla prima quell’ordine dalla sua pagina.</p>}
+          </div>}
           {error && <p className="text-center text-red-500 mb-4 font-semibold">{error}</p>}
           <div className="md:hidden fixed bottom-0 inset-x-0 z-40 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 bg-[linear-gradient(180deg,rgba(250,246,240,0)_0%,rgba(250,246,240,0.88)_22%,rgba(250,246,240,0.98)_100%)] backdrop-blur-sm border-t border-charcoal/8">
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !pricesReady || !pickupTime || pendingMatchesCart}
               className="w-full py-4 bg-terracotta text-white rounded-full font-bold text-lg shadow-2xl hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
             >
             {loading ? "Elaborazione..." : paymentMethod === "STRIPE" ? `Paga con carta · ${formatCurrency(total)}` : `Conferma Ordine · ${formatCurrency(total)}`}
@@ -796,7 +788,7 @@ export default function OrdinePage() {
           <div className="hidden md:block">
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !pricesReady || !pickupTime || pendingMatchesCart}
               className="w-full py-5 bg-terracotta text-white rounded-full font-bold text-xl shadow-2xl hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
             >
             {loading ? "Elaborazione..." : paymentMethod === "STRIPE" ? "Vai al pagamento sicuro" : "Conferma e Invia Ordine"}

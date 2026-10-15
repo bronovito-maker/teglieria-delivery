@@ -1,13 +1,10 @@
+import CustomerAssistant from "@/components/client/CustomerAssistant";
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
+import { headers } from "next/headers";
 import { Epilogue, Manrope } from "next/font/google";
 import "./globals.css";
 import PwaRegister from "@/components/PwaRegister";
 import CustomerAuthProvider from "@/components/client/CustomerAuthProvider";
-import ZirelWidgetHomeOnly from "@/components/client/ZirelWidgetHomeOnly";
-import { Analytics } from "@vercel/analytics/react";
-import { GoogleAnalytics } from "@next/third-parties/google";
-import { headers } from "next/headers";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -30,7 +27,7 @@ const epilogueLogo = Epilogue({
   display: "swap",
 });
 
-const BASE_URL = "https://www.lateglieria.it";
+const BASE_URL = process.env.UNIFIED_WEB_ORIGIN || "http://127.0.0.1:4310";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -125,40 +122,16 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
+  await headers(); // Render per request so the CSP nonce matches Next.js scripts.
   return (
     <html lang="it">
       <body className={`${manrope.className} ${manrope.variable} ${epilogue.variable} ${epilogueLogo.variable} antialiased`} data-gramm="false" data-gramm_editor="false">
-        <Script id="facebook-pixel" strategy="afterInteractive" nonce={nonce}>
-          {`
-            !function(f,b,e,v,n,t,s)
-            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-            n.queue=[];t=b.createElement(e);t.async=!0;
-            t.src=v;s=b.getElementsByTagName(e)[0];
-            s.parentNode.insertBefore(t,s)}(window, document,'script',
-            'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '955909697258843');
-            fbq('track', 'PageView');
-          `}
-        </Script>
-        <noscript>
-          <img
-            height="1"
-            width="1"
-            className="hidden"
-            src="https://www.facebook.com/tr?id=955909697258843&ev=PageView&noscript=1"
-            alt=""
-          />
-        </noscript>
+        {/* External tracking and external chat stay disabled. */}
         <PwaRegister />
         <CustomerAuthProvider>{children}</CustomerAuthProvider>
-        <ZirelWidgetHomeOnly />
-        <Analytics />
-        {process.env.NEXT_PUBLIC_GA_ID && (
-          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
-        )}
+        <CustomerAssistant />
+        <aside aria-label="Informazioni cookie" className="bg-white px-6 py-4 text-center text-xs text-charcoal">Usiamo solo memoria e cookie tecnici per il servizio. Nessun cookie pubblicitario o di profilazione. <a href="/cookie-policy" className="underline">Informazioni sui cookie</a></aside>
+
       </body>
     </html>
   );

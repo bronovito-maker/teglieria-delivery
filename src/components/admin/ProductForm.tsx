@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/auth/client";
 import type { ProductWithRelations } from "@/types";
 
 const BUCKET = "product-images";

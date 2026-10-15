@@ -1,0 +1,8 @@
+'use client';
+import {use, useEffect, useState} from 'react';
+export default function SandboxPayment({params}:{params:Promise<{id:string}>}){
+ const {id}=use(params);const [token,setToken]=useState('');const [busy,setBusy]=useState(false);const [error,setError]=useState('');
+ useEffect(()=>{setToken(new URLSearchParams(window.location.hash.slice(1)).get('token')??'');},[]);
+ async function finish(outcome:string){setBusy(true);setError('');try{const response=await fetch(`/api/ordini/${id}/sandbox-payment`,{method:'POST',headers:{'Content-Type':'application/json','X-Order-Status-Token':token},body:JSON.stringify({outcome})});const data=await response.json();if(!response.ok)throw new Error(data.error||'Pagamento di prova non disponibile');window.location.assign(`/stato-ordine/${id}#token=${token}`);}catch(e){setError(e instanceof Error?e.message:'Backend non raggiungibile');setBusy(false);}}
+ return <main className="min-h-screen flex items-center justify-center bg-cream p-8"><div className="bg-white rounded-3xl p-8 max-w-xl space-y-5"><p className="font-bold text-terracotta">SANDBOX ISOLATA — NESSUN ADDEBITO REALE</p><h1 className="text-3xl font-bold">Pagamento online di prova</h1><p>La conferma registra il pagamento nello stesso backend del gestionale. Nessun documento viene stampato.</p>{error&&<p role="alert">{error}</p>}<div className="flex flex-wrap gap-3">{[['paid','Approva pagamento'],['declined','Carta rifiutata'],['cancelled','Annulla pagamento']].map(([outcome,label])=><button className="bg-charcoal text-white rounded-lg px-4 py-3" disabled={busy||!token} key={outcome} onClick={()=>finish(outcome)}>{label}</button>)}</div></div></main>
+}

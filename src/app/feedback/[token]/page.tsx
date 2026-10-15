@@ -1,4 +1,5 @@
 "use client";
+import { policyPayload } from "@/components/client/ServicePolicy";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -11,6 +12,7 @@ export default function FeedbackPage() {
   const [state, setState] = useState<FeedbackState | null>(null);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [accepted, setAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ positive: boolean } | null>(null);
   const [error, setError] = useState("");
@@ -24,13 +26,14 @@ export default function FeedbackPage() {
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!accepted) return setError("Conferma maggiore età, informativa e consenso al feedback.");
     if (!rating) return setError("Seleziona una valutazione da 1 a 5 stelle.");
     setLoading(true);
     setError("");
     const response = await fetch(`/api/feedback/${token}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ overallRating: rating, comment: comment || undefined }),
+      body: JSON.stringify({ policy: policyPayload(accepted), feedbackConsent: accepted, overallRating: rating, comment: comment || undefined }),
     });
     const data = await response.json();
     setLoading(false);
@@ -47,7 +50,7 @@ export default function FeedbackPage() {
           <p className="mt-4 font-body text-sm leading-relaxed text-charcoal/60">
             Il tuo feedback ci aiuta a rendere La Teglieria sempre migliore.
           </p>
-          {result.positive && (
+          {(
             <a href="https://g.page/r/CW1blgo1a4szECE/review" target="_blank" rel="noopener noreferrer" className="mt-7 inline-flex rounded-full bg-terracotta px-6 py-3 text-xs font-bold uppercase tracking-widest text-white">
               Raccontalo anche su Google ↗
             </a>
@@ -58,7 +61,7 @@ export default function FeedbackPage() {
     );
   }
 
-  if (error || state?.expired || state?.submitted) {
+  if ((!state && error) || state?.expired || state?.submitted) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-warm-light px-5 py-12 text-center text-charcoal">
         <div className="w-full max-w-md rounded-[2rem] bg-white p-8 shadow-sm sm:p-12">
@@ -85,6 +88,7 @@ export default function FeedbackPage() {
           <textarea value={comment} onChange={(event) => setComment(event.target.value)} maxLength={2000} rows={4} className="mt-2 w-full rounded-2xl border border-charcoal/10 bg-warm-light/40 p-4 text-sm font-normal normal-case tracking-normal outline-none focus:border-terracotta" placeholder="Cosa ti è piaciuto? Cosa possiamo migliorare?" />
         </label>
         {error && <p className="mt-4 text-center text-sm text-red-600">{error}</p>}
+        <label className="mt-5 flex gap-3 text-sm"><input type="checkbox" checked={accepted} onChange={event=>setAccepted(event.target.checked)} /><span>Dichiaro di avere almeno 18 anni, ho letto l’<Link href="/privacy" target="_blank" className="underline">informativa</Link> e acconsento all’uso di questa valutazione per migliorare il servizio. Il consenso è facoltativo e revocabile contattando il locale; non riguarda pubblicità.</span></label>
         <button disabled={loading || !state} className="mt-6 w-full rounded-full bg-terracotta px-6 py-4 text-xs font-bold uppercase tracking-widest text-white disabled:opacity-50">{loading ? "Invio…" : "Invia valutazione"}</button>
       </form>
     </main>

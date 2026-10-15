@@ -1,12 +1,8 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/feedback",
-      "schedule": "0 3 * * *"
-    },
-    {
-      "path": "/api/cron/order-emails",
-      "schedule": "*/5 * * * *"
-    }
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "installCommand": "npm ci",
+  "regions": [
+    "fra1"
   ]
 }

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { loadPlacesLibrary } from "@/lib/google-maps-loader";
 
-type Coordinates = { lat: number; lng: number };
+type Coordinates = { lat: number; lng: number; address?: string };
 
 type Props = {
   value: string;
@@ -35,7 +35,8 @@ export default function GooglePlaceAutocomplete({
   const onCoordinatesChangeRef = useRef(onCoordinatesChange);
   const valueRef = useRef(value);
   const [loadError, setLoadError] = useState("");
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const [apiKey,setApiKey] = useState("");
+  useEffect(()=>{let active=true;fetch('/api/config').then(r=>r.json()).then(c=>{if(active)setApiKey(c.googleMapsKey||"");}).catch(()=>setLoadError("Servizio indirizzi non raggiungibile"));return()=>{active=false;};},[]);
 
   useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
   useEffect(() => { onCoordinatesChangeRef.current = onCoordinatesChange; }, [onCoordinatesChange]);
@@ -83,13 +84,14 @@ export default function GooglePlaceAutocomplete({
           onChangeRef.current(address);
           const location = place.location;
           onCoordinatesChangeRef.current?.(
-            location ? { lat: location.lat(), lng: location.lng() } : null,
+            location ? { lat: location.lat(), lng: location.lng(), address } : null,
           );
         });
         autocomplete.addEventListener("gmp-error", () => {
           if (!cancelled) setLoadError("Impossibile caricare i suggerimenti degli indirizzi.");
         });
 
+        setLoadError("");
         hostRef.current.replaceChildren(autocomplete);
         elementRef.current = autocomplete;
       } catch (error) {

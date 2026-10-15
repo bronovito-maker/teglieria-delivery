@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/auth/server";
 import MobileTopBar from "@/components/client/MobileTopBar";
 import ClientFooter from "@/components/client/ClientFooter";
 

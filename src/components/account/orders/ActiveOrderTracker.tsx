@@ -1,8 +1,9 @@
 "use client";
+import CancelOrder from "./CancelOrder";
 
 import { useEffect } from "react";
 import { Clock3, Pizza, Scooter, Store } from "lucide-react";
-import { formatCurrency, formatTime } from "@/lib/utils";
+import { formatCurrency, formatDate, formatTime } from "@/lib/utils";
 import type { OrderStatus, OrderType, UserOrder } from "./types";
 import { fromCents, toCents } from "@/lib/money";
 import { formatOrderTimeSlot } from "@/lib/order-time-slots";
@@ -69,6 +70,7 @@ export default function ActiveOrderTracker({ order, onRefresh }: ActiveOrderTrac
       </div>
 
       <div className="rounded-[1.5rem] border border-zinc-100 bg-zinc-50 p-4 mb-5">
+        {order.pickupTime && <p className="mb-2 text-sm font-semibold text-terracotta">Data prenotazione: {formatDate(order.pickupTime)}</p>}
         {order.timeSlot && (
           <p className="mb-2 text-sm font-semibold text-terracotta">
             Fascia richiesta: {formatOrderTimeSlot(order.type, order.timeSlot)}
@@ -151,6 +153,7 @@ export default function ActiveOrderTracker({ order, onRefresh }: ActiveOrderTrac
           <span>Totale</span>
           <span className="tabular-nums">{formatCurrency(order.total)}</span>
         </div>
+        <CancelOrder order={order} onCancelled={onRefresh} />
         {order.clubSavings > 0 && (
           <p className="mt-2 text-right text-xs font-semibold text-emerald-700">Hai risparmiato {formatCurrency(order.clubSavings)} con Club</p>
         )}

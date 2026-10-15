@@ -111,12 +111,7 @@ export default function LandingPage() {
 
       <section id="contatti" className="mx-auto max-w-3xl px-5 py-10 sm:py-16">
         <div className="overflow-hidden rounded-[1.5rem] border border-charcoal/10 bg-white shadow-sm">
-          <iframe
-            title="Mappa La Teglieria"
-            src="https://www.google.com/maps?q=Via+Inghilterra+68,+Livorno&output=embed"
-            className="h-56 w-full border-0 sm:h-72"
-            loading="lazy"
-          />
+          <p className="px-5 py-6 text-center">Via Inghilterra 68, Livorno. La mappa Google si apre solo premendo il collegamento qui sotto.</p>
           <a href="https://www.google.com/maps/search/?api=1&query=Via+Inghilterra+68,+Livorno" target="_blank" rel="noreferrer" className="block px-5 py-4 text-center text-sm font-brand font-semibold text-charcoal/65 hover:text-terracotta">
             La Scopaia · Apri in Google Maps ↗
           </a>

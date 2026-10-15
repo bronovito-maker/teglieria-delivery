@@ -1,4 +1,4 @@
-import type { Order, OrderItem, OrderStatusLog, Rider } from "@prisma/client";
+import type { Order, OrderItem, OrderStatusLog, Rider } from "@/types/models";
 
 export type LoadedOrder = Order & {
   items?: OrderItem[];
