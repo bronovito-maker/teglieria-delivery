@@ -16,7 +16,7 @@ export async function previewAccess(request: Request): Promise<Response | null> 
  let rec: Record; const raw = process.env.UNIFIED_PREVIEW_AUTH ?? '';
  try {
   rec = JSON.parse(raw);
-  if (rec.version !== 1 || !/^[A-Za-z0-9_.-]{1,64}$/.test(rec.username) || !/^[a-f0-9]{32}$/.test(rec.salt) || !/^[a-f0-9]{128}$/.test(rec.hash)) throw Error();
+  if (rec.version !== 1 || typeof rec.username !== 'string' || !/^[A-Za-z0-9_.-]{1,64}$/.test(rec.username) || !/^[a-f0-9]{32}$/.test(rec.salt) || !/^[a-f0-9]{128}$/.test(rec.hash)) throw Error();
  } catch { return deny(503, 'Accesso riservato non configurato'); }
  // Only Stripe's exact signed callback is exempt, after validating gate configuration.
  const url = new URL(request.url);

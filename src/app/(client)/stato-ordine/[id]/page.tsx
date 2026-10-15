@@ -9,6 +9,7 @@ import { formatOrderTimeSlot, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@
 import { formatCurrency, formatDate, formatTime, formatOrderCode } from "@/lib/utils";
 import { useCustomerAuth } from "@/components/client/CustomerAuthProvider";
 import type { OrderWithItems } from "@/types";
+import {customerStatusHistory} from "@/lib/order-history";
 
 import {settleCheckout} from "@/lib/pending-checkout";
 
@@ -290,7 +291,7 @@ export default function StatoOrdinePage() {
         <div className="border-t border-charcoal/5 pt-8">
           <p className="text-[10px] font-brand font-bold uppercase tracking-widest text-charcoal/30 mb-6">Cronologia Stati</p>
           <div className="space-y-4">
-            {order.statusHistory.map((log, index) => (
+            {customerStatusHistory(order.statusHistory).map((log, index) => (
               <div key={log.id || `${log.status}-${log.createdAt}-${index}`} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-1.5 h-1.5 rounded-full bg-charcoal/10" />

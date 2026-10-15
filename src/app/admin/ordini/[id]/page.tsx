@@ -6,6 +6,7 @@ import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, formatOrderTimeSlot, getStatu
 import { formatCurrency, formatDateTime, formatTime, formatOrderCode } from "@/lib/utils";
 import { formatPizzaVariant } from "@/lib/pizza-builder";
 import type { OrderWithItems } from "@/types";
+import {customerStatusHistory} from "@/lib/order-history";
 
 export default function OrderDetailPage() {
   const { id } = useParams();
@@ -244,7 +245,7 @@ export default function OrderDetailPage() {
         <div className="bg-white rounded-[2rem] shadow-sm border border-charcoal/5 p-5">
           <h2 className="font-brand font-semibold mb-3">Cronologia</h2>
           <div className="space-y-2">
-            {order.statusHistory.map((log) => (
+            {customerStatusHistory(order.statusHistory).map((log) => (
               <div key={log.id} className="flex items-center gap-3 text-sm">
                 <span className="text-gray-400 w-12 font-body">{formatTime(log.createdAt)}</span>
                 <span className={`px-2 py-0.5 rounded text-xs font-brand font-semibold ${ORDER_STATUS_COLORS[log.status]}`}>
