@@ -1,4 +1,5 @@
 "use client";
+import PurchaseObserver from "@/components/client/PurchaseObserver";
 import { safeSessionStorage } from "@/lib/browser-storage";
 import CancelOrder from "@/components/account/orders/CancelOrder";
 
@@ -120,6 +121,7 @@ export default function StatoOrdinePage() {
 
   return (
     <div className="mx-auto min-h-screen max-w-xl bg-warm-light px-5 pb-16 pt-5 sm:px-8 sm:pt-8">
+      <PurchaseObserver order={order} />
       <div className="reveal active mb-8 flex flex-col items-center text-center sm:mb-10">
         <span className="text-[10px] font-brand font-bold uppercase tracking-[0.4em] text-terracotta/60 mb-4 px-4 py-1.5 border border-terracotta/20 rounded-full bg-white/50">
           Tracking Online

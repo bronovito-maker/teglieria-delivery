@@ -1,5 +1,9 @@
+import CookiePreferences from '@/components/client/CookiePreferences';
 import CustomerAssistant from "@/components/client/CustomerAssistant";
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
+import { CONSENT_COOKIE, parseConsent } from "@/lib/cookie-consent";
+import { publicReceipts } from "@/lib/meta-purchase-server";
 import { headers } from "next/headers";
 import { Epilogue, Manrope } from "next/font/google";
 import "./globals.css";
@@ -122,15 +126,18 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await headers(); // Render per request so the CSP nonce matches Next.js scripts.
+  const requestHeaders = await headers();
+  const jar = await cookies();
+  const purchases = requestHeaders.get("x-meta-route") === "/acquisto-completato" ? await publicReceipts(jar.getAll(), parseConsent(jar.get(CONSENT_COOKIE)?.value)) : [];
+  const nonce = requestHeaders.get("x-nonce") ?? ""; // Per-request CSP nonce.
   return (
     <html lang="it">
       <body className={`${manrope.className} ${manrope.variable} ${epilogue.variable} ${epilogueLogo.variable} antialiased`} data-gramm="false" data-gramm_editor="false">
-        {/* External tracking and external chat stay disabled. */}
+        {/* Optional Meta tracking is controlled by consent and route-specific CSP. */}
         <PwaRegister />
         <CustomerAuthProvider>{children}</CustomerAuthProvider>
         <CustomerAssistant />
-        <aside aria-label="Informazioni cookie" className="bg-white px-6 py-4 text-center text-xs text-charcoal">Usiamo solo memoria e cookie tecnici per il servizio. Nessun cookie pubblicitario o di profilazione. <a href="/cookie-policy" className="underline">Informazioni sui cookie</a></aside>
+        <CookiePreferences nonce={nonce} purchases={purchases} />
 
       </body>
     </html>

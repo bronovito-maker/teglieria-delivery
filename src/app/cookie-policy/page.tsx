@@ -4,7 +4,7 @@ import MobileTopBar from "@/components/client/MobileTopBar";
 
 export const metadata: Metadata = {
   title: "Cookie Policy — La Teglieria",
-  description: "Informazioni sui cookie tecnici e sulla memoria locale del sito.",
+  description: "Informazioni sui cookie tecnici, sulle preferenze e sul Pixel Meta facoltativo.",
 };
 
 export default function CookiePolicyPage() {
@@ -24,7 +24,7 @@ export default function CookiePolicyPage() {
             Cookie <span className="text-terracotta">Policy</span>
           </h1>
           <p className="text-sm text-charcoal/40 font-body">
-            Ultimo aggiornamento: <strong className="text-charcoal/60">14 ottobre 2026</strong>
+            Ultimo aggiornamento: <strong className="text-charcoal/60">15 ottobre 2026</strong>
           </p>
         </header>
 
@@ -46,6 +46,8 @@ export default function CookiePolicyPage() {
               </div>
               <div className="divide-y divide-charcoal/5">
                 {[
+                  { nome: "lt_cookie_preferences", scopo: "Scelta cookie tecnici/pubblicitari, versione, identificativo e data della scelta; non autorizza newsletter o profilazione CRM", durata: "12 mesi su questo browser" },
+                  { nome: "lt_cookie_consent_changed", scopo: "Segnale tecnico locale per aggiornare le preferenze nelle altre schede aperte; non contiene contatti o scelte pubblicitarie", durata: "Fino alla rimozione dal browser" },
                   { nome: "lt_web_session", scopo: "Sessione di autenticazione protetta HttpOnly", durata: "7 giorni" },
                   { nome: "lt_order_…", scopo: "Accesso allo stato del proprio ordine", durata: "7 giorni" },
                   { nome: "lt_oauth_state", scopo: "Sicurezza dell’accesso Google, quando richiesto", durata: "10 minuti" },
@@ -61,8 +63,16 @@ export default function CookiePolicyPage() {
                 ))}
               </div>
               <div className="px-5 py-3 bg-charcoal/[0.02] border-t border-charcoal/5">
-                <p className="text-xs text-charcoal/40">I cookie strettamente necessari non richiedono consenso preventivo. La memoria del carrello e del pagamento serve alle funzioni richieste: non è profilazione. Non è previsto un pulsante “Accetta tutti” perché non attiviamo cookie facoltativi.</p>
+                <p className="text-xs text-charcoal/40">I cookie strettamente necessari non richiedono consenso preventivo. La memoria del carrello e del pagamento serve alle funzioni richieste: non è profilazione. Il Pixel Meta è facoltativo: parte solo dopo il consenso pubblicitario di un maggiorenne. “Accetta solo essenziali” lascia attive prenotazioni e pagamenti. La scelta si modifica dal pulsante “Preferenze cookie”.</p>
               </div>
+            </div>
+
+            <div className="bg-white/60 border border-charcoal/5 rounded-2xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-charcoal/5"><h3 className="font-bold">Memoria pubblicitaria facoltativa — solo con consenso</h3></div>
+              {[
+                  { nome: "lt_mp_i_* / lt_mp_r_*", scopo: "Ricevute firmate di misurazione acquisto, solo dopo consenso pubblicitario; non sono usate per autorizzare pagamenti", durata: "Intenzione: massimo 9 giorni; conferma: 10 minuti" },
+                  { nome: "lt_meta_purchases_v1 / lt_meta_active_purchase", scopo: "Memoria pubblicitaria locale con identificativi pseudonimi per evitare duplicati e indicare l’acquisto corrente", durata: "Identificativi validi per 90 giorni, eliminati al successivo uso o alla revoca; indicatore nella sola sessione della scheda" },
+              ].map(c => <div key={c.nome} className="px-5 py-4 grid grid-cols-3 gap-4 text-sm"><code className="break-all text-xs">{c.nome}</code><span>{c.scopo}</span><span className="text-xs">{c.durata}</span></div>)}
             </div>
 
             <div className="bg-white/60 border border-charcoal/5 rounded-2xl overflow-hidden">
@@ -71,6 +81,8 @@ export default function CookiePolicyPage() {
               </div>
               <div className="divide-y divide-charcoal/5">
                 {[
+                  { nome: "Meta Pixel (ID 955909697258843)", scopo: "Misurazione pubblicitaria delle visite alle pagine pubbliche e degli acquisti pagati e accettati, solo dopo consenso. Cookie _fbp ed eventuale _fbc, durata gestita da Meta", durata: "Definita da Meta" },
+                  { nome: "Stripe Checkout", scopo: "Pagamento e prevenzione frodi quando scegli di pagare con Stripe", durata: "Gestita da Stripe" },
                   { nome: "Google Maps", scopo: "Geocodifica indirizzi e calcolo distanze per la consegna", durata: "Variabile" },
                   { nome: "Google OAuth", scopo: "Autenticazione tramite account Google (solo se usato)", durata: "Sessione" },
                 ].map((c) => (
@@ -83,7 +95,7 @@ export default function CookiePolicyPage() {
               </div>
               <div className="px-5 py-3 bg-charcoal/[0.02] border-t border-charcoal/5">
                 <p className="text-xs text-charcoal/40">
-                  Questi cookie sono gestiti dai rispettivi fornitori. Consulta la{" "}
+                  Puoi revocare il consenso pubblicitario da “Preferenze cookie”: il sito interrompe gli invii successivi e rimuove i cookie Meta accessibili sul proprio dominio. La revoca non cancella automaticamente i dati già ricevuti da Meta o i cookie sui domini dei fornitori. Consulta le informative di <a href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener noreferrer" className="underline">Meta</a>, <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer" className="underline">Stripe</a> e la{" "}
                   <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-terracotta underline underline-offset-2">
                     Privacy Policy di Google
                   </a>{" "}
@@ -93,7 +105,7 @@ export default function CookiePolicyPage() {
             </div>
 
             <p className="text-sm bg-marigold/10 border border-marigold/20 rounded-2xl px-5 py-4 text-charcoal/70">
-              Non carichiamo Meta Pixel, Google Analytics, Vercel Analytics o il widget chat Zirel. La mappa del locale si apre su Google soltanto scegliendo il relativo collegamento. I servizi Google di indirizzo e accesso si aprono su richiesta esplicita dopo la dichiarazione di maggiore età e la lettura dell’informativa. Non chiediamo il GPS del cliente. Il portale e il tracciamento rider sono esclusi dalla V1.
+              Il Pixel Meta non viene caricato prima del consenso o dopo il rifiuto. Non installiamo Google Analytics, Vercel Analytics o il widget chat Zirel. Per gli acquisti pagati e accettati inviamo soltanto importo finale in euro, valuta e un identificativo pseudonimo per evitare duplicati. Non inviamo dati CRM, contatti, indirizzi, note o dati carta a Meta. Meta riceve anche i dati tecnici della connessione, tra cui IP e browser: questi eventi non sono anonimi. Checkout, account, stato ordine e indirizzi con parametri o frammenti sono esclusi dal Pixel. L’evento acquisto parte da una pagina di conferma separata senza riferimenti personali nell’indirizzo; richiede il browser aperto. Un rimborso successivo non cancella automaticamente l’evento già inviato. La mappa del locale si apre su Google soltanto scegliendo il relativo collegamento. La ricerca indirizzo Google si apre su richiesta esplicita dopo la lettura dell’informativa; l’accesso con Google richiede anche la dichiarazione di maggiore età prevista per gli account. Non chiediamo il GPS del cliente. Il portale e il tracciamento rider sono esclusi dalla V1.
             </p>
           </section>
 

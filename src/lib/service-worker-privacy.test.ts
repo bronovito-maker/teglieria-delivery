@@ -30,3 +30,21 @@ describe('PWA private data isolation', () => {
     expect(deleted).toEqual(['teglieria-pwa-v2', 'teglieria-pwa-v3']);
   });
 });
+
+// Consent-dependent HTML must always be regenerated, including the public menu.
+describe('PWA consent cache boundary', () => {
+  it('does not precache public or authenticated HTML', () => {
+    const code = readFileSync('public/sw.js', 'utf8');
+    const core = code.match(/const CORE_ASSETS = ([^;]+);/)![1];
+    for (const path of ['"/"', '"/menu"', '"/servizi"', '"/privacy"', '"/cookie-policy"']) expect(core).not.toContain(path);
+  });
+  it('fetches public navigations without writing HTML into a cache', async () => {
+    const { listeners } = worker();
+    for (const path of ['/', '/menu', '/servizi', '/privacy']) {
+      let promise: Promise<Response> | undefined;
+      listeners.fetch({ request: { method: 'GET', url: `https://example.test${path}`, mode: 'navigate' }, respondWith: (response: Promise<Response>) => { promise = response; } });
+      expect(promise).toBeDefined();
+      expect((await promise!).status).toBe(503); // No caches.open/put exists in this fixture.
+    }
+  });
+});
