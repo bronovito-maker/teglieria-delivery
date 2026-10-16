@@ -33,7 +33,7 @@ function MenuContent() {
   const [isLoading, setIsLoading] = useState(!initialMenu);
   const [selectedProduct, setSelectedProduct] = useState<ProductWithRelations | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
-  useEffect(()=>{const open=()=>setCartOpen(true);window.addEventListener("lt:open-cart",open);if(safeSessionStorage.getItem("lt_open_cart")==="1"){safeSessionStorage.removeItem("lt_open_cart");open();}return()=>window.removeEventListener("lt:open-cart",open);},[]);
+  useEffect(()=>{const open=()=>setCartOpen(true);window.addEventListener("lt:open-cart",open);if(safeSessionStorage.getItem("lt_open_cart")==="1"){open();}return()=>window.removeEventListener("lt:open-cart",open);},[]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isClubMember, setIsClubMember] = useState<boolean | null>(initialMenu?.isClubMember ?? null);
   const authChecked = !authLoading;
@@ -415,7 +415,7 @@ function MenuContent() {
         />
       )}
 
-      {!browseOnly && <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />}
+      {!browseOnly && <CartDrawer open={cartOpen} onClose={() => {safeSessionStorage.removeItem("lt_open_cart");setCartOpen(false);}} />}
     </div>
   );
 }
