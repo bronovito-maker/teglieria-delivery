@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CONSENT_SECONDS, CONSENT_VERSION, parseConsent, permitsMeta, safeMarketingReferrer, type CookieConsent } from './cookie-consent';
 const now = Date.now();
-const accepted: CookieConsent = { version: CONSENT_VERSION, receiptId: '00000000-0000-4000-8000-000000000001', recordedAt: now, expiresAt: now + CONSENT_SECONDS * 1000, marketing: true, adult: true };
+const accepted: CookieConsent = { version: CONSENT_VERSION, receiptId: '00000000-0000-4000-8000-000000000001', recordedAt: now, expiresAt: now + CONSENT_SECONDS * 1000, analytics: false, marketing: true, adult: true };
 const raw = (v: unknown) => encodeURIComponent(JSON.stringify(v));
 describe('optional advertising consent', () => {
   it('accepts current adult consent and remembers explicit refusal', () => {

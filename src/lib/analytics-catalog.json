@@ -1,0 +1,234 @@
+{
+  "cmtelvnpb0001qww7wsbrlqbj": {
+    "name": "La Regina — Teglia intera",
+    "category": "Teglie"
+  },
+  "cmtelvr5s0003qww7gfdx4prx": {
+    "name": "La Partenopea — Teglia intera",
+    "category": "Teglie"
+  },
+  "cmtelvtev0005qww7jhli5stw": {
+    "name": "La Contadina — Teglia intera",
+    "category": "Teglie"
+  },
+  "cmtelvv6z0007qww7si15uhwd": {
+    "name": "La Diavola — Teglia intera",
+    "category": "Teglie"
+  },
+  "cmtelvyd40009qww74bggcn3j": {
+    "name": "L'Ortolana — Teglia intera",
+    "category": "Teglie"
+  },
+  "cmtelw1i8000bqww7mso668o7": {
+    "name": "La Pistacchio — Teglia intera",
+    "category": "Teglie"
+  },
+  "cmtelw5dt000dqww7kj289qkd": {
+    "name": "La Nordica — Teglia intera",
+    "category": "Teglie"
+  },
+  "cmtelw96z000fqww7k2ekcnr4": {
+    "name": "La Parma — Teglia intera",
+    "category": "Teglie"
+  },
+  "cmtelwcix000hqww7sktev5iz": {
+    "name": "La Burrata — Teglia intera",
+    "category": "Teglie"
+  },
+  "cmtelwfi5000jqww7fyangz2c": {
+    "name": "La Carbonara — Teglia intera",
+    "category": "Teglie"
+  },
+  "cmt7qhrnf0006q5b2zb747zkd": {
+    "name": "La Regina — Mezza teglia",
+    "category": "Mezze teglie"
+  },
+  "cmt7qhut6000cq5b2lrzl2gv2": {
+    "name": "La Partenopea — Mezza teglia",
+    "category": "Mezze teglie"
+  },
+  "cmt7qhxrm000iq5b2dw21xw75": {
+    "name": "La Contadina — Mezza teglia",
+    "category": "Mezze teglie"
+  },
+  "cmt7qi0ww000oq5b23ji43lsz": {
+    "name": "La Diavola — Mezza teglia",
+    "category": "Mezze teglie"
+  },
+  "cmt7qi42t000uq5b298uc10mr": {
+    "name": "L'Ortolana — Mezza teglia",
+    "category": "Mezze teglie"
+  },
+  "cmt7qi79u0010q5b2ikilcq7l": {
+    "name": "La Pistacchio — Mezza teglia",
+    "category": "Mezze teglie"
+  },
+  "cmt7qiade0016q5b28kt768eh": {
+    "name": "La Nordica — Mezza teglia",
+    "category": "Mezze teglie"
+  },
+  "cmt7qids5001cq5b29hjkqjwz": {
+    "name": "La Parma — Mezza teglia",
+    "category": "Mezze teglie"
+  },
+  "cmt7qig2z001iq5b2kwd5jb9m": {
+    "name": "La Burrata — Mezza teglia",
+    "category": "Mezze teglie"
+  },
+  "cmt7qij17001oq5b2kay1aft8": {
+    "name": "La Carbonara — Mezza teglia",
+    "category": "Mezze teglie"
+  },
+  "cmteau3oy001wx81gnfgh5gg7": {
+    "name": "La Semplice — Schiacciatina",
+    "category": "Schiacciatine"
+  },
+  "cmteau4ej001yx81ggbq8yjml": {
+    "name": "La Classica — Schiacciatina",
+    "category": "Schiacciatine"
+  },
+  "cmteau5nd0020x81g1k7zws61": {
+    "name": "La Rustica — Schiacciatina",
+    "category": "Schiacciatine"
+  },
+  "cmteau8b20024x81gcgb7ryiz": {
+    "name": "La Pistacchio — Schiacciatina",
+    "category": "Schiacciatine"
+  },
+  "cmteau9e10026x81gh98k7ln2": {
+    "name": "La Parma — Schiacciatina",
+    "category": "Schiacciatine"
+  },
+  "cmteauaay0028x81g4gaya0ds": {
+    "name": "La Golosa — Schiacciatina",
+    "category": "Schiacciatine"
+  },
+  "cmteaubjv002ax81g6mnq0hzb": {
+    "name": "Torta di Ceci — 100 g",
+    "category": "Torta di ceci e 5e5"
+  },
+  "cmteaucv5002cx81gbp8ed1y6": {
+    "name": "Giga 5e5",
+    "category": "Torta di ceci e 5e5"
+  },
+  "cmteaue5m002ex81gt0vi97go": {
+    "name": "Giga 5e5 con Melanzane",
+    "category": "Torta di ceci e 5e5"
+  },
+  "cmteaufla002gx81gwp73c70a": {
+    "name": "5e5 Piccolo",
+    "category": "Torta di ceci e 5e5"
+  },
+  "cmteaugp4002ix81g9g6vr18k": {
+    "name": "5e5 Piccolo con Melanzane",
+    "category": "Torta di ceci e 5e5"
+  },
+  "cmteaui3z002kx81g2nrnc8ry": {
+    "name": "Pane Fritto della Teglieria",
+    "category": "Fritti"
+  },
+  "cmteaujl3002mx81g6b0cdxso": {
+    "name": "Patatine Fritte",
+    "category": "Fritti"
+  },
+  "cmteaukry002ox81gd0mskxqu": {
+    "name": "Nuggets di Pollo",
+    "category": "Fritti"
+  },
+  "cmteaulta002qx81gnuqmwt85": {
+    "name": "Anelli di Cipolla",
+    "category": "Fritti"
+  },
+  "cmteaunan002ux81gauvy9ze7": {
+    "name": "Acqua naturale S. Antonio — 50 cl",
+    "category": "Bevande analcoliche"
+  },
+  "cmteauo9f002wx81gi2gotw2x": {
+    "name": "Acqua gassata S. Antonio — 50 cl",
+    "category": "Bevande analcoliche"
+  },
+  "cmteaupop002yx81gns94wm8b": {
+    "name": "Acqua Valmora naturale — 1,5 L",
+    "category": "Bevande analcoliche"
+  },
+  "cmteaur430030x81gmwjg8bvg:0": {
+    "name": "Estathé pesca — brick / 20 cl",
+    "category": "Bevande analcoliche"
+  },
+  "cmteaur430030x81gmwjg8bvg:1": {
+    "name": "Estathé limone — brick / 20 cl",
+    "category": "Bevande analcoliche"
+  },
+  "cmteausbu0032x81gowpzfcn9:0": {
+    "name": "Coca-Cola — lattina / 33 cl",
+    "category": "Bevande analcoliche"
+  },
+  "cmteausbu0032x81gowpzfcn9:1": {
+    "name": "Coca-Cola Zero — lattina / 33 cl",
+    "category": "Bevande analcoliche"
+  },
+  "cmteausbu0032x81gowpzfcn9:2": {
+    "name": "Fanta — lattina / 33 cl",
+    "category": "Bevande analcoliche"
+  },
+  "cmteaut9g0034x81gawkkegiu:0": {
+    "name": "Coca-Cola — PET / 45 cl",
+    "category": "Bevande analcoliche"
+  },
+  "cmteaut9g0034x81gawkkegiu:1": {
+    "name": "Coca-Cola Zero — PET / 45 cl",
+    "category": "Bevande analcoliche"
+  },
+  "cmteaut9g0034x81gawkkegiu:2": {
+    "name": "Fanta Lemon — PET / 45 cl",
+    "category": "Bevande analcoliche"
+  },
+  "cmteauuaz0036x81g4ouw0nlx:0": {
+    "name": "Estathé pesca — PET / 40 cl",
+    "category": "Bevande analcoliche"
+  },
+  "cmteauuaz0036x81g4ouw0nlx:1": {
+    "name": "Estathé limone — PET / 40 cl",
+    "category": "Bevande analcoliche"
+  },
+  "cmteauve50038x81guz4tcuxb": {
+    "name": "Spuma bionda Queen — 33 cl",
+    "category": "Bevande analcoliche"
+  },
+  "cmteauwdo003ax81gzoxbttf9": {
+    "name": "Bitburger Drive analcolica — 33 cl",
+    "category": "Birre"
+  },
+  "cmteauxnu003cx81g0zt9l8ur": {
+    "name": "Bitburger Pils — 50 cl",
+    "category": "Birre"
+  },
+  "cmteauz69003ex81gh75gtitc": {
+    "name": "Corona Extra — 33 cl",
+    "category": "Birre"
+  },
+  "cmteav0g5003gx81g79bqp7uk": {
+    "name": "Theresianer Lager — 33 cl",
+    "category": "Birre"
+  },
+  "cmteav1pl003ix81gurtagkce": {
+    "name": "Theresianer Vienna Rossa — 33 cl",
+    "category": "Birre"
+  },
+  "cmteav2o6003kx81gr1h0z99p": {
+    "name": "Ichnusa Non Filtrata — 50 cl",
+    "category": "Birre"
+  },
+  "cmteav3ru003mx81gx71z6km6": {
+    "name": "Lauterbacher Weizen — 50 cl",
+    "category": "Birre"
+  },
+  "cmteav4rn003ox81gbbsnsvpr": {
+    "name": "BrewDog Punk IPA — 33 cl",
+    "category": "Birre"
+  },
+  "cmthanlyq00023chk3anzy4c0": {
+    "name": "Crea la tua pizza",
+    "category": "Crea la tua pizza"
+  }
+}

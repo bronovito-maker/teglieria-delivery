@@ -1,4 +1,6 @@
 "use client";
+import { trackAnalyticsCart } from '@/lib/ga4';
+import { trackCommittedCartAddition } from '@/lib/meta-add-to-cart';
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
@@ -13,7 +15,7 @@ interface CartStore {
   items: CartItem[];
   orderType: OrderType;
   setOrderType: (type: OrderType) => void;
-  addItem: (item: Omit<CartItem, "id">) => void;
+  addItem: (item: Omit<CartItem, "id">, intentId?: string) => boolean;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -92,6 +94,13 @@ function computeTotalPrice(item: Pick<CartItem, "unitPrice" | "standardUnitPrice
   return fromCents(toCents(prices.payableUnitPrice) * item.quantity);
 }
 
+const completedIntents = new Set<string>();
+function rememberIntent(id:string) {completedIntents.add(id);if(completedIntents.size>256)completedIntents.delete(completedIntents.values().next().value!);}
+function measureDelta(intent:string,before:CartItem[],after:CartItem[],id:string) {
+ const previous=before.find(p=>p.id===id),current=after.find(p=>p.id===id);if(!current)return;
+ const quantity=current.quantity-(previous?.quantity??0);
+ if(quantity>0)try{trackCommittedCartAddition(intent,current,quantity,toCents(current.totalPrice)-toCents(previous?.totalPrice??0));trackAnalyticsCart(intent,current,quantity,toCents(current.totalPrice)-toCents(previous?.totalPrice??0));}catch{/* Never fail an order because measurement failed. */}
+}
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
@@ -100,20 +109,25 @@ export const useCartStore = create<CartStore>()(
 
       setOrderType: (type) => set({ orderType: type }),
 
-      addItem: (item) =>
-        set((state) => {
+      addItem: (item, intentId) => {
+        const intent=intentId??createClientId();
+        if(completedIntents.has(intent)||!Number.isSafeInteger(item.quantity)||item.quantity<=0)return false;
+        const before=get().items;let committedId='';
+        try {set((state) => {
           const existingIndex = state.items.findIndex((existing) =>
             sameCartConfiguration(existing, item)
           );
 
           if (existingIndex === -1) {
+            committedId=createClientId();
             return {
-              items: [...state.items, { ...item, totalPrice: computeTotalPrice(item), id: createClientId() }],
+              items: [...state.items, { ...item, totalPrice: computeTotalPrice(item), id: committedId }],
             };
           }
 
           const items = [...state.items];
           const existing = items[existingIndex];
+          committedId=existing.id;
           const nextQuantity = existing.quantity + item.quantity;
           items[existingIndex] = {
             ...existing,
@@ -128,14 +142,19 @@ export const useCartStore = create<CartStore>()(
           };
 
           return { items };
-        }),
+        });}catch{return false;}
+        if(!get().items.some(p=>p.id===committedId))return false;
+        rememberIntent(intent);measureDelta(intent,before,get().items,committedId);return true;
+      },
 
       removeItem: (id) =>
         set((state) => ({
           items: state.items.filter((i) => i.id !== id),
         })),
 
-      updateQuantity: (id, quantity) =>
+      updateQuantity: (id, quantity) => {
+        if(!Number.isSafeInteger(quantity))return;
+        const before=get().items;
         set((state) => ({
           items:
             quantity <= 0
@@ -155,7 +174,9 @@ export const useCartStore = create<CartStore>()(
                       }
                     : i
                 ),
-        })),
+        }));
+        measureDelta(createClientId(),before,get().items,id);
+      },
 
       clearCart: () => set({ items: [], orderType: "ASPORTO" }),
 

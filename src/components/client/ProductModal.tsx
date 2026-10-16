@@ -1,11 +1,13 @@
 "use client";
+import { createClientId } from '@/lib/client-id';
 
 import { requiresBeverageChoice } from "@/lib/beverage-choice";
 
 import AllergenIngredients from "./AllergenIngredients";
 import AllergenBadges from "./AllergenBadges";
 import { productResult, snapshot } from "@/lib/allergens/core";
-import { useState } from "react";
+import { gaEvent, analyticsItem } from '@/lib/ga4';
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { useCartStore } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
@@ -21,6 +23,7 @@ interface Props {
   product: ProductWithRelations;
   onClose: () => void;
   menuFlavors: PizzaMenuFlavorOption[];
+  initialVariant?: string;
 }
 
 export default function ProductModal(props: Props) {
@@ -28,14 +31,16 @@ export default function ProductModal(props: Props) {
   return <ProductModalContent {...props} />;
 }
 
-function ProductModalContent({ product, onClose }: Props) {
+function ProductModalContent({ product, onClose, initialVariant }: Props) {
   const addItem = useCartStore((s) => s.addItem);
   const [quantity, setQuantity] = useState(1);
-  const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
-  const [variantDelta, setVariantDelta] = useState(0);
+  const adding=useRef(false),intent=useRef<string|null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<string | null>(initialVariant??null);
+  const [variantDelta, setVariantDelta] = useState(Number(product.variants.find(v=>v.name===initialVariant)?.priceDelta??0));
   const [selectedAdditions, setSelectedAdditions] = useState<CartItemAddition[]>([]);
   const [selectedRemovals, setSelectedRemovals] = useState<CartItemRemoval[]>([]);
   const [notes, setNotes] = useState("");
+  useEffect(()=>{const item=analyticsItem({productId:product.id,variant:selectedVariant??undefined});if(item){gaEvent('select_item',[item]);gaEvent('view_item',[item]);}},[product.id,selectedVariant]);
 
   const registry = product.allergenRegistry;
   const allergenInfo = registry ? snapshot(registry, productResult(registry.graph, product.id, selectedAdditions.map(a => a.name), selectedRemovals.map(r => r.name), selectedVariant)) : product.allergenInfo;
@@ -68,8 +73,10 @@ function ProductModalContent({ product, onClose }: Props) {
   const choiceRequired = requiresBeverageChoice(product.name);
 
   function handleAdd() {
+    if(adding.current)return;
     if (choiceRequired && !selectedVariant) { toast.error("Scegli la bevanda prima di aggiungerla"); return; }
-    addItem({
+    adding.current=true;intent.current??=createClientId();
+    const added=addItem({
       allergenInfo,
       imageUrl: product.imageUrl,
       imageFit: isBeverage ? "contain" : "cover",
@@ -85,7 +92,8 @@ function ProductModalContent({ product, onClose }: Props) {
       removals: selectedRemovals,
       notes: notes || undefined,
       totalPrice: total,
-    });
+    },intent.current);
+    if(!added){adding.current=false;toast.error('Aggiunta non riuscita. Riprova.');return;}
     toast.success(`${product.name} aggiunta al carrello`, {
       description: quantity > 1 ? `Quantità: ${quantity}` : "Perfetto, continua con il menu.",
     });

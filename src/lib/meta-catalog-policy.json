@@ -1,0 +1,466 @@
+[
+  {
+    "id": "cmthanlyq00023chk3anzy4c0",
+    "productId": "cmthanlyq00023chk3anzy4c0",
+    "variant": null,
+    "eligible": false,
+    "reason": "CONFIGURATORE_SENZA_PREZZO_FISSO: il valore 0 non è il prezzo di una pizza acquistabile. Servono configurazioni commerciali a prezzo definito.",
+    "configurable": true
+  },
+  {
+    "id": "cmtelvnpb0001qww7wsbrlqbj",
+    "productId": "cmtelvnpb0001qww7wsbrlqbj",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmtelvr5s0003qww7gfdx4prx",
+    "productId": "cmtelvr5s0003qww7gfdx4prx",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmtelvtev0005qww7jhli5stw",
+    "productId": "cmtelvtev0005qww7jhli5stw",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmtelvv6z0007qww7si15uhwd",
+    "productId": "cmtelvv6z0007qww7si15uhwd",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmtelvyd40009qww74bggcn3j",
+    "productId": "cmtelvyd40009qww74bggcn3j",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmtelw1i8000bqww7mso668o7",
+    "productId": "cmtelw1i8000bqww7mso668o7",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmtelw5dt000dqww7kj289qkd",
+    "productId": "cmtelw5dt000dqww7kj289qkd",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmtelw96z000fqww7k2ekcnr4",
+    "productId": "cmtelw96z000fqww7k2ekcnr4",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmtelwcix000hqww7sktev5iz",
+    "productId": "cmtelwcix000hqww7sktev5iz",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmtelwfi5000jqww7fyangz2c",
+    "productId": "cmtelwfi5000jqww7fyangz2c",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmt7qhrnf0006q5b2zb747zkd",
+    "productId": "cmt7qhrnf0006q5b2zb747zkd",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmt7qhut6000cq5b2lrzl2gv2",
+    "productId": "cmt7qhut6000cq5b2lrzl2gv2",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmt7qhxrm000iq5b2dw21xw75",
+    "productId": "cmt7qhxrm000iq5b2dw21xw75",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmt7qi0ww000oq5b23ji43lsz",
+    "productId": "cmt7qi0ww000oq5b23ji43lsz",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmt7qi42t000uq5b298uc10mr",
+    "productId": "cmt7qi42t000uq5b298uc10mr",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmt7qi79u0010q5b2ikilcq7l",
+    "productId": "cmt7qi79u0010q5b2ikilcq7l",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmt7qiade0016q5b28kt768eh",
+    "productId": "cmt7qiade0016q5b28kt768eh",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmt7qids5001cq5b29hjkqjwz",
+    "productId": "cmt7qids5001cq5b29hjkqjwz",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmt7qig2z001iq5b2kwd5jb9m",
+    "productId": "cmt7qig2z001iq5b2kwd5jb9m",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmt7qij17001oq5b2kay1aft8",
+    "productId": "cmt7qij17001oq5b2kay1aft8",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmteau3oy001wx81gnfgh5gg7",
+    "productId": "cmteau3oy001wx81gnfgh5gg7",
+    "variant": null,
+    "eligible": false,
+    "reason": "FORMATO_IMMAGINE_NON_PRUDENZIALMENTE_IDONEO: image/svg+xml; FOTO_PRODOTTO_ASSENTE: segnaposto generico SVG; FOTO_INFERIORE_A_500x500_O_NON_RASTER",
+    "configurable": false
+  },
+  {
+    "id": "cmteau4ej001yx81ggbq8yjml",
+    "productId": "cmteau4ej001yx81ggbq8yjml",
+    "variant": null,
+    "eligible": false,
+    "reason": "FORMATO_IMMAGINE_NON_PRUDENZIALMENTE_IDONEO: image/svg+xml; FOTO_PRODOTTO_ASSENTE: segnaposto generico SVG; FOTO_INFERIORE_A_500x500_O_NON_RASTER",
+    "configurable": false
+  },
+  {
+    "id": "cmteau5nd0020x81g1k7zws61",
+    "productId": "cmteau5nd0020x81g1k7zws61",
+    "variant": null,
+    "eligible": false,
+    "reason": "FORMATO_IMMAGINE_NON_PRUDENZIALMENTE_IDONEO: image/svg+xml; FOTO_PRODOTTO_ASSENTE: segnaposto generico SVG; FOTO_INFERIORE_A_500x500_O_NON_RASTER",
+    "configurable": false
+  },
+  {
+    "id": "cmteau8b20024x81gcgb7ryiz",
+    "productId": "cmteau8b20024x81gcgb7ryiz",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmteau9e10026x81gh98k7ln2",
+    "productId": "cmteau9e10026x81gh98k7ln2",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmteauaay0028x81g4gaya0ds",
+    "productId": "cmteauaay0028x81g4gaya0ds",
+    "variant": null,
+    "eligible": false,
+    "reason": "FORMATO_IMMAGINE_NON_PRUDENZIALMENTE_IDONEO: image/svg+xml; FOTO_PRODOTTO_ASSENTE: segnaposto generico SVG; FOTO_INFERIORE_A_500x500_O_NON_RASTER",
+    "configurable": false
+  },
+  {
+    "id": "cmteaubjv002ax81g6mnq0hzb",
+    "productId": "cmteaubjv002ax81g6mnq0hzb",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmteaucv5002cx81gbp8ed1y6",
+    "productId": "cmteaucv5002cx81gbp8ed1y6",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmteaue5m002ex81gt0vi97go",
+    "productId": "cmteaue5m002ex81gt0vi97go",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmteaufla002gx81gwp73c70a",
+    "productId": "cmteaufla002gx81gwp73c70a",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmteaugp4002ix81g9g6vr18k",
+    "productId": "cmteaugp4002ix81g9g6vr18k",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmteaui3z002kx81g2nrnc8ry",
+    "productId": "cmteaui3z002kx81g2nrnc8ry",
+    "variant": null,
+    "eligible": false,
+    "reason": "FORMATO_IMMAGINE_NON_PRUDENZIALMENTE_IDONEO: image/svg+xml; FOTO_PRODOTTO_ASSENTE: segnaposto generico SVG; FOTO_INFERIORE_A_500x500_O_NON_RASTER",
+    "configurable": false
+  },
+  {
+    "id": "cmteaujl3002mx81g6b0cdxso",
+    "productId": "cmteaujl3002mx81g6b0cdxso",
+    "variant": null,
+    "eligible": false,
+    "reason": "FORMATO_IMMAGINE_NON_PRUDENZIALMENTE_IDONEO: image/svg+xml; FOTO_PRODOTTO_ASSENTE: segnaposto generico SVG; FOTO_INFERIORE_A_500x500_O_NON_RASTER",
+    "configurable": false
+  },
+  {
+    "id": "cmteaukry002ox81gd0mskxqu",
+    "productId": "cmteaukry002ox81gd0mskxqu",
+    "variant": null,
+    "eligible": false,
+    "reason": "FORMATO_IMMAGINE_NON_PRUDENZIALMENTE_IDONEO: image/svg+xml; FOTO_PRODOTTO_ASSENTE: segnaposto generico SVG; FOTO_INFERIORE_A_500x500_O_NON_RASTER",
+    "configurable": false
+  },
+  {
+    "id": "cmteaulta002qx81gnuqmwt85",
+    "productId": "cmteaulta002qx81gnuqmwt85",
+    "variant": null,
+    "eligible": false,
+    "reason": "FORMATO_IMMAGINE_NON_PRUDENZIALMENTE_IDONEO: image/svg+xml; FOTO_PRODOTTO_ASSENTE: segnaposto generico SVG; FOTO_INFERIORE_A_500x500_O_NON_RASTER",
+    "configurable": false
+  },
+  {
+    "id": "cmteaunan002ux81gauvy9ze7",
+    "productId": "cmteaunan002ux81gauvy9ze7",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmteauo9f002wx81gi2gotw2x",
+    "productId": "cmteauo9f002wx81gi2gotw2x",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmteaupop002yx81gns94wm8b",
+    "productId": "cmteaupop002yx81gns94wm8b",
+    "variant": null,
+    "eligible": false,
+    "reason": "FOTO_INFERIORE_A_500x500_O_NON_RASTER",
+    "configurable": false
+  },
+  {
+    "id": "cmteaur430030x81gmwjg8bvg:0",
+    "productId": "cmteaur430030x81gmwjg8bvg",
+    "variant": "Estathé pesca",
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmteaur430030x81gmwjg8bvg:1",
+    "productId": "cmteaur430030x81gmwjg8bvg",
+    "variant": "Estathé limone",
+    "eligible": false,
+    "reason": "FOTO_VARIANTE_MANCANTE: la fonte usa la foto della bevanda principale, non quella della variante",
+    "configurable": false
+  },
+  {
+    "id": "cmteausbu0032x81gowpzfcn9:0",
+    "productId": "cmteausbu0032x81gowpzfcn9",
+    "variant": "Coca-Cola",
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmteausbu0032x81gowpzfcn9:1",
+    "productId": "cmteausbu0032x81gowpzfcn9",
+    "variant": "Coca-Cola Zero",
+    "eligible": false,
+    "reason": "FOTO_VARIANTE_MANCANTE: la fonte usa la foto della bevanda principale, non quella della variante",
+    "configurable": false
+  },
+  {
+    "id": "cmteausbu0032x81gowpzfcn9:2",
+    "productId": "cmteausbu0032x81gowpzfcn9",
+    "variant": "Fanta",
+    "eligible": false,
+    "reason": "FOTO_VARIANTE_MANCANTE: la fonte usa la foto della bevanda principale, non quella della variante",
+    "configurable": false
+  },
+  {
+    "id": "cmteaut9g0034x81gawkkegiu:0",
+    "productId": "cmteaut9g0034x81gawkkegiu",
+    "variant": "Coca-Cola",
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmteaut9g0034x81gawkkegiu:1",
+    "productId": "cmteaut9g0034x81gawkkegiu",
+    "variant": "Coca-Cola Zero",
+    "eligible": false,
+    "reason": "FOTO_VARIANTE_MANCANTE: la fonte usa la foto della bevanda principale, non quella della variante",
+    "configurable": false
+  },
+  {
+    "id": "cmteaut9g0034x81gawkkegiu:2",
+    "productId": "cmteaut9g0034x81gawkkegiu",
+    "variant": "Fanta Lemon",
+    "eligible": false,
+    "reason": "FOTO_VARIANTE_MANCANTE: la fonte usa la foto della bevanda principale, non quella della variante",
+    "configurable": false
+  },
+  {
+    "id": "cmteauuaz0036x81g4ouw0nlx:0",
+    "productId": "cmteauuaz0036x81g4ouw0nlx",
+    "variant": "Estathé pesca",
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmteauuaz0036x81g4ouw0nlx:1",
+    "productId": "cmteauuaz0036x81g4ouw0nlx",
+    "variant": "Estathé limone",
+    "eligible": false,
+    "reason": "FOTO_VARIANTE_MANCANTE: la fonte usa la foto della bevanda principale, non quella della variante",
+    "configurable": false
+  },
+  {
+    "id": "cmteauve50038x81guz4tcuxb",
+    "productId": "cmteauve50038x81guz4tcuxb",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmteauwdo003ax81gzoxbttf9",
+    "productId": "cmteauwdo003ax81gzoxbttf9",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "cmteauxnu003cx81g0zt9l8ur",
+    "productId": "cmteauxnu003cx81g0zt9l8ur",
+    "variant": null,
+    "eligible": false,
+    "reason": "VERIFICA_AMMISSIBILITA_META_COMMERCE_ALCOLICI: esclusione prudenziale dal file da caricare, prodotto preservato nell’export completo",
+    "configurable": false
+  },
+  {
+    "id": "cmteauz69003ex81gh75gtitc",
+    "productId": "cmteauz69003ex81gh75gtitc",
+    "variant": null,
+    "eligible": false,
+    "reason": "VERIFICA_AMMISSIBILITA_META_COMMERCE_ALCOLICI: esclusione prudenziale dal file da caricare, prodotto preservato nell’export completo",
+    "configurable": false
+  },
+  {
+    "id": "cmteav0g5003gx81g79bqp7uk",
+    "productId": "cmteav0g5003gx81g79bqp7uk",
+    "variant": null,
+    "eligible": false,
+    "reason": "FORMATO_IMMAGINE_NON_PRUDENZIALMENTE_IDONEO: WEBP; VERIFICA_AMMISSIBILITA_META_COMMERCE_ALCOLICI: esclusione prudenziale dal file da caricare, prodotto preservato nell’export completo",
+    "configurable": false
+  },
+  {
+    "id": "cmteav1pl003ix81gurtagkce",
+    "productId": "cmteav1pl003ix81gurtagkce",
+    "variant": null,
+    "eligible": false,
+    "reason": "VERIFICA_AMMISSIBILITA_META_COMMERCE_ALCOLICI: esclusione prudenziale dal file da caricare, prodotto preservato nell’export completo",
+    "configurable": false
+  },
+  {
+    "id": "cmteav2o6003kx81gr1h0z99p",
+    "productId": "cmteav2o6003kx81gr1h0z99p",
+    "variant": null,
+    "eligible": false,
+    "reason": "VERIFICA_AMMISSIBILITA_META_COMMERCE_ALCOLICI: esclusione prudenziale dal file da caricare, prodotto preservato nell’export completo",
+    "configurable": false
+  },
+  {
+    "id": "cmteav3ru003mx81gx71z6km6",
+    "productId": "cmteav3ru003mx81gx71z6km6",
+    "variant": null,
+    "eligible": false,
+    "reason": "VERIFICA_AMMISSIBILITA_META_COMMERCE_ALCOLICI: esclusione prudenziale dal file da caricare, prodotto preservato nell’export completo",
+    "configurable": false
+  },
+  {
+    "id": "cmteav4rn003ox81gbbsnsvpr",
+    "productId": "cmteav4rn003ox81gbbsnsvpr",
+    "variant": null,
+    "eligible": false,
+    "reason": "VERIFICA_AMMISSIBILITA_META_COMMERCE_ALCOLICI: esclusione prudenziale dal file da caricare, prodotto preservato nell’export completo",
+    "configurable": false
+  }
+]

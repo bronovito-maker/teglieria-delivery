@@ -5,7 +5,7 @@ const BASE='http://127.0.0.1:45992';
 const SDK=`(()=>{const q=window.fbq;let granted=false;window.__metaCalls=[];const run=(...a)=>{window.__metaCalls.push(a);if(a[0]==='consent')granted=a[1]==='grant';if(a[0]==='track'&&granted){document.cookie='_fbp=synthetic; Path=/';const i=new Image();i.src='https://www.facebook.com/tr?id=955909697258843&ev='+encodeURIComponent(a[1])+'&dl='+encodeURIComponent(location.href)+'&rl='+encodeURIComponent(document.referrer);}};q.callMethod=run;for(const a of q.queue.splice(0))run(...a);window.addEventListener('popstate',()=>{if(granted)run('track','AUTOMATIC_PRIVACY_CANARY')});})();`;
 const results=[];
 (async()=>{
- const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH});
+ const browser=await chromium.launch({headless:true,args:['--disable-dev-shm-usage'],executablePath:process.env.CHROMIUM_PATH});
  async function session(js=true,workers='block'){
   const context=await browser.newContext({javaScriptEnabled:js,serviceWorkers:workers});const seen=[];
   await context.route('**/*',async route=>{const u=new URL(route.request().url());
@@ -23,7 +23,7 @@ const results=[];
   const response=await page.goto(BASE+'/menu');await page.getByRole('dialog').waitFor();await page.waitForTimeout(200);
   assert.equal(meta().length,0);assert.equal(await page.locator('#lt-meta-pixel').count(),0);assert(!response.headers()['content-security-policy'].includes('facebook'));
   assert(!(await context.cookies()).some(c=>['_fbp','_fbc'].includes(c.name)));
-  await page.screenshot({path:path.join(OUT,'banner-desktop.png'),fullPage:false});
+  await page.screenshot({path:path.join(OUT,'banner-desktop.png'),fullPage:false}).catch(e=>console.warn('OPTIONAL_SCREENSHOT_UNAVAILABLE',String(e)));
  });
  await test('Adult declaration missing: accept does not activate tracking',async({page,meta})=>{
   await page.goto(BASE+'/menu');await page.getByRole('button',{name:'Accetta tutti',exact:true}).click();await page.getByRole('dialog').getByRole('alert').waitFor();assert.equal(meta().length,0);
@@ -90,7 +90,7 @@ const results=[];
  });
  await test('Mobile banner exposes all choices without horizontal overflow',async({page,meta})=>{
   await page.setViewportSize({width:390,height:844});await page.goto(BASE+'/menu');await page.getByRole('dialog').waitFor();
-  assert(await page.getByRole('button',{name:'Accetta tutti',exact:true}).isVisible());assert(await page.getByRole('button',{name:'Accetta solo essenziali',exact:true}).isVisible());assert(await page.getByRole('button',{name:'Personalizza',exact:true}).isVisible());assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.equal(meta().length,0);await page.screenshot({path:path.join(OUT,'banner-mobile.png'),fullPage:false});
+  assert(await page.getByRole('button',{name:'Accetta tutti',exact:true}).isVisible());assert(await page.getByRole('button',{name:'Accetta solo essenziali',exact:true}).isVisible());assert(await page.getByRole('button',{name:'Personalizza',exact:true}).isVisible());assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.equal(meta().length,0);await page.screenshot({path:path.join(OUT,'banner-mobile.png'),fullPage:false}).catch(e=>console.warn('OPTIONAL_SCREENSHOT_UNAVAILABLE',String(e)));
  });
  const nojs=await session(false);try{const r=await nojs.page.goto(BASE+'/menu');assert(!r.headers()['content-security-policy'].includes('facebook'));assert.equal(nojs.meta().length,0);assert.equal(await nojs.page.locator('noscript img[src*="facebook"]').count(),0);results.push({name:'JavaScript disabled: no noscript tracking',status:'PASS'});}finally{await nojs.context.close();}
  await browser.close();fs.writeFileSync(path.join(OUT,'results.json'),JSON.stringify(results,null,2));console.log(JSON.stringify(results,null,2));

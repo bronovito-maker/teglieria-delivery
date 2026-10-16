@@ -1,5 +1,6 @@
+import { isCatalogLandingPath } from './meta-catalog';
 export const CONSENT_COOKIE = 'lt_cookie_preferences';
-export const CONSENT_VERSION = '2026-10-15-meta-purchase-955909697258843-v2';
+export const CONSENT_VERSION = '2026-10-16-ga4-meta-v4';
 export const CONSENT_SECONDS = 365 * 24 * 60 * 60;
 export const META_PIXEL_ID = '955909697258843';
 export type CookieConsent = {
@@ -7,6 +8,7 @@ export type CookieConsent = {
   receiptId: string;
   recordedAt: number;
   expiresAt: number;
+  analytics: boolean;
   marketing: boolean;
   adult: boolean;
 };
@@ -16,7 +18,7 @@ export function parseConsent(raw: string | undefined, now = Date.now()): CookieC
     if (v.version !== CONSENT_VERSION || typeof v.receiptId !== 'string' || !/^[a-f0-9-]{36}$/.test(v.receiptId)
       || !Number.isFinite(v.recordedAt) || !Number.isFinite(v.expiresAt) || v.recordedAt > now + 60000
       || v.expiresAt <= now || v.expiresAt - v.recordedAt !== CONSENT_SECONDS * 1000
-      || typeof v.marketing !== 'boolean' || typeof v.adult !== 'boolean' || (v.marketing && !v.adult)) return null;
+      || typeof v.analytics !== 'boolean' || typeof v.marketing !== 'boolean' || typeof v.adult !== 'boolean' || ((v.marketing || v.analytics) && !v.adult)) return null;
     return v as CookieConsent;
   } catch { return null; }
 }
@@ -25,7 +27,7 @@ export function readConsentCookie(cookie: string): CookieConsent | null {
 }
 // Never expose checkout, accounts, order identifiers, query strings or fragments to Meta.
 export function isMarketingPage(url: URL): boolean {
-  return ['/', '/menu', '/servizi'].includes(url.pathname) && !url.search && !url.hash;
+  return (['/', '/menu', '/servizi'].includes(url.pathname) || isCatalogLandingPath(url.pathname)) && !url.search && !url.hash;
 }
 export function permitsMeta(consent: CookieConsent | null, url: URL): boolean {
   return consent?.marketing === true && consent.adult === true && isMarketingPage(url);
@@ -38,3 +40,7 @@ export function safeMarketingReferrer(referrer: string, origin: string): boolean
     return url.origin === origin ? isMarketingPage(url) : url.pathname === '/' && !url.search && !url.hash;
   } catch { return false; }
 }
+
+export const GA4_ID = 'G-HJ38PS0Q1T';
+export function permitsAnalytics(c:CookieConsent|null,url:URL){return c?.analytics===true&&c.adult===true&&isMarketingPage(url);}
+export function measurementConsent(c:CookieConsent|null):c is CookieConsent{return Boolean(c?.adult&&(c.marketing||c.analytics));}

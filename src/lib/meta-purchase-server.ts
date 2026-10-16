@@ -32,7 +32,7 @@ export function confirmedPurchase(order:unknown,orderId:string):number|null{
  const total=v.total;if(typeof total!=='number'&&(typeof total!=='string'||!/^\d{1,7}(\.\d{1,2})?$/.test(total)))return null;
  const number=Number(total),cents=Math.round(number*100);return Number.isFinite(number)&&Number.isSafeInteger(cents)&&cents>0&&cents<=100000000&&Math.abs(number*100-cents)<0.000001?cents:null;
 }
-export function advertisingConsent(c:CookieConsent|null):c is CookieConsent{return c?.marketing===true&&c.adult===true;}
+export function advertisingConsent(c:CookieConsent|null):c is CookieConsent{return c?.adult===true&&(c.marketing===true||c.analytics===true);}
 export function purchasePublic(t:Ticket):PurchasePublic{return {eventId:t.eventId,cents:t.cents!,currency:'EUR',consentId:t.consentId,expiresAt:t.expiresAt};}
 export async function publicReceipts(cookies:Array<{name:string;value:string}>,consent:CookieConsent|null){
  if(!advertisingConsent(consent))return [];

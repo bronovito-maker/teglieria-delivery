@@ -3,7 +3,7 @@ import { CONSENT_VERSION, type CookieConsent } from './cookie-consent';
 import { confirmedPurchase, eventIdFor, signTicket, readTicket, purchasePublic, publicReceipts, receiptName, type Ticket } from './meta-purchase-server';
 import { permitsPurchase } from './meta-purchase-client';
 const id='00000000-0000-4000-8000-000000000001',now=Date.now();
-const consent:CookieConsent={version:CONSENT_VERSION,receiptId:'00000000-0000-4000-8000-000000000002',recordedAt:now,expiresAt:now+86400000,marketing:true,adult:true};
+const consent:CookieConsent={version:CONSENT_VERSION,receiptId:'00000000-0000-4000-8000-000000000002',recordedAt:now,expiresAt:now+86400000,analytics:false,marketing:true,adult:true};
 let ticket:Ticket;
 beforeAll(async()=>{process.env.UNIFIED_WEB_GATEWAY_KEY='synthetic-key-only-000000000000000000000';ticket={kind:'receipt',orderId:id,eventId:await eventIdFor(id),consentId:consent.receiptId,version:CONSENT_VERSION,issuedAt:now,expiresAt:now+600000,cents:1850,currency:'EUR'};});
 describe('authoritative purchase eligibility',()=>{

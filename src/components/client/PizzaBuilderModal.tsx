@@ -1,9 +1,11 @@
 "use client";
+import { createClientId } from '@/lib/client-id';
 
 import { pizzaAllergens, snapshot, type PublicRegistry } from "@/lib/allergens/core";
 import { calculatePizzaConfiguration, type PizzaBuilderSelection } from "@/lib/pizza-builder";
 import { formatCurrency } from "@/lib/utils";
-import { useState } from "react";
+import { gaEvent, analyticsItem } from '@/lib/ga4';
+import { useState, useRef, useEffect } from "react";
 import { useCartStore } from "@/store/cart";
 import { toast } from "sonner";
 import PizzaBuilderConfigurator, {
@@ -18,15 +20,19 @@ export default function PizzaBuilderModal({ product, onClose, menuFlavors }: {
   onClose: () => void;
   menuFlavors: PizzaMenuFlavorOption[];
 }) {
+  useEffect(()=>{const item=analyticsItem({productId:product.id});if(item){gaEvent('select_item',[item]);gaEvent('view_item',[item]);}},[product.id]);
   const addItem = useCartStore((state) => state.addItem);
   const [selection, setSelection] = useState<PizzaBuilderSelection>(createInitialPizzaSelection);
   const [quantity, setQuantity] = useState(1);
+  const adding=useRef(false),intent=useRef<string|null>(null);
   const calculated = calculatePizzaConfiguration(selection);
 
   function handleAdd() {
+    if(adding.current)return;
     const registry = product.allergenRegistry;
     const allergenInfo = registry ? snapshot(registry, pizzaAllergens(registry.graph, selection)) : undefined;
-    addItem({
+    adding.current=true;intent.current??=createClientId();
+    const added=addItem({
       allergenInfo,
       imageUrl: product.imageUrl,
       imageFit: "cover",
@@ -41,7 +47,8 @@ export default function PizzaBuilderModal({ product, onClose, menuFlavors }: {
       additions: calculated.additions,
       removals: [],
       totalPrice: calculated.total * quantity,
-    });
+    },intent.current);
+    if(!added){adding.current=false;toast.error('Aggiunta non riuscita. Riprova.');return;}
     toast.success("Pizza componibile aggiunta al carrello");
     onClose();
   }

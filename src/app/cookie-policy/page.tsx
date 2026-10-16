@@ -4,7 +4,7 @@ import MobileTopBar from "@/components/client/MobileTopBar";
 
 export const metadata: Metadata = {
   title: "Cookie Policy — La Teglieria",
-  description: "Informazioni sui cookie tecnici, sulle preferenze e sul Pixel Meta facoltativo.",
+  description: "Informazioni sui cookie tecnici, sulle preferenze, su Google Analytics e sul Pixel Meta facoltativi.",
 };
 
 export default function CookiePolicyPage() {
@@ -24,7 +24,7 @@ export default function CookiePolicyPage() {
             Cookie <span className="text-terracotta">Policy</span>
           </h1>
           <p className="text-sm text-charcoal/40 font-body">
-            Ultimo aggiornamento: <strong className="text-charcoal/60">15 ottobre 2026</strong>
+            Ultimo aggiornamento: <strong className="text-charcoal/60">16 ottobre 2026</strong>
           </p>
         </header>
 
@@ -63,7 +63,7 @@ export default function CookiePolicyPage() {
                 ))}
               </div>
               <div className="px-5 py-3 bg-charcoal/[0.02] border-t border-charcoal/5">
-                <p className="text-xs text-charcoal/40">I cookie strettamente necessari non richiedono consenso preventivo. La memoria del carrello e del pagamento serve alle funzioni richieste: non è profilazione. Il Pixel Meta è facoltativo: parte solo dopo il consenso pubblicitario di un maggiorenne. “Accetta solo essenziali” lascia attive prenotazioni e pagamenti. La scelta si modifica dal pulsante “Preferenze cookie”.</p>
+                <p className="text-xs text-charcoal/40">I cookie strettamente necessari non richiedono consenso preventivo. La memoria del carrello e del pagamento serve alle funzioni richieste: non è profilazione. Google Analytics e Pixel Meta sono facoltativi: partono solo dopo i rispettivi consensi statistico e pubblicitario di un maggiorenne. “Accetta solo essenziali” lascia attive prenotazioni e pagamenti. La scelta si modifica dal pulsante “Preferenze cookie”.</p>
               </div>
             </div>
 
@@ -81,7 +81,8 @@ export default function CookiePolicyPage() {
               </div>
               <div className="divide-y divide-charcoal/5">
                 {[
-                  { nome: "Meta Pixel (ID 955909697258843)", scopo: "Misurazione pubblicitaria delle visite alle pagine pubbliche e degli acquisti pagati e accettati, solo dopo consenso. Cookie _fbp ed eventuale _fbc, durata gestita da Meta", durata: "Definita da Meta" },
+                  { nome: "Meta Pixel (ID 955909697258843)", scopo: "Misurazione pubblicitaria delle visite alle pagine pubbliche, delle aggiunte riuscite al carrello e degli acquisti pagati e accettati, solo dopo consenso. Cookie _fbp ed eventuale _fbc, durata gestita da Meta", durata: "Definita da Meta" },
+                  { nome: "Google Analytics 4", scopo: "Statistiche solo dopo consenso; cookie _ga e _ga_HJ38PS0Q1T: 90 giorni senza rinnovo automatico. Memoria locale lt_ga4_purchases_v1 per evitare duplicati: 90 giorni con pulizia al successivo uso o alla revoca. lt_ga4_attribution: soli codici numerici di campagna e sorgenti consentite, legati alla scelta cookie", durata: "90 giorni; attribuzione 30 minuti" },
                   { nome: "Stripe Checkout", scopo: "Pagamento e prevenzione frodi quando scegli di pagare con Stripe", durata: "Gestita da Stripe" },
                   { nome: "Google Maps", scopo: "Geocodifica indirizzi e calcolo distanze per la consegna", durata: "Variabile" },
                   { nome: "Google OAuth", scopo: "Autenticazione tramite account Google (solo se usato)", durata: "Sessione" },
@@ -95,7 +96,7 @@ export default function CookiePolicyPage() {
               </div>
               <div className="px-5 py-3 bg-charcoal/[0.02] border-t border-charcoal/5">
                 <p className="text-xs text-charcoal/40">
-                  Puoi revocare il consenso pubblicitario da “Preferenze cookie”: il sito interrompe gli invii successivi e rimuove i cookie Meta accessibili sul proprio dominio. La revoca non cancella automaticamente i dati già ricevuti da Meta o i cookie sui domini dei fornitori. Consulta le informative di <a href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener noreferrer" className="underline">Meta</a>, <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer" className="underline">Stripe</a> e la{" "}
+                  Puoi revocare il consenso statistico e pubblicitario da “Preferenze cookie”: il sito interrompe gli invii successivi e rimuove i cookie Meta e Analytics accessibili sul proprio dominio. La revoca non cancella automaticamente i dati già ricevuti da Meta o i cookie sui domini dei fornitori. Consulta le informative di <a href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener noreferrer" className="underline">Meta</a>, <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer" className="underline">Stripe</a> e la{" "}
                   <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-terracotta underline underline-offset-2">
                     Privacy Policy di Google
                   </a>{" "}
@@ -105,7 +106,7 @@ export default function CookiePolicyPage() {
             </div>
 
             <p className="text-sm bg-marigold/10 border border-marigold/20 rounded-2xl px-5 py-4 text-charcoal/70">
-              Il Pixel Meta non viene caricato prima del consenso o dopo il rifiuto. Non installiamo Google Analytics, Vercel Analytics o il widget chat Zirel. Per gli acquisti pagati e accettati inviamo soltanto importo finale in euro, valuta e un identificativo pseudonimo per evitare duplicati. Non inviamo dati CRM, contatti, indirizzi, note o dati carta a Meta. Meta riceve anche i dati tecnici della connessione, tra cui IP e browser: questi eventi non sono anonimi. Checkout, account, stato ordine e indirizzi con parametri o frammenti sono esclusi dal Pixel. L’evento acquisto parte da una pagina di conferma separata senza riferimenti personali nell’indirizzo; richiede il browser aperto. Un rimborso successivo non cancella automaticamente l’evento già inviato. La mappa del locale si apre su Google soltanto scegliendo il relativo collegamento. La ricerca indirizzo Google si apre su richiesta esplicita dopo la lettura dell’informativa; l’accesso con Google richiede anche la dichiarazione di maggiore età prevista per gli account. Non chiediamo il GPS del cliente. Il portale e il tracciamento rider sono esclusi dalla V1.
+              Il Pixel Meta non viene caricato prima del consenso o dopo il rifiuto. Google Analytics 4 (G-HJ38PS0Q1T) si attiva soltanto con il consenso separato alle statistiche dei maggiorenni; misura pagine pubbliche, visualizzazione e selezione degli articoli del menu, con il configuratore indicato genericamente, aggiunte riuscite al carrello, avvio del checkout dal sito e acquisti pagati e accettati. Non abilitiamo Google Ads, Google Signals o personalizzazione pubblicitaria Google. Non installiamo Vercel Analytics o il widget chat Zirel. Per le aggiunte riuscite al carrello inviamo soltanto identificativi pubblici dei prodotti del catalogo, quantità, importo aggiunto e valuta; non inviamo le note o il contenuto libero delle personalizzazioni. I prodotti esclusi dal catalogo revisionato, incluso il configuratore senza un articolo a prezzo fisso, non generano questo evento. Per gli acquisti pagati e accettati Meta riceve importo finale in euro, valuta e un identificativo pseudonimo per evitare duplicati. Google Analytics riceve anche identificativi, nomi e categorie pubbliche degli articoli acquistati, quantità e prezzi effettivi, con il costo di consegna distinto quando i dati del backend sono completi e coerenti. Le pizze personalizzate sono indicate soltanto con il prodotto generico: nessun gusto libero o nota viene trasmesso. Se le righe non sono verificabili, inviamo soltanto gli importi aggregati confermati, distinguendo la consegna; se il costo di consegna non è verificabile, non inviamo l’acquisto a Google. Non inviamo dati CRM, contatti, indirizzi, note o dati carta a Meta o Google Analytics. Gli indirizzi privati e i parametri liberi non sono trasmessi. I parametri pubblicitari riconosciuti vengono rimossi prima di caricare i tracciatori: a Google trasmettiamo solo sorgenti e mezzi da un elenco chiuso e codici numerici di campagna; il codice click Facebook è usato soltanto con consenso Meta. I termini di ricerca e i nomi liberi delle campagne non vengono conservati. Meta e Google ricevono anche i dati tecnici della connessione, tra cui IP e browser: questi eventi non sono anonimi. Checkout, account e stato ordine non caricano i tracciatori. Il solo evento di avvio checkout può partire dalla pagina pubblica prima di aprire il modulo; gli errori o annullamenti di pagamento non generano acquisti. Parametri non riconosciuti e frammenti impediscono il caricamento dei tracciatori. L’evento acquisto parte da una pagina di conferma separata senza riferimenti personali nell’indirizzo; richiede il browser aperto. Un rimborso successivo non cancella automaticamente l’evento già inviato. La mappa del locale si apre su Google soltanto scegliendo il relativo collegamento. La ricerca indirizzo Google si apre su richiesta esplicita dopo la lettura dell’informativa; l’accesso con Google richiede anche la dichiarazione di maggiore età prevista per gli account. Non chiediamo il GPS del cliente. Il portale e il tracciamento rider sono esclusi dalla V1.
             </p>
           </section>
 

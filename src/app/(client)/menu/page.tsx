@@ -1,5 +1,6 @@
 "use client";
 
+import { trackAnalyticsList, analyticsItem } from '@/lib/ga4';
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -34,6 +35,7 @@ function MenuContent() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isClubMember, setIsClubMember] = useState<boolean | null>(initialMenu?.isClubMember ?? null);
   const authChecked = !authLoading;
+  useEffect(()=>{const send=()=>{const items=categories.flatMap(c=>c.products).flatMap(p=>p.variants.length?p.variants.map(v=>analyticsItem({productId:p.id,variant:v.name})): [analyticsItem({productId:p.id})]).filter((v):v is NonNullable<typeof v>=>v!==null);trackAnalyticsList(items);};send();window.addEventListener('lt:analytics-ready',send);return()=>window.removeEventListener('lt:analytics-ready',send);},[categories]);
   const navRef = useRef<HTMLDivElement>(null);
   const pizzaMenuFlavors = useMemo<PizzaMenuFlavorOption[]>(() => {
     const availableNames = new Set(

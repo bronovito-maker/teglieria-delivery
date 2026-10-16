@@ -5,7 +5,7 @@ export default function PurchaseObserver({order}:{order:{id:string;status:string
  const attempted=useRef('');
  useEffect(()=>{
   const consent=readConsentCookie(document.cookie);
-  if(!consent?.marketing||!consent.adult||order.paymentStatus!=='PAID'||!['CONFIRMED','PREPARING','READY','OUT','DELIVERED'].includes(order.status)||attempted.current===order.id)return;
+  if(!(consent?.marketing||consent?.analytics)||!consent.adult||order.paymentStatus!=='PAID'||!['CONFIRMED','PREPARING','READY','OUT','DELIVERED'].includes(order.status)||attempted.current===order.id)return;
   attempted.current=order.id;
   void fetch('/api/marketing/purchase',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({orderId:order.id})}).then(async response=>{
    if(!response.ok)return;const data=await response.json();
