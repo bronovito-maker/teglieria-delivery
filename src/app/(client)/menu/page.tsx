@@ -1,5 +1,6 @@
 "use client";
 
+import { safeSessionStorage } from "@/lib/browser-storage";
 import { trackAnalyticsList, analyticsItem } from '@/lib/ga4';
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
@@ -32,6 +33,7 @@ function MenuContent() {
   const [isLoading, setIsLoading] = useState(!initialMenu);
   const [selectedProduct, setSelectedProduct] = useState<ProductWithRelations | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
+  useEffect(()=>{const open=()=>setCartOpen(true);window.addEventListener("lt:open-cart",open);if(safeSessionStorage.getItem("lt_open_cart")==="1"){safeSessionStorage.removeItem("lt_open_cart");open();}return()=>window.removeEventListener("lt:open-cart",open);},[]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isClubMember, setIsClubMember] = useState<boolean | null>(initialMenu?.isClubMember ?? null);
   const authChecked = !authLoading;

@@ -39,7 +39,7 @@ export function startGA(nonce:string,purchase?:PurchasePublic){
  const consent=readConsentCookie(document.cookie),url=new URL(location.href);
  if(!safeMarketingReferrer(document.referrer,location.origin)||(!permitsAnalytics(consent,url)&&!permitsPurchase(consent,url,purchase,Date.now(),'ga4')))return;
  (window as unknown as Record<string,unknown>)['ga-disable-'+GA4_ID]=false;
- window.dataLayer=[];window.gtag=function(){window.dataLayer!.push(arguments);};
+ window.dataLayer=window.dataLayer||[];window.gtag=function(){window.dataLayer!.push(arguments);};
  window.gtag('consent','default',denied);window.gtag('set','ads_data_redaction',true);window.gtag('set','url_passthrough',false);
  window.gtag('consent','update',{...denied,analytics_storage:'granted'});
  window.gtag('js',new Date());

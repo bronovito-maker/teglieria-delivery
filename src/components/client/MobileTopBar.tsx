@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { safeSessionStorage } from "@/lib/browser-storage";
 import { useEffect, useState } from "react";
 import { ShoppingCart, UserRound } from "lucide-react";
 import { useCartStore } from "@/store/cart";
@@ -9,6 +11,11 @@ import { useServiceAvailability } from "@/components/client/ServiceAvailabilityN
 
 /** Navigazione sempre accessibile per account e carrello. */
 export default function MobileTopBar() {
+  const router=useRouter();
+  function openCart(){
+    if(location.pathname==="/menu")window.dispatchEvent(new Event("lt:open-cart"));
+    else{safeSessionStorage.setItem("lt_open_cart","1");router.push(safeSessionStorage.getItem("lt_open_cart")==="1"?"/menu":"/menu?openCart=1");}
+  }
   const [hydrated, setHydrated] = useState(false);
   const itemCount = useCartStore((state) => state.getItemCount());
   const total = useCartStore((state) => state.getSubtotal());
@@ -46,8 +53,9 @@ export default function MobileTopBar() {
           >
             Menu
           </Link>
-        ) : <Link
-          href="/menu?openCart=1"
+        ) : <button
+          type="button"
+          onClick={openCart}
           aria-label={hydrated && itemCount > 0 ? `Apri carrello, ${itemCount} articoli` : "Apri carrello"}
           className="relative inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full bg-gradient-to-br from-[#E78853] via-[#D96A2B] to-[#B95521] px-3.5 py-2 text-[10px] font-brand font-bold uppercase tracking-[0.12em] text-white shadow-[0_7px_16px_rgba(185,85,33,0.18)] transition-transform active:scale-95 sm:px-4"
         >
@@ -59,7 +67,7 @@ export default function MobileTopBar() {
               {itemCount}
             </span>
           )}
-        </Link>}
+        </button>}
       </div>
     </header>
   );
