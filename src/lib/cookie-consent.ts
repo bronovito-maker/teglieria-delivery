@@ -1,6 +1,6 @@
 import { isCatalogLandingPath } from './meta-catalog';
 export const CONSENT_COOKIE = 'lt_cookie_preferences';
-export const CONSENT_VERSION = '2026-10-16-ga4-meta-v4';
+export const CONSENT_VERSION = '2026-10-17-meta-all-client-pages-v5';
 export const CONSENT_SECONDS = 365 * 24 * 60 * 60;
 export const META_PIXEL_ID = '955909697258843';
 export type CookieConsent = {

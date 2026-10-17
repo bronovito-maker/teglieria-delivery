@@ -1,4 +1,5 @@
 import CookiePreferences from '@/components/client/CookiePreferences';
+import MetaAdditionalPageViews from '@/components/client/MetaAdditionalPageViews';
 import CustomerAssistant from "@/components/client/CustomerAssistant";
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
@@ -138,6 +139,7 @@ export default async function RootLayout({
         <CustomerAuthProvider>{children}</CustomerAuthProvider>
         <CustomerAssistant />
         <CookiePreferences nonce={nonce} purchases={purchases} />
+        <MetaAdditionalPageViews />
 
       </body>
     </html>

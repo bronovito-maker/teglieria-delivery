@@ -1,4 +1,5 @@
 import { ATTRIBUTION_COOKIE, onlyAttributionQuery, safeCampaign } from '@/lib/analytics-attribution';
+import { permitsMetaPageView } from '@/lib/meta-page-view';
 import { CONSENT_COOKIE, parseConsent, permitsAnalytics, permitsMeta, safeMarketingReferrer } from '@/lib/cookie-consent';
 import { publicReceipts, INTENT_PREFIX, RECEIPT_PREFIX, cookieOptions } from "@/lib/meta-purchase-server";
 import { maintenancePageResponse } from "@/lib/site-maintenance";
@@ -6,7 +7,7 @@ import { updateSession } from "@/lib/auth/middleware";
 import { NextResponse, NextRequest } from "next/server";
 import { previewAccess } from "@/lib/preview-access";
 
-function buildContentSecurityPolicy(nonce: string, metaAllowed: boolean, gaAllowed: boolean): string {
+function buildContentSecurityPolicy(nonce: string, metaAllowed: boolean, gaAllowed: boolean, metaImageAllowed = false): string {
   const isDevelopment = process.env.NODE_ENV !== "production";
 
   return [
@@ -20,7 +21,7 @@ function buildContentSecurityPolicy(nonce: string, metaAllowed: boolean, gaAllow
     // Maps and React components use dynamic style attributes.
     "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "style-src-attr 'unsafe-inline'",
-    `img-src 'self' data: https://maps.googleapis.com https://maps.gstatic.com https://*.googleusercontent.com ${metaAllowed ? "https://www.facebook.com" : ""} ${gaAllowed ? "https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com" : ""}`,
+    `img-src 'self' data: https://maps.googleapis.com https://maps.gstatic.com https://*.googleusercontent.com ${metaAllowed || metaImageAllowed ? "https://www.facebook.com" : ""} ${gaAllowed ? "https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com" : ""}`,
     "font-src 'self' data: https://fonts.gstatic.com",
     `connect-src 'self' https://maps.googleapis.com https://places.googleapis.com https://routes.googleapis.com ${metaAllowed ? "https://www.facebook.com https://connect.facebook.net" : ""} ${gaAllowed ? "https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com" : ""} ${isDevelopment ? "http: ws:" : ""}`
       .replace(/\s+/g, " ")
@@ -58,7 +59,7 @@ export async function proxy(request: NextRequest) {
   const metaAllowed = (permitsMeta(consent, request.nextUrl) || (consent?.marketing && receiptAllowed))
     && safeMarketingReferrer(request.headers.get("referer") ?? "", process.env.UNIFIED_WEB_ORIGIN || request.nextUrl.origin);
   const gaAllowed=(permitsAnalytics(consent,request.nextUrl)||(consent?.analytics===true&&receiptAllowed))&&safeMarketingReferrer(request.headers.get("referer")??"",process.env.UNIFIED_WEB_ORIGIN||request.nextUrl.origin);
-  const contentSecurityPolicy = buildContentSecurityPolicy(nonce, Boolean(metaAllowed), gaAllowed);
+  const contentSecurityPolicy = buildContentSecurityPolicy(nonce, Boolean(metaAllowed), gaAllowed, permitsMetaPageView(consent, request.nextUrl));
   const requestHeaders = new Headers(request.headers);
 
   requestHeaders.set("x-nonce", nonce);

@@ -28,7 +28,7 @@ export default function PrivacyPolicyPage() {
             Privacy <span className="text-terracotta">Policy</span>
           </h1>
           <p className="text-sm text-charcoal/40 font-body">
-            Ultimo aggiornamento: <strong className="text-charcoal/60">15 ottobre 2026</strong>
+            Ultimo aggiornamento: <strong className="text-charcoal/60">17 ottobre 2026</strong>
           </p>
         </header>
 
@@ -48,7 +48,7 @@ export default function PrivacyPolicyPage() {
             <ul className="list-disc list-inside space-y-1 pl-2">
               <li><strong className="text-charcoal">Dati di contatto</strong>: nome e numero di telefono necessari per l’ordine; email per l’account e le comunicazioni disponibili.</li>
               <li><strong className="text-charcoal">Dati di consegna</strong>: indirizzo di spedizione, note aggiuntive.</li>
-              <li><strong className="text-charcoal">Dati di navigazione</strong>: dati tecnici strettamente necessari alla connessione e alla protezione del servizio. Non effettuiamo profilazione delle pagine visitate.</li>
+              <li><strong className="text-charcoal">Dati di navigazione</strong>: dati tecnici strettamente necessari alla connessione e alla protezione del servizio. Solo con i rispettivi consensi facoltativi, Google Analytics e Meta misurano la navigazione come descritto nella Cookie Policy; nessun consenso cookie autorizza newsletter o profilazione CRM.</li>
               <li><strong className="text-charcoal">Dati dell&apos;account</strong>: in caso di registrazione, password protetta da hash Argon2id non reversibile, preferenze salvate (ultimo indirizzo, numero di telefono).</li>
               <li><strong className="text-charcoal">Feedback sul servizio</strong>: valutazioni e commenti inviati dopo un ordine, utilizzati per migliorare il servizio e produrre statistiche aggregate.</li>
             </ul>
@@ -67,7 +67,7 @@ export default function PrivacyPolicyPage() {
               </div>
               <div className="bg-white/60 border border-charcoal/5 rounded-2xl p-5 space-y-1">
                 <p className="font-semibold text-charcoal text-sm">Consenso (art. 6.1.a GDPR)</p>
-                <p className="text-sm">Newsletter, messaggi promozionali e profilazione CRM restano disattivati. Google Analytics 4 misura le statistiche delle pagine pubbliche e gli eventi commerciali soltanto dopo un consenso statistico separato dei maggiorenni. Riceve identificativi, nomi e categorie pubbliche di prodotto, prezzi, quantità, importi, eventuale costo di consegna distinto, valuta e un riferimento pseudonimo di acquisto, oltre ai dati tecnici di connessione (tra cui IP e browser). Non attiviamo Google Signals, Google Ads o invio di contatti. Il Pixel Meta misura le visite alle pagine pubbliche e gli acquisti pagati e accettati soltanto dopo un consenso pubblicitario separato, riservato ai maggiorenni e revocabile da “Preferenze cookie”. La registrazione e la presa visione di questa informativa non lo attivano e non autorizzano altri usi di marketing. Il feedback sul servizio è facoltativo e richiede un consenso specifico, revocabile contattandoci; il rifiuto non limita account o ordini.</p>
+                <p className="text-sm">Newsletter, messaggi promozionali e profilazione CRM restano disattivati. Google Analytics 4 misura le statistiche delle pagine pubbliche e gli eventi commerciali soltanto dopo un consenso statistico separato dei maggiorenni. Riceve identificativi, nomi e categorie pubbliche di prodotto, prezzi, quantità, importi, eventuale costo di consegna distinto, valuta e un riferimento pseudonimo di acquisto, oltre ai dati tecnici di connessione (tra cui IP e browser). Non attiviamo Google Signals, Google Ads o invio di contatti. Il Pixel Meta misura le visite alle schermate del sito e gli acquisti pagati e accettati soltanto dopo un consenso pubblicitario separato, riservato ai maggiorenni e revocabile da “Preferenze cookie”. La registrazione e la presa visione di questa informativa non lo attivano e non autorizzano altri usi di marketing. Il feedback sul servizio è facoltativo e richiede un consenso specifico, revocabile contattandoci; il rifiuto non limita account o ordini.</p>
               </div>
             </div>
           </section>
@@ -84,7 +84,7 @@ export default function PrivacyPolicyPage() {
             <p>I tuoi dati possono essere comunicati a:</p>
             <ul className="list-disc list-inside space-y-1 pl-2">
               <li>Il sito utilizza il backend condiviso con il gestionale per account e ordini. Questa versione non trasferisce account o ordini a Supabase.</li>
-              <li><strong className="text-charcoal">Meta</strong> — soltanto dopo consenso pubblicitario, riceve eventi di visita alle pagine pubbliche e di acquisto pagato e accettato, con importo finale, valuta, identificativo pseudonimo e dati tecnici della connessione (IP e browser). Non riceve dati CRM, contatti, indirizzi, note o dati carta da questa integrazione. Un rimborso successivo non rettifica automaticamente l’evento pubblicitario.</li>
+              <li><strong className="text-charcoal">Meta</strong> — soltanto dopo consenso pubblicitario, riceve eventi di visita alle schermate del sito (soli nomi generici per accesso, registrazione, checkout, account, stato ordine e feedback, senza contenuti personali o riferimenti riservati) e di acquisto pagato e accettato, con importo finale, valuta, identificativo pseudonimo e dati tecnici della connessione (IP e browser). Non riceve dati CRM, contatti, indirizzi, note o dati carta da questa integrazione. Un rimborso successivo non rettifica automaticamente l’evento pubblicitario.</li>
               <li><strong className="text-charcoal">Vercel e collegamento Tailscale</strong> — il frontend è ospitato su Vercel e inoltra le richieste al server del gestionale attraverso il collegamento Tailscale. I fornitori possono trattare i dati tecnici necessari al servizio.</li>
               <li><strong className="text-charcoal">Stripe</strong> — gestione dei pagamenti online quando abilitati; i dati completi della carta vengono inseriti nel servizio di pagamento e non nel gestionale.</li>
               <li><strong className="text-charcoal">Google LLC</strong> — servizi di indirizzi e percorsi, ed eventuale accesso con Google. L’utilizzo comporta il trattamento dei dati necessari da parte di Google.</li>
