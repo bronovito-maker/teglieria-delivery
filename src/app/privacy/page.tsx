@@ -28,7 +28,7 @@ export default function PrivacyPolicyPage() {
             Privacy <span className="text-terracotta">Policy</span>
           </h1>
           <p className="text-sm text-charcoal/40 font-body">
-            Ultimo aggiornamento: <strong className="text-charcoal/60">17 ottobre 2026</strong>
+            Ultimo aggiornamento: <strong className="text-charcoal/60">19 ottobre 2026</strong>
           </p>
         </header>
 
@@ -49,6 +49,7 @@ export default function PrivacyPolicyPage() {
               <li><strong className="text-charcoal">Dati di contatto</strong>: nome e numero di telefono necessari per l’ordine; email per l’account e le comunicazioni disponibili.</li>
               <li><strong className="text-charcoal">Dati di consegna</strong>: indirizzo di spedizione, note aggiuntive.</li>
               <li><strong className="text-charcoal">Dati di navigazione</strong>: dati tecnici strettamente necessari alla connessione e alla protezione del servizio. Solo con i rispettivi consensi facoltativi, Google Analytics e Meta misurano la navigazione come descritto nella Cookie Policy; nessun consenso cookie autorizza newsletter o profilazione CRM.</li>
+              <li><strong className="text-charcoal">Provenienza campagna</strong>: solo con consenso alle statistiche e una scelta facoltativa distinta al checkout, associamo all’ordine piattaforma, mezzo e codici numerici di campagna/inserzione, se presenti. Non conserviamo nel CRM il link completo o il codice di clic Meta.</li>
               <li><strong className="text-charcoal">Dati dell&apos;account</strong>: in caso di registrazione, password protetta da hash Argon2id non reversibile, preferenze salvate (ultimo indirizzo, numero di telefono).</li>
               <li><strong className="text-charcoal">Feedback sul servizio</strong>: valutazioni e commenti inviati dopo un ordine, utilizzati per migliorare il servizio e produrre statistiche aggregate.</li>
             </ul>
@@ -67,7 +68,7 @@ export default function PrivacyPolicyPage() {
               </div>
               <div className="bg-white/60 border border-charcoal/5 rounded-2xl p-5 space-y-1">
                 <p className="font-semibold text-charcoal text-sm">Consenso (art. 6.1.a GDPR)</p>
-                <p className="text-sm">Newsletter, messaggi promozionali e profilazione CRM restano disattivati. Google Analytics 4 misura le statistiche delle pagine pubbliche e gli eventi commerciali soltanto dopo un consenso statistico separato dei maggiorenni. Riceve identificativi, nomi e categorie pubbliche di prodotto, prezzi, quantità, importi, eventuale costo di consegna distinto, valuta e un riferimento pseudonimo di acquisto, oltre ai dati tecnici di connessione (tra cui IP e browser). Non attiviamo Google Signals, Google Ads o invio di contatti. Il Pixel Meta misura le visite alle schermate del sito e gli acquisti pagati e accettati soltanto dopo un consenso pubblicitario separato, riservato ai maggiorenni e revocabile da “Preferenze cookie”. La registrazione e la presa visione di questa informativa non lo attivano e non autorizzano altri usi di marketing. Il feedback sul servizio è facoltativo e richiede un consenso specifico, revocabile contattandoci; il rifiuto non limita account o ordini.</p>
+                <p className="text-sm">Newsletter e messaggi promozionali restano disattivati. Il collegamento della campagna all’ordine e all’eventuale scheda cliente richiede una scelta facoltativa distinta al checkout, oltre al consenso statistico. Il rifiuto non limita l’ordine e non autorizziamo offerte personalizzate con questa scelta. Google Analytics 4 misura le statistiche delle pagine pubbliche e gli eventi commerciali soltanto dopo un consenso statistico separato dei maggiorenni. Riceve identificativi, nomi e categorie pubbliche di prodotto, prezzi, quantità, importi, eventuale costo di consegna distinto, valuta e un riferimento pseudonimo di acquisto, oltre ai dati tecnici di connessione (tra cui IP e browser). Non attiviamo Google Signals, Google Ads o invio di contatti. Il Pixel Meta misura le visite alle schermate del sito e gli acquisti pagati e accettati soltanto dopo un consenso pubblicitario separato, riservato ai maggiorenni e revocabile da “Preferenze cookie”. La registrazione e la presa visione di questa informativa non lo attivano e non autorizzano altri usi di marketing. Il feedback sul servizio è facoltativo e richiede un consenso specifico, revocabile contattandoci; il rifiuto non limita account o ordini.</p>
               </div>
             </div>
           </section>

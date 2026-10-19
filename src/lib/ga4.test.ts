@@ -1,7 +1,7 @@
 import {beforeEach,afterEach,describe,it,expect,vi} from 'vitest';
 import {startGA,stopGA,gaEvent,analyticsItem,trackAnalyticsCart,trackAnalyticsList} from './ga4';
 import {CONSENT_COOKIE,CONSENT_VERSION,CONSENT_SECONDS,GA4_ID,parseConsent,permitsAnalytics} from './cookie-consent';
-import {safeCampaign,onlyAttributionQuery,readCampaign} from './analytics-attribution';
+import {safeCampaign,onlyAttributionQuery,readCampaign,safeAnalyticsReferrer,socialReferrerCampaign} from './analytics-attribution';
 import {catalogPolicy} from './meta-catalog';
 import {advertisingConsent} from './meta-purchase-server';
 import {permitsPurchase} from './meta-purchase-client';
@@ -32,6 +32,22 @@ describe('campaign minimization',()=>{
  it('drops campaign names, addresses, terms and arbitrary sources',()=>{expect(safeCampaign(new URLSearchParams('utm_source=luca@example.it&utm_medium=PRIVATE&utm_campaign=PRIVATE_NAME&utm_content=PRIVATE_PHONE'))).toEqual({});});
  it('does not strip functional or unknown URL parameters; duplicates fail closed',()=>{expect(onlyAttributionQuery(new URL('http://localhost/menu?utm_source=facebook'))).toBe(true);expect(onlyAttributionQuery(new URL('http://localhost/menu?type=DELIVERY'))).toBe(false);expect(onlyAttributionQuery(new URL('http://localhost/menu?token=SECRET'))).toBe(false);expect(onlyAttributionQuery(new URL('http://localhost/menu?utm_source=facebook&utm_source=google'))).toBe(false);});
  it('does not accept arbitrary cookie contents, expired or different-consent attribution',()=>{const cookie='lt_ga4_attribution='+encodeURIComponent(JSON.stringify({receiptId:id,at:Date.now(),values:{campaign_source:'meta',campaign_id:'123',email:'SECRET'}}));expect(readCampaign(cookie,id)).toEqual({campaign_source:'meta',campaign_id:'123'});expect(readCampaign(cookie,'other')).toEqual({});expect(readCampaign(cookie,id,Date.now()+1800001)).toEqual({});});
+ it('recognizes Facebook and Instagram without forwarding the referrer URL',()=>{
+  for(const [referrer,source] of [['https://l.facebook.com/l.php?u=PRIVATE','facebook'],['https://www.instagram.com/stories/PRIVATE?token=PRIVATE','instagram']] as const){
+   expect(safeAnalyticsReferrer(referrer,'http://localhost')).toBe(true);
+   expect(socialReferrerCampaign(referrer)).toEqual({campaign_source:source,campaign_medium:'social'});
+   (document as any).referrer=referrer;startGA('nonce');
+   const config=events().find(v=>v[0]==='config')![2];expect(config).toMatchObject({campaign_source:source,campaign_medium:'social',page_referrer:'',ignore_referrer:true});expect(JSON.stringify(events())).not.toContain('PRIVATE');stopGA(false);window.dataLayer=[];
+  }
+ });
+ it('rejects lookalike social hosts and unrelated private referrers',()=>{
+  for(const referrer of ['https://facebook.com.evil.invalid/private','https://example.invalid/path?email=PRIVATE','http://l.facebook.com/path'])expect(safeAnalyticsReferrer(referrer,'http://localhost')).toBe(false);
+ });
+ it('accepts only a clean public same-origin attribution redirect',()=>{
+  expect(safeAnalyticsReferrer('http://localhost/menu?utm_source=facebook&utm_medium=paid_social&fbclid=PRIVATE','http://localhost')).toBe(true);
+  expect(safeAnalyticsReferrer('http://localhost/menu?email=PRIVATE','http://localhost')).toBe(false);
+  expect(safeAnalyticsReferrer('http://localhost/ordine?utm_source=facebook','http://localhost')).toBe(false);
+ });
 });
 
 it("restarting a consented tag preserves the dataLayer observed by an already loaded Google SDK",()=>{startGA("n");const original=window.dataLayer;const push=vi.spyOn(original!,"push");stopGA(false);startGA("n");expect(window.dataLayer).toBe(original);gaEvent("view_item",[{item_id:item.id}]);expect(push).toHaveBeenCalled();expect(events().some(v=>v[1]==="view_item")).toBe(true);});

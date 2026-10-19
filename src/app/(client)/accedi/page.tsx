@@ -8,15 +8,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/auth/client";
 import { useCustomerAuth } from "@/components/client/CustomerAuthProvider";
 import { Suspense } from "react";
-
-function sanitizeNextPath(next: string | null) {
-  if (!next) return "/menu";
-  if (!next.startsWith("/")) return "/menu";
-  if (next.startsWith("//")) return "/menu";
-  if (next.includes("://")) return "/menu";
-  if (next === "/accedi" || next.startsWith("/accedi?") || next.startsWith("/accedi/")) return "/menu";
-  return next;
-}
+import {sanitizeCustomerNext,postCustomerAuth,waitForCustomerSession,customerAuthFailure,rememberGoogleReturn,clearGoogleReturn} from "@/lib/customer-auth-flow";
 
 function LoginForm() {
   const providers=useProviderAvailability();
@@ -29,7 +21,7 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const redirectTo = sanitizeNextPath(searchParams.get("next"));
+  const redirectTo = sanitizeCustomerNext(searchParams.get("next"));
 
   useEffect(() => {
     if (!authLoading && user) router.replace(redirectTo);
@@ -38,6 +30,7 @@ function LoginForm() {
   async function handleOAuth(provider: "google") {
     if (!policyAccepted) { setError("Conferma maggiore età e lettura dell’informativa prima di usare Google."); return; }
     setError(null);
+    rememberGoogleReturn(redirectTo);
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider,
       policy: policyPayload(policyAccepted),
@@ -46,31 +39,9 @@ function LoginForm() {
       },
     });
     if (oauthError) {
+      clearGoogleReturn();
       setError("Impossibile avviare Google. Riprova tra poco.");
     }
-  }
-
-  async function waitForServerSession() {
-    const maxAttempts = 4;
-
-    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-      try {
-        const response = await fetch("/api/auth/session", {
-          credentials: "same-origin",
-          cache: "no-store",
-        });
-        if (response.ok) return true;
-      } catch {
-        // Riprova: il cookie Set-Cookie potrebbe non essere ancora visibile
-        // alla richiesta successiva su alcuni browser mobile.
-      }
-
-      if (attempt < maxAttempts - 1) {
-        await new Promise((resolve) => setTimeout(resolve, 75 * (attempt + 1)));
-      }
-    }
-
-    return false;
   }
 
   async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
@@ -93,25 +64,13 @@ function LoginForm() {
     }
 
     try {
-      // Completa il login sul server: in questo modo i cookie SSR vengono
-      // inclusi nella risposta prima di navigare verso una route protetta.
-      const response = await fetch("/api/auth/password", {
-        method: "POST",
-        credentials: "same-origin",
-        cache: "no-store",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: formEmail, password: formPassword, policy: policyPayload(policyAccepted) }),
-      });
-
-      if (!response.ok) {
-        setError("Email o password non validi.");
-        setLoading(false);
-        return;
-      }
+      clearGoogleReturn();
+      const result=await postCustomerAuth('login',{email:formEmail,password:formPassword,policy:policyPayload(policyAccepted)});
+      if(!result.ok){setError(result.message);return;}
 
       // Verifica che il browser abbia ricevuto e rimandato i cookie SSR prima
       // della navigazione. Non autentica di nuovo: controlla solo la sessione.
-      if (!(await waitForServerSession())) {
+      if (!(await waitForCustomerSession())) {
         setError("Accesso riuscito, ma la sessione non è stata sincronizzata. Riprova.");
         setLoading(false);
         return;
@@ -123,9 +82,8 @@ function LoginForm() {
       // browser.
       window.location.replace(redirectTo);
     } catch {
-      setError("Email o password non validi.");
-      setLoading(false);
-    }
+      setError(customerAuthFailure(0,"login"));
+    } finally {setLoading(false);}
   }
 
   return (
@@ -242,7 +200,7 @@ function LoginForm() {
 
         <p className="text-center text-[11px] font-brand font-bold uppercase tracking-widest text-charcoal/30">
           Non hai un account?{" "}
-          <Link href="/registrati" className="text-terracotta hover:underline">
+          <Link href={`/registrati?next=${encodeURIComponent(redirectTo)}`} className="text-terracotta hover:underline">
             Registrati
           </Link>
         </p>

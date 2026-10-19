@@ -2,11 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { backendProxy } from '@/lib/backend-proxy';
 import { CONSENT_COOKIE, CONSENT_VERSION, parseConsent } from '@/lib/cookie-consent';
 import { advertisingConsent, validOrderId, eventIdFor, intentName, signTicket, cookieOptions, INTENT_PREFIX, MAX_RECEIPTS } from '@/lib/meta-purchase-server';
+import { ORDER_ATTRIBUTION_COOKIE, readOrderAttribution } from '@/lib/order-attribution';
 export const dynamic='force-dynamic';
 export const runtime='nodejs';
 export async function POST(request:NextRequest){
- const upstream=await backendProxy(request,'api');
  const consent=parseConsent(request.cookies.get(CONSENT_COOKIE)?.value);
+ const optedIn=request.headers.get('x-crm-attribution-consent')==='yes';
+ const evidence=optedIn&&consent?.analytics&&consent.adult?await readOrderAttribution(request.cookies.get(ORDER_ATTRIBUTION_COOKIE)?.value,consent.receiptId):null;
+ const upstream=await backendProxy(request,'api',evidence?JSON.stringify({...evidence,profile_opt_in:true,profile_opt_in_at:Date.now()}):undefined);
  if(!upstream.ok||!advertisingConsent(consent))return upstream;
  try{
   const order=await upstream.clone().json();if(!validOrderId(order.id))return upstream;

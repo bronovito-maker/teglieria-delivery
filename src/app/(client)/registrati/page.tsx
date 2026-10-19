@@ -2,18 +2,19 @@
 import {useProviderAvailability} from "@/lib/use-provider-availability";
 import ServicePolicy, { policyPayload } from "@/components/client/ServicePolicy";
 
-import { useState, Suspense } from "react";
+import { useState, useMemo, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import {sanitizeCustomerNext,NEW_PASSWORD_MIN,newPasswordProblem,postCustomerAuth,waitForCustomerSession,customerAuthFailure,rememberGoogleReturn,clearGoogleReturn} from "@/lib/customer-auth-flow";
 import { createClient } from "@/lib/auth/client";
 
 function RegisterForm() {
   const providers=useProviderAvailability();
-  const supabase = createClient();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const supabase = useMemo(()=>createClient(),[]);
+  const params=useSearchParams();
+  const redirectTo=sanitizeCustomerNext(params.get("next"));
+  const loginHref=`/accedi?next=${encodeURIComponent(redirectTo)}`;
 
-  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [policyAccepted, setPolicyAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -23,57 +24,43 @@ function RegisterForm() {
   async function handleOAuth(provider: "google") {
     if (!policyAccepted) { setError("Conferma maggiore età e lettura dell’informativa prima di usare Google."); return; }
     setError(null);
+    rememberGoogleReturn(redirectTo);
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider,
       policy: policyPayload(policyAccepted),
       options: {
-        redirectTo: `${window.location.origin}/api/auth/callback?type=customer&next=/menu`,
+        redirectTo: `${window.location.origin}/api/auth/callback?type=customer&next=${encodeURIComponent(redirectTo)}`,
       },
     });
     if (oauthError) {
+      clearGoogleReturn();
       setError("Impossibile avviare Google. Riprova tra poco.");
     }
   }
 
-  async function handleRegister(e: React.FormEvent) {
+  async function handleRegister(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!policyAccepted) { setError("Conferma maggiore età e lettura dell’informativa prima di continuare."); return; }
-    setLoading(true);
-    setError(null);
-
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      policy: policyPayload(policyAccepted),
-      options: {
-        data: { full_name: name, phone },
-      },
-    });
-
-    if (authError) {
-      const msg = authError.message.toLowerCase();
-      if (msg.includes("already registered") || msg.includes("already been registered") || authError.status === 422) {
-        setError("EMAIL_EXISTS");
-      } else {
-        setError(authError.message);
+    if(!policyAccepted){setError("Conferma maggiore età e lettura dell’informativa prima di continuare.");return;}
+    const form=new FormData(e.currentTarget);
+    const submittedEmail=String(form.get('email')??'').trim(),submittedPassword=String(form.get('password')??'');
+    const problem=newPasswordProblem(submittedPassword);
+    if(problem){setError(problem);return;}
+    setLoading(true);setError(null);
+    try{
+      clearGoogleReturn();
+      const result=await postCustomerAuth('register',{email:submittedEmail,password:submittedPassword,policy:policyPayload(policyAccepted),data:{full_name:String(form.get('full_name')??'').trim(),phone:String(form.get('phone')??'').trim()}});
+      if(!result.ok){setError(result.duplicate?'EMAIL_EXISTS':result.message);return;}
+      // A successful response creates the account. Never submit it again just
+      // because the following session check is temporarily unavailable.
+      if(await waitForCustomerSession()){
+        // Preserve the existing optional welcome queue; backend uses the
+        // authenticated identity, never arbitrary recipient fields.
+        void fetch('/api/customer/welcome',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:'{}',keepalive:true}).catch(()=>{});
+        window.location.replace(redirectTo);return;
       }
-      setLoading(false);
-      return;
-    }
-
-
-    // Only an authenticated session may trigger the welcome email. If email
-    // confirmation is enabled, the callback can be used for that follow-up.
-    if (authData.session) {
-      fetch("/api/customer/welcome", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name }),
-      }).catch(() => {});
-    }
-
-    setDone(true);
-    setLoading(false);
+      setDone(true);
+    }catch{setError(customerAuthFailure(0,'register'));}
+    finally{setLoading(false);}
   }
 
   if (done) {
@@ -85,13 +72,13 @@ function RegisterForm() {
             Account <span className="text-terracotta">creato</span>
           </h1>
           <p className="font-body italic text-charcoal/50 leading-relaxed">
-            Puoi usare il tuo account <strong className="not-italic text-charcoal">{email}</strong> per ordinare. La verifica dell’indirizzo email non è ancora disponibile in questa versione di prova.
+            Il tuo account è stato creato, ma non riusciamo ancora a verificare la sessione. Non registrarti di nuovo: accedi con la password appena scelta per continuare.
           </p>
           <Link
-            href="/accedi"
+            href={loginHref}
             className="inline-block px-8 py-4 bg-charcoal text-white rounded-2xl font-brand font-bold uppercase tracking-widest text-[11px] hover:bg-terracotta transition-all"
           >
-            Vai al Login
+            Accedi e continua
           </Link>
         </div>
       </div>
@@ -116,14 +103,14 @@ function RegisterForm() {
         <ServicePolicy accepted={policyAccepted} onChange={setPolicyAccepted} />
         <form onSubmit={handleRegister} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/40 ml-1 block">
+            <label htmlFor="register-full_name" className="text-[10px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/40 ml-1 block">
               Nome e Cognome
             </label>
             <input
+              id="register-full_name"
+              name="full_name"
               type="text"
               required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
               placeholder="Mario Rossi"
               autoComplete="name"
               className="w-full px-5 py-4 bg-white/80 border border-charcoal/10 rounded-2xl font-body text-sm text-charcoal focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta outline-none transition-all placeholder:text-charcoal/20 min-h-[52px]"
@@ -131,14 +118,14 @@ function RegisterForm() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/40 ml-1 block">
+            <label htmlFor="register-email" className="text-[10px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/40 ml-1 block">
               Email
             </label>
             <input
+              id="register-email"
+              name="email"
               type="email"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               placeholder="mario@esempio.it"
               autoComplete="email"
               className="w-full px-5 py-4 bg-white/80 border border-charcoal/10 rounded-2xl font-body text-sm text-charcoal focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta outline-none transition-all placeholder:text-charcoal/20 min-h-[52px]"
@@ -146,14 +133,14 @@ function RegisterForm() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/40 ml-1 block">
+            <label htmlFor="register-phone" className="text-[10px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/40 ml-1 block">
               Telefono
             </label>
             <input
+              id="register-phone"
+              name="phone"
               type="tel"
               required
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
               placeholder="333 123 4567"
               autoComplete="tel"
               className="w-full px-5 py-4 bg-white/80 border border-charcoal/10 rounded-2xl font-body text-sm text-charcoal focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta outline-none transition-all placeholder:text-charcoal/20 min-h-[52px]"
@@ -161,17 +148,17 @@ function RegisterForm() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/40 ml-1 block">
+            <label htmlFor="register-password" className="text-[10px] font-brand font-bold uppercase tracking-[0.2em] text-charcoal/40 ml-1 block">
               Password
             </label>
             <div className="relative">
               <input
+                id="register-password"
+                name="password"
                 type={showPassword ? "text" : "password"}
                 required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Min. 6 caratteri"
+                minLength={NEW_PASSWORD_MIN}
+                    placeholder="Min. 12 caratteri"
                 autoComplete="new-password"
                 className="w-full px-5 py-4 pr-14 bg-white/80 border border-charcoal/10 rounded-2xl font-body text-sm text-charcoal focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta outline-none transition-all placeholder:text-charcoal/20 min-h-[52px]"
               />
@@ -194,13 +181,15 @@ function RegisterForm() {
             </div>
           </div>
 
+          <p className="text-sm text-charcoal/60">Usa almeno 12 caratteri: una frase è consentita. Evita un solo carattere ripetuto.</p>
+
           {error === "EMAIL_EXISTS" ? (
             <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 text-center space-y-2">
               <p className="text-[11px] text-amber-700 font-brand font-bold uppercase tracking-widest">
-                Hai già un account con questa email
+                Questa email ha già un account
               </p>
               <a
-                href={`/accedi?next=/account/orders`}
+                href={loginHref}
                 className="inline-block text-sm font-semibold text-terracotta hover:underline"
               >
                 Accedi al tuo account →
@@ -253,7 +242,7 @@ function RegisterForm() {
 
         <p className="text-center text-[11px] font-brand font-bold uppercase tracking-widest text-charcoal/30">
           Hai già un account?{" "}
-          <Link href="/accedi" className="text-terracotta hover:underline">
+          <Link href={loginHref} className="text-terracotta hover:underline">
             Accedi
           </Link>
         </p>

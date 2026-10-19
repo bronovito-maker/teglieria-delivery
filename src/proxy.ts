@@ -1,4 +1,5 @@
-import { ATTRIBUTION_COOKIE, onlyAttributionQuery, safeCampaign } from '@/lib/analytics-attribution';
+import { ATTRIBUTION_COOKIE, onlyAttributionQuery, safeCampaign, safeAnalyticsReferrer } from '@/lib/analytics-attribution';
+import { ORDER_ATTRIBUTION_COOKIE, ORDER_ATTRIBUTION_SECONDS, signOrderAttribution } from '@/lib/order-attribution';
 import { permitsMetaPageView } from '@/lib/meta-page-view';
 import { CONSENT_COOKIE, parseConsent, permitsAnalytics, permitsMeta, safeMarketingReferrer } from '@/lib/cookie-consent';
 import { publicReceipts, INTENT_PREFIX, RECEIPT_PREFIX, cookieOptions } from "@/lib/meta-purchase-server";
@@ -50,7 +51,9 @@ export async function proxy(request: NextRequest) {
   if(consent?.adult&&(consent.marketing||consent.analytics)&&onlyAttributionQuery(request.nextUrl)&&(permitsMeta(consent,clean)||permitsAnalytics(consent,clean))){
     const redirected=NextResponse.redirect(clean,303);redirected.headers.set('Referrer-Policy','no-referrer');redirected.headers.set('Cache-Control','private, no-store');
     const options={path:'/',sameSite:'lax' as const,secure:new URL(process.env.UNIFIED_WEB_ORIGIN||request.url).protocol==='https:',maxAge:1800};
-    if(consent.analytics)redirected.cookies.set(ATTRIBUTION_COOKIE,JSON.stringify({receiptId:consent.receiptId,at:Date.now(),values:safeCampaign(request.nextUrl.searchParams)}),options);
+    if(consent.analytics){const campaign=safeCampaign(request.nextUrl.searchParams);redirected.cookies.set(ATTRIBUTION_COOKIE,JSON.stringify({receiptId:consent.receiptId,at:Date.now(),values:campaign}),options);
+      const token=await signOrderAttribution(campaign,consent.receiptId);if(token)redirected.cookies.set(ORDER_ATTRIBUTION_COOKIE,token,{...options,maxAge:ORDER_ATTRIBUTION_SECONDS,httpOnly:true});
+      else redirected.cookies.set(ORDER_ATTRIBUTION_COOKIE,'',{...options,maxAge:0,httpOnly:true});}
     const click=request.nextUrl.searchParams.get('fbclid');
     if(consent.marketing&&click&&/^[A-Za-z0-9_-]{20,512}$/.test(click))redirected.cookies.set('_fbc','fb.1.'+Date.now()+'.'+click,{...options,maxAge:90*86400});
     return redirected;
@@ -58,7 +61,7 @@ export async function proxy(request: NextRequest) {
   const receiptAllowed = path === "/acquisto-completato" && !request.nextUrl.search && (await publicReceipts(request.cookies.getAll(), consent)).length > 0;
   const metaAllowed = (permitsMeta(consent, request.nextUrl) || (consent?.marketing && receiptAllowed))
     && safeMarketingReferrer(request.headers.get("referer") ?? "", process.env.UNIFIED_WEB_ORIGIN || request.nextUrl.origin);
-  const gaAllowed=(permitsAnalytics(consent,request.nextUrl)||(consent?.analytics===true&&receiptAllowed))&&safeMarketingReferrer(request.headers.get("referer")??"",process.env.UNIFIED_WEB_ORIGIN||request.nextUrl.origin);
+  const gaAllowed=(permitsAnalytics(consent,request.nextUrl)||(consent?.analytics===true&&receiptAllowed))&&safeAnalyticsReferrer(request.headers.get("referer")??"",process.env.UNIFIED_WEB_ORIGIN||request.nextUrl.origin);
   const contentSecurityPolicy = buildContentSecurityPolicy(nonce, Boolean(metaAllowed), gaAllowed, permitsMetaPageView(consent, request.nextUrl));
   const requestHeaders = new Headers(request.headers);
 
@@ -72,13 +75,14 @@ export async function proxy(request: NextRequest) {
   });
   const response = await updateSession(requestWithSecurityHeaders);
   response.headers.set("Content-Security-Policy", contentSecurityPolicy);
-  if (!permitsMeta(consent, request.nextUrl) || path === "/acquisto-completato") response.headers.set("Referrer-Policy", "no-referrer");
+  if (gaAllowed || !permitsMeta(consent, request.nextUrl) || path === "/acquisto-completato") response.headers.set("Referrer-Policy", "no-referrer");
   // Never reuse a consented HTML/CSP response for a non-consenting visitor.
   if (!path.startsWith("/_next/") && !/\.[a-z0-9]+$/i.test(path)) response.headers.set("Cache-Control", "private, no-store");
 
   if (!(consent?.marketing||consent?.analytics) || !consent.adult) {
     for (const c of request.cookies.getAll()) if(c.name.startsWith(INTENT_PREFIX)||c.name.startsWith(RECEIPT_PREFIX)) response.cookies.set(c.name, "", cookieOptions(request, 0));
   }
+  if(!consent?.analytics)response.cookies.set(ORDER_ATTRIBUTION_COOKIE,'',{path:'/',sameSite:'lax',httpOnly:true,maxAge:0,secure:new URL(process.env.UNIFIED_WEB_ORIGIN||request.url).protocol==='https:'});
   return response;
 }
 

@@ -28,6 +28,8 @@ const STORE_POSITION = {
 };
 
 import {readPendingCheckout, rememberCheckout, settleCheckout, cartSignature, type PendingCheckout} from "@/lib/pending-checkout";
+import {orderReturnPath} from "@/lib/customer-auth-flow";
+import {readConsentCookie} from "@/lib/cookie-consent";
 
 export default function OrdinePage() {
   const router = useRouter();
@@ -37,6 +39,9 @@ export default function OrdinePage() {
   const services = useServiceAvailability();
   const providers=useProviderAvailability();
   const [policyAccepted, setPolicyAccepted] = useState(false);
+  const [campaignLinkConsent,setCampaignLinkConsent]=useState(false);
+  const [analyticsAllowed,setAnalyticsAllowed]=useState(false);
+  useEffect(()=>{setAnalyticsAllowed(readConsentCookie(document.cookie)?.analytics===true);},[]);
   const [loading, setLoading] = useState(false);
   const [pendingCheckout,setPendingCheckout]=useState<PendingCheckout|null>(null);
   const pendingMatchesCart=pendingCheckout?.cartSignature===cartSignature(items,orderType);
@@ -151,13 +156,23 @@ export default function OrdinePage() {
 
   async function handleGoogleLogin() {
     // Account access has a separate adult declaration; a guest-order acknowledgment cannot supply it.
-    window.location.assign("/accedi?next=/ordine");
+    window.location.assign(`/accedi?next=${encodeURIComponent(orderReturnPath(selectedDate,pickupTime))}`);
   }
   const [address, setAddress] = useState("");
   const [addressDetail, setAddressDetail] = useState("");
   const [deliveryZone, setDeliveryZone] = useState("");
   const [selectedDate, setSelectedDate] = useState(() => getRomeDateString());
   const [pickupTime, setPickupTime] = useState("");
+  // Return from either password or Google login without resetting the booking
+  // date. Availability is still revalidated by the canonical slots endpoint.
+  useEffect(()=>{
+    const query=new URLSearchParams(window.location.search),date=query.get('date'),time=query.get('time');
+    if(date&&Array.from({length:7},(_,i)=>getRomeDateOffsetString(i)).includes(date)){
+      setSelectedDate(date);
+      if(time&&/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time))setPickupTime(time);
+    }
+  },[]);
+
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"CONTANTI" | "STRIPE">("CONTANTI");
   const [deliveryKm, setDeliveryKm] = useState<number | null>(null);
@@ -292,7 +307,7 @@ export default function OrdinePage() {
     try {
       const res = await fetch("/api/ordini", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Idempotency-Key": orderRequestKey.current },
+        headers: { "Content-Type": "application/json", "Idempotency-Key": orderRequestKey.current,...(analyticsAllowed&&campaignLinkConsent?{"X-CRM-Attribution-Consent":"yes"}:{}) },
         body: JSON.stringify({
           type: orderType,
           channel: "WEB",
@@ -517,7 +532,7 @@ export default function OrdinePage() {
                 </button>)}
                 <p className="text-center text-xs text-charcoal/35 font-body">
                   oppure{" "}
-                  <Link href="/accedi?next=/ordine" className="text-terracotta font-semibold hover:underline">
+                  <Link href={`/accedi?next=${encodeURIComponent(orderReturnPath(selectedDate,pickupTime))}`} className="text-terracotta font-semibold hover:underline">
                     accedi con email
                   </Link>
                 </p>
@@ -755,6 +770,15 @@ export default function OrdinePage() {
               Carta online
             </button>)}
           </div>
+        </div>
+
+        <div className="reveal rounded-2xl border border-charcoal/10 bg-white p-5 text-sm">
+          <label className="flex items-start gap-3">
+            <input type="checkbox" checked={campaignLinkConsent} disabled={!analyticsAllowed} onChange={e=>setCampaignLinkConsent(e.target.checked)} className="mt-1" />
+            <span>Collega a questo ordine e al mio eventuale profilo cliente la provenienza della campagna pubblicitaria, se disponibile. Scelta facoltativa: non autorizza l’invio di offerte.</span>
+          </label>
+          {!analyticsAllowed&&<p className="mt-2 text-charcoal/60">Per scegliere questa opzione attiva prima i cookie «Statistiche» nelle Preferenze cookie.</p>}
+          <p className="mt-2 text-charcoal/60">Puoi leggere come usiamo questi dati nell’<Link href="/privacy" className="underline">informativa privacy</Link>.</p>
         </div>
 
         {/* SECTION 6: NOTE */}

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-export async function backendProxy(request: NextRequest, prefix: 'api'|'media') {
+export async function backendProxy(request: NextRequest, prefix: 'api'|'media', trustedAttribution?:string) {
  const endpoint=process.env.UNIFIED_BACKEND_URL;
  if (!endpoint) return Response.json({error:'Collegamento gestionale non configurato'},{status:503});
  const incoming=new URL(request.url);
@@ -24,6 +24,8 @@ export async function backendProxy(request: NextRequest, prefix: 'api'|'media') 
  // Vercel supplies its own forwarding metadata; the local HTTPS proxy overwrites x-real-ip.
  headers.set('x-real-ip',(process.env.VERCEL ? request.headers.get('x-vercel-forwarded-for') : request.headers.get('x-real-ip'))??'unknown');
  if(process.env.UNIFIED_WEB_GATEWAY_KEY)headers.set('x-unified-gateway',process.env.UNIFIED_WEB_GATEWAY_KEY);
+ // Only the server-side order route may supply this; incoming browser headers are ignored.
+ if(incoming.pathname==='/api/ordini'&&request.method==='POST'&&trustedAttribution)headers.set('x-order-attribution',trustedAttribution);
  const declared=Number(request.headers.get('content-length')??0);
  const limit=incoming.pathname==='/api/storage/upload'?8*1024*1024:512*1024;
  if(declared>limit)return Response.json({error:'Richiesta troppo grande'},{status:413});

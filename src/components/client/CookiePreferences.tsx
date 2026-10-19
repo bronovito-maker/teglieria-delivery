@@ -4,6 +4,7 @@ import { CONSENT_COOKIE, CONSENT_SECONDS, CONSENT_VERSION, type CookieConsent, i
 import { permitsPurchase, type PurchasePublic } from '@/lib/meta-purchase-client';
 import { startMeta, stopMeta } from '@/lib/meta-pixel';
 import { startGA, stopGA, gaEvent, analyticsItem } from '@/lib/ga4';
+import { safeAnalyticsReferrer } from '@/lib/analytics-attribution';
 import { useCartStore } from '@/store/cart';
 
 export default function CookiePreferences({ nonce, purchases = [] }: { nonce: string; purchases?: PurchasePublic[] }) {
@@ -21,7 +22,7 @@ export default function CookiePreferences({ nonce, purchases = [] }: { nonce: st
     try { purchase = purchases.find(p => p.eventId === sessionStorage.getItem('lt_meta_active_purchase')); } catch {}
     const purchaseAllowed = permitsPurchase(stored.current, new URL(location.href), purchase);
     const gaPurchaseAllowed=permitsPurchase(stored.current,new URL(location.href),purchase,Date.now(),'ga4');
-    if (documentFenced.current || (!permitsMeta(stored.current, new URL(location.href)) && !permitsAnalytics(stored.current,new URL(location.href)) && !purchaseAllowed && !gaPurchaseAllowed) || !safeMarketingReferrer(document.referrer, location.origin)) {
+    if (documentFenced.current || (!permitsMeta(stored.current, new URL(location.href)) && !permitsAnalytics(stored.current,new URL(location.href)) && !purchaseAllowed && !gaPurchaseAllowed) || !(safeMarketingReferrer(document.referrer, location.origin) || ((permitsAnalytics(stored.current,new URL(location.href)) || gaPurchaseAllowed) && safeAnalyticsReferrer(document.referrer, location.origin)))) {
       documentFenced.current=true;
       const entryPath=location.pathname;
       stopMeta(stored.current?.marketing !== true);stopGA(stored.current?.analytics!==true);
@@ -68,7 +69,7 @@ export default function CookiePreferences({ nonce, purchases = [] }: { nonce: st
     };
     const back = () => { if (!isMarketingPage(new URL(location.href))) { stopMeta(false);stopGA(false); location.reload(); } else publicPageView(); };
     document.addEventListener('click', click, true); window.addEventListener('popstate', back, true);
-    if(permitsMeta(stored.current,new URL(location.href))||purchaseAllowed)startMeta(nonce, purchaseAllowed ? purchase : undefined);
+    if((permitsMeta(stored.current,new URL(location.href))||purchaseAllowed)&&safeMarketingReferrer(document.referrer,location.origin))startMeta(nonce, purchaseAllowed ? purchase : undefined);
     if(permitsAnalytics(stored.current,new URL(location.href))||gaPurchaseAllowed)startGA(nonce,gaPurchaseAllowed?purchase:undefined);
     return () => { stopMeta(false);stopGA(false); history.pushState = originalPush; history.replaceState = originalReplace; document.removeEventListener('click', click, true); window.removeEventListener('popstate', back, true); };
   }, [nonce, purchases]);

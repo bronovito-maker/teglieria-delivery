@@ -106,3 +106,11 @@ describe("canonical catalog", () => {
     expect(missing).toEqual([]);
   });
 });
+
+// Preserve the live recipe when packaging older canonical snapshots.
+it("keeps Burrata on a red base without standard mozzarella", () => {
+  const pizza = PIZZA_CATALOG.find((p) => p.name === "La Burrata");
+  expect(pizza?.recipe.base).toBe("ROSSA");
+  expect(pizza?.recipe.mozzarellaStandard).toBe(false);
+  expect(PIZZA_MENU_FLAVORS.find((p) => p.name === "La Burrata")?.mozzarellaStandard).toBe(false);
+});

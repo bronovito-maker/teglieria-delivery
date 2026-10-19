@@ -11,6 +11,12 @@ import {backendProxy} from './backend-proxy';
 import {afterEach} from 'vitest';
 afterEach(()=>{vi.unstubAllEnvs();vi.unstubAllGlobals();});
 describe('split-host origin protection',()=>{
+ it('drops browser-supplied attribution and forwards only the order-route proof',async()=>{
+  vi.stubEnv('UNIFIED_BACKEND_URL','https://gateway.example');const fetcher=vi.fn().mockResolvedValue(new Response('{}'));vi.stubGlobal('fetch',fetcher);
+  const request=new NextRequest('https://lateglieria.it/api/ordini',{method:'POST',headers:{origin:'https://lateglieria.it','x-order-attribution':'FORGED'},body:'{}'});
+  await backendProxy(request,'api');expect(fetcher.mock.calls[0][1].headers.get('x-order-attribution')).toBeNull();
+  await backendProxy(request,'api','{"source":"facebook"}');expect(fetcher.mock.calls[1][1].headers.get('x-order-attribution')).toBe('{"source":"facebook"}');
+ });
  it('rejects cross-origin writes before contacting the gateway',async()=>{vi.stubEnv('UNIFIED_BACKEND_URL','https://gateway.example');const fetcher=vi.fn();vi.stubGlobal('fetch',fetcher);const r=await backendProxy(new NextRequest('https://lateglieria.it/api/ordini',{method:'POST',headers:{origin:'https://evil.invalid'},body:'{}'}),'api');expect(r.status).toBe(403);expect(fetcher).not.toHaveBeenCalled();});
  it('forwards only server gateway credentials and preserves backend cookies',async()=>{vi.stubEnv('UNIFIED_BACKEND_URL','https://gateway.example');vi.stubEnv('UNIFIED_WEB_GATEWAY_KEY','server-key');const fetcher=vi.fn().mockResolvedValue(new Response('{}',{headers:{'set-cookie':'lt_session=test; HttpOnly; Secure; SameSite=Lax'}}));vi.stubGlobal('fetch',fetcher);const r=await backendProxy(new NextRequest('https://lateglieria.it/api/auth/password',{method:'POST',headers:{origin:'https://lateglieria.it',authorization:'Basic secret',cookie:'lt_session=old'},body:'{}'}),'api');expect(r.status).toBe(200);expect(fetcher.mock.calls[0][0].toString()).toBe('https://gateway.example/web/api/auth/password');const h=fetcher.mock.calls[0][1].headers;expect(h.get('authorization')).toBeNull();expect(h.get('x-unified-gateway')).toBe('server-key');expect(h.get('cookie')).toBe('lt_session=old');expect(r.headers.get('set-cookie')).toContain('HttpOnly; Secure');});
 });

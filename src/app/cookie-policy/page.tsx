@@ -24,7 +24,7 @@ export default function CookiePolicyPage() {
             Cookie <span className="text-terracotta">Policy</span>
           </h1>
           <p className="text-sm text-charcoal/40 font-body">
-            Ultimo aggiornamento: <strong className="text-charcoal/60">17 ottobre 2026</strong>
+            Ultimo aggiornamento: <strong className="text-charcoal/60">19 ottobre 2026</strong>
           </p>
         </header>
 
@@ -51,6 +51,7 @@ export default function CookiePolicyPage() {
                   { nome: "lt_web_session", scopo: "Sessione di autenticazione protetta HttpOnly", durata: "7 giorni" },
                   { nome: "lt_order_…", scopo: "Accesso allo stato del proprio ordine", durata: "7 giorni" },
                   { nome: "lt_oauth_state", scopo: "Sicurezza dell’accesso Google, quando richiesto", durata: "10 minuti" },
+                  { nome: "lt_customer_google_return", scopo: "Percorso di ritorno alla prenotazione dopo Google nella sessionStorage della sola scheda, senza credenziali o dati pubblicitari", durata: "Valido 10 minuti; rimosso al ritorno, alla scelta di accesso con password o alla chiusura della scheda" },
                   { nome: "teglieria-cart", scopo: "Carrello e modalità asporto/delivery in localStorage", durata: "Fino alla rimozione dal browser" },
                   { nome: "teglieria-pending-checkout", scopo: "Ripresa del pagamento in localStorage, incluso il collegamento personale all’ordine", durata: "Rimosso alla rilevazione del pagamento o annullamento; può restare se non si riapre il sito" },
                   { nome: "guestOrderCompleted", scopo: "Indicatore senza contatti personali per proporre la registrazione dopo un ordine ospite", durata: "Sessione della scheda o chiusura della proposta" },
@@ -73,6 +74,11 @@ export default function CookiePolicyPage() {
                   { nome: "lt_mp_i_* / lt_mp_r_*", scopo: "Ricevute firmate di misurazione acquisto, solo dopo consenso pubblicitario; non sono usate per autorizzare pagamenti", durata: "Intenzione: massimo 9 giorni; conferma: 10 minuti" },
                   { nome: "lt_meta_purchases_v1 / lt_meta_active_purchase", scopo: "Memoria pubblicitaria locale con identificativi pseudonimi per evitare duplicati e indicare l’acquisto corrente", durata: "Identificativi validi per 90 giorni, eliminati al successivo uso o alla revoca; indicatore nella sola sessione della scheda" },
               ].map(c => <div key={c.nome} className="px-5 py-4 grid grid-cols-3 gap-4 text-sm"><code className="break-all text-xs">{c.nome}</code><span>{c.scopo}</span><span className="text-xs">{c.durata}</span></div>)}
+            </div>
+
+            <div className="bg-white/60 border border-charcoal/5 rounded-2xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-charcoal/5"><h3 className="font-bold">Collegamento facoltativo della campagna all’ordine</h3></div>
+              <div className="px-5 py-4 grid grid-cols-3 gap-4 text-sm"><code className="break-all text-xs">lt_order_attribution</code><span>Cookie firmato HttpOnly con sola piattaforma, mezzo e codici numerici della campagna. Si crea dopo il consenso alle statistiche; viene collegato all’ordine solo se scegli l’opzione separata al checkout.</span><span className="text-xs">30 minuti</span></div>
             </div>
 
             <div className="bg-white/60 border border-charcoal/5 rounded-2xl overflow-hidden">

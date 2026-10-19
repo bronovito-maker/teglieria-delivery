@@ -10,6 +10,7 @@ import {
 } from "react";
 import type { AuthError, Session, User } from "@/types/auth";
 import { createClient } from "@/lib/auth/client";
+import {consumeGoogleReturn} from "@/lib/customer-auth-flow";
 
 type CustomerAuthContextValue = {
   user: User | null;
@@ -50,6 +51,10 @@ export default function CustomerAuthProvider({
       if (!mounted) return;
       setSession(isCustomerSession(nextSession) ? nextSession : null);
       setLoading(false);
+      if (isCustomerSession(nextSession) && window.location.pathname === '/menu') {
+        const next=consumeGoogleReturn();
+        if(next)window.location.replace(next);
+      }
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
