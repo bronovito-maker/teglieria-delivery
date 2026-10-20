@@ -1,3 +1,4 @@
+import {clearGAEvents} from './meta-event-ledger';
 import { catalogLabel } from './ga4-commerce';
 import { readCampaign, ATTRIBUTION_COOKIE, safeAnalyticsReferrer, socialReferrerCampaign } from './analytics-attribution';
 import { GA4_ID, permitsAnalytics, readConsentCookie } from './cookie-consent';
@@ -29,6 +30,7 @@ export function stopGA(clear=true){
  (window as unknown as Record<string,unknown>)['ga-disable-'+GA4_ID]=true;
  try{window.gtag?.('consent','update',denied);}catch{}document.getElementById('lt-ga4')?.remove();
  if(clear){
+  void clearGAEvents();
   for(const c of document.cookie.split(';')){const name=c.trim().split('=')[0];if(!/^_ga(?:_|$)/.test(name))continue;const base=`${name}=; Path=/; Max-Age=0; SameSite=Lax`;document.cookie=base;const parts=location.hostname.split('.');for(let i=0;i<parts.length-1;i++){document.cookie=base+'; Domain='+parts.slice(i).join('.');document.cookie=base+'; Domain=.'+parts.slice(i).join('.');}}
   document.cookie=ATTRIBUTION_COOKIE+'=; Path=/; Max-Age=0; SameSite=Lax';
   try{localStorage.removeItem('lt_ga4_purchases_v1');}catch{}

@@ -41,6 +41,7 @@ async function boundedJson(url:string,init:RequestInit,timeoutMs:number) {
 }
 export async function postCustomerAuth(mode:'login'|'register',payload:unknown) {
  const {response,body}=await boundedJson('/api/auth/'+(mode==='register'?'register':'password'),{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)},15000);
+ if(mode==='register'&&response.ok&&body?.ok===true&&typeof window!=='undefined')try{window.dispatchEvent(new Event('lt:registration-created'));}catch{/* Measurement cannot change registration. */}
  const message=typeof body?.error==='string'?body.error:'';
  const status=response.ok&&body?.ok!==true?502:response.status;
  return {ok:response.ok&&body?.ok===true,status,message:customerAuthFailure(status,mode,message,response.headers.get('retry-after')),duplicate:mode==='register'&&duplicateRegistration(status,message)};

@@ -1,0 +1,5 @@
+import {it,expect,vi,afterEach} from 'vitest';
+import {markPurchaseNavigation,purchaseNavigationAttempted} from './meta-purchase-client';
+afterEach(()=>vi.unstubAllGlobals());
+it('bounded navigation prevents blocked SDK redirect loop, allowing later GA eligibility',()=>{const m=new Map<string,string>();vi.stubGlobal('sessionStorage',{getItem:(k:string)=>m.get(k)||null,setItem:(k:string,v:string)=>m.set(k,v)});const id='ltp_'+'b'.repeat(64);expect(purchaseNavigationAttempted(id,'meta')).toBe(false);expect(markPurchaseNavigation(id,true,false)).toBe(true);expect(purchaseNavigationAttempted(id,'meta')).toBe(true);expect(purchaseNavigationAttempted(id,'ga4')).toBe(false);expect(markPurchaseNavigation(id,false,true)).toBe(true);expect(purchaseNavigationAttempted(id,'ga4')).toBe(true);});
+it('disabled optional storage fails closed without throwing',()=>{vi.stubGlobal('sessionStorage',{getItem:()=>{throw Error('blocked')}});expect(purchaseNavigationAttempted('id','meta')).toBe(true);expect(markPurchaseNavigation('id',true,false)).toBe(false);});

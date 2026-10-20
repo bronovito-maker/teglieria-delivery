@@ -1,4 +1,5 @@
 "use client";
+import {trackCheckout,trackPaymentChoice,finishMetaCheckout} from '@/lib/meta-actions';
 import { safeSessionStorage, orderTrackingUrl } from "@/lib/browser-storage";
 import {useProviderAvailability} from "@/lib/use-provider-availability";
 import ServicePolicy, { orderPolicyPayload } from "@/components/client/ServicePolicy";
@@ -237,6 +238,8 @@ export default function OrdinePage() {
   const clubSavings = pricing.savings;
   const total = pricing.total;
 
+  useEffect(()=>{if(pricesReady&&items.length&&!pendingMatchesCart)trackCheckout(Math.round(total*100));},[pricesReady,items.length,total,pendingMatchesCart]);
+
   const [deliveryQuoteId, setDeliveryQuoteId] = useState<string|null>(null);
 
   async function handleDeliveryCoordinates(coordinates: { lat: number; lng: number; address?: string } | null) {
@@ -354,6 +357,8 @@ export default function OrdinePage() {
       }
 
       const order = await res.json();
+      try {await trackPaymentChoice(Math.round(Number(order.total)*100));}catch{/* Optional measurement never changes a saved order. */}
+      finishMetaCheckout();
       if (paymentMethod === "STRIPE") {
         try {setPendingCheckout(rememberCheckout(order,items,orderType));}catch{}
 

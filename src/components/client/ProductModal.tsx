@@ -225,14 +225,17 @@ function ProductModalContent({ product, onClose, initialVariant }: Props) {
 
             {/* Rimozioni */}
             {product.removals.length > 0 && (
-              <section className="reveal active">
+              <section className="reveal active" aria-label="Rimuovi ingredienti dalla pizza">
                 <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-charcoal/40 mb-4 ml-1">Rimuovi Ingredienti</h3>
+                <p className="mb-3 text-xs text-charcoal/60">La rimozione non cambia il prezzo della pizza di menu. Per allergie, contatta il locale.</p>
                 <div className="flex flex-wrap gap-2">
                   {product.removals.map((r) => {
                     const isRemoved = selectedRemovals.some((sr) => sr.name === r.name);
                     return (
                       <button
                         key={r.id}
+                        type="button"
+                        aria-pressed={isRemoved}
                         onClick={() => toggleRemoval(r.name)}
                         className={`px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all flex items-center gap-2 ${
                           isRemoved

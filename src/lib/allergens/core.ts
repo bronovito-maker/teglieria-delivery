@@ -61,7 +61,8 @@ export function pizzaAllergens(graph: AllergenGraph, selection: PizzaBuilderSele
   const containers = selection.slots.map(slot => mergeResults([
     resolveNode(graph, slot.flavor ? graph.flavors[slot.flavor] : graph.bases[slot.base]),
     ...(!slot.flavor && slot.base === "ROSSA" && slot.mozzarellaStandard ? [resolveNode(graph, graph.bases.mozzarella)] : []),
-    ...slot.ingredients.map(name => resolveIngredient(graph, name)),
+    ...slot.ingredients.filter(name => !slot.removals?.includes(name)).map(name => resolveIngredient(graph, name)),
+    ...(slot.removals?.length ? [{ids: [], pending: ["Ricetta modificata: verificare allergeni con il personale"]}] : []),
   ]));
   return { ...mergeResults(containers), containers };
 }

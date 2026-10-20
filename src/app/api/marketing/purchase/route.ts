@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { backendProxy, readLimitedBody } from '@/lib/backend-proxy';
 import { CONSENT_COOKIE, CONSENT_VERSION, parseConsent } from '@/lib/cookie-consent';
-import { advertisingConsent, validOrderId, eventIdFor, intentName, receiptName, readTicket, confirmedPurchase, signTicket, cookieOptions, sameOrigin, RECEIPT_PREFIX, MAX_RECEIPTS } from '@/lib/meta-purchase-server';
+import { advertisingConsent, validOrderId, eventIdFor, intentName, receiptName, readTicket, confirmedPurchase, metaPurchaseCents, signTicket, cookieOptions, sameOrigin, RECEIPT_PREFIX, MAX_RECEIPTS } from '@/lib/meta-purchase-server';
 export const dynamic='force-dynamic';
 export const runtime='nodejs';
 const answer=(status:number)=>new NextResponse(null,{status,headers:{'Cache-Control':'private, no-store','Referrer-Policy':'no-referrer'}});
@@ -21,12 +21,15 @@ export async function POST(request:NextRequest){
   const h=new Headers();for(const n of ['cookie','x-order-status-token','origin','sec-fetch-site']){const v=request.headers.get(n);if(v)h.set(n,v);}
   const upstream=await backendProxy(new NextRequest(new URL('/api/ordini/'+data.orderId,request.url),{method:'GET',headers:h}),'api');
   if(!upstream.ok)return answer(404);
-  const cents=confirmedPurchase(await upstream.json(),data.orderId);if(cents===null)return answer(409);
-  const now=Date.now(),token=await signTicket({kind:'receipt',orderId:data.orderId,eventId,consentId:consent.receiptId,version:CONSENT_VERSION,issuedAt:now,expiresAt:now+600000,cents,currency:'EUR'});
-  const result=NextResponse.json({ready:true,eventId},{headers:{'Cache-Control':'private, no-store','Referrer-Policy':'no-referrer'}});
+  const order=await upstream.json(),metaCents=metaPurchaseCents(order,data.orderId),analyticsCents=confirmedPurchase(order,data.orderId);
+  const metaEligible=consent.marketing&&metaCents!==null,analyticsEligible=consent.analytics&&analyticsCents!==null;
+  if(!metaEligible&&!analyticsEligible)return answer(409);const cents=(metaEligible?metaCents:analyticsCents)!;
+  const now=Date.now(),token=await signTicket({kind:'receipt',orderId:data.orderId,eventId,consentId:consent.receiptId,version:CONSENT_VERSION,issuedAt:now,expiresAt:now+600000,cents,currency:'EUR',metaEligible,analyticsEligible});
+  const result=NextResponse.json({ready:true,eventId,metaEligible,analyticsEligible},{headers:{'Cache-Control':'private, no-store','Referrer-Policy':'no-referrer'}});
   const old=request.cookies.getAll().filter(c=>c.name.startsWith(RECEIPT_PREFIX)&&c.name!==receiptName(eventId));
   for(const c of old.slice(0,Math.max(0,old.length-MAX_RECEIPTS+1)))result.cookies.set(c.name,'',cookieOptions(request,0));
   result.cookies.set(receiptName(eventId),token,cookieOptions(request,600));
-  result.cookies.set(name,'',cookieOptions(request,0));return result;
+  // Keep the bounded intent: GA4 may become eligible later than a cash Meta purchase.
+  return result;
  }catch{return answer(400);}
 }

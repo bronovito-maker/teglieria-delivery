@@ -44,8 +44,18 @@ export type PizzaBuilderSelection = {
     flavor?: string;
     mozzarellaStandard?: boolean;
     ingredients: string[];
+    removals?: string[];
   }>;
 };
+
+export function pizzaRemovableIngredients(slot: PizzaBuilderSelection["slots"][number]): string[] {
+  const flavor = getPizzaMenuFlavor(slot.flavor);
+  return [...new Set([
+    ...(slot.base === "ROSSA" ? ["Pomodoro"] : ["Fiordilatte"]),
+    ...((flavor?.mozzarellaStandard ?? slot.mozzarellaStandard) ? ["Mozzarella standard"] : []),
+    ...(flavor?.ingredients ?? []),
+  ])];
+}
 
 export function parsePizzaBuilderSelection(value: unknown): PizzaBuilderSelection {
   let parsed = value;
@@ -69,6 +79,7 @@ export function parsePizzaBuilderSelection(value: unknown): PizzaBuilderSelectio
       throw new Error("INVALID_PIZZA_CONFIGURATION");
     }
     if (new Set(slot.ingredients).size !== slot.ingredients.length) throw new Error("INVALID_PIZZA_CONFIGURATION");
+    if (slot.removals !== undefined && (!Array.isArray(slot.removals) || slot.removals.some(name => typeof name !== "string" || !pizzaRemovableIngredients(slot).includes(name)) || new Set(slot.removals).size !== slot.removals.length || slot.removals.some(name => slot.ingredients.includes(name)))) throw new Error("INVALID_PIZZA_CONFIGURATION");
     if (slot.mozzarellaStandard !== undefined && typeof slot.mozzarellaStandard !== "boolean") throw new Error("INVALID_PIZZA_CONFIGURATION");
     if (slot.flavor !== undefined) {
       if (typeof slot.flavor !== "string" || !slot.flavor.trim()) throw new Error("INVALID_PIZZA_CONFIGURATION");
@@ -103,13 +114,13 @@ export function calculatePizzaSlot(
   additions.push({ name: `Gusto ${index + 1} · ${flavor?.name ?? base.name}`, price: base.price });
 
   const mozzarellaStandard = flavor?.mozzarellaStandard ?? (baseType === "ROSSA" && slot.mozzarellaStandard);
-  if (mozzarellaStandard) {
+  if (mozzarellaStandard && !slot.removals?.includes("Mozzarella standard")) {
     const mozzarella = PIZZA_BUILDER_CONFIG.mozzarellaStandard.prices[format][gusti - 1];
     totalCents += toCents(mozzarella);
     additions.push({ name: `Gusto ${index + 1} · Mozzarella standard`, price: mozzarella, available: true });
   }
 
-  const ingredientNames = [...new Set([...(flavor?.ingredients ?? []), ...slot.ingredients])];
+  const ingredientNames = [...new Set([...(flavor?.ingredients ?? []), ...slot.ingredients])].filter(name => !slot.removals?.includes(name));
   for (const name of ingredientNames) {
     if (typeof name !== "string" || !pizzaIngredientData(name, format, gusti)) throw new Error("INVALID_PIZZA_CONFIGURATION");
     const ingredient = pizzaIngredientData(name, format, gusti)!;
@@ -117,6 +128,7 @@ export function calculatePizzaSlot(
     additions.push({ name: `Gusto ${index + 1} · ${ingredient.name}`, price: ingredient.price, available: true });
   }
 
+  for (const name of slot.removals ?? []) additions.push({ name: `Gusto ${index + 1} · Senza ${name}`, price: 0 });
   return { total: fromCents(totalCents), additions };
 }
 
@@ -137,7 +149,7 @@ export function calculateAuthoritativePizzaLine(input: {
 }) {
   if (!Number.isSafeInteger(input.quantity) || input.quantity <= 0) throw new Error("INVALID_PIZZA_PRICE");
   for (const slot of input.selection.slots) {
-    const names = [...(getPizzaMenuFlavor(slot.flavor)?.ingredients ?? []), ...slot.ingredients];
+    const names = [...(getPizzaMenuFlavor(slot.flavor)?.ingredients ?? []), ...slot.ingredients].filter(name => !slot.removals?.includes(name));
     if (names.some(name => UNAVAILABLE_PIZZA_INGREDIENTS.has(name))) throw new Error("PIZZA_INGREDIENT_UNAVAILABLE");
   }
   const calculated = calculatePizzaConfiguration(input.selection);

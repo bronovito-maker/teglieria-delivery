@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/auth/server";
+import GrowthAccountPreferences from "@/components/account/GrowthAccountPreferences";
 import MobileTopBar from "@/components/client/MobileTopBar";
 import ClientFooter from "@/components/client/ClientFooter";
 
@@ -37,7 +38,7 @@ export default async function AccountLayout({
           </div>
         )}
 
-        <main className="flex-1">{children}</main>
+        <main className="flex-1">{children}{process.env.GROWTH_ACCOUNT_UI_ENABLED === "1" && <GrowthAccountPreferences />}</main>
       </div>
 
       <ClientFooter showLogout={false} />

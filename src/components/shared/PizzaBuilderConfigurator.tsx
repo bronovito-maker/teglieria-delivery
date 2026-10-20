@@ -8,6 +8,7 @@ import {
   calculatePizzaSlot,
   getPizzaMenuFlavor,
   pizzaIngredientData,
+  pizzaRemovableIngredients,
   PIZZA_BUILDER_CONFIG,
   AVAILABLE_PIZZA_INGREDIENTS,
   type PizzaBuilderSelection,
@@ -68,7 +69,7 @@ export default function PizzaBuilderConfigurator({
   function selectFlavor(index: number, name: string) {
     const flavor = getPizzaMenuFlavor(name);
     if (!flavor) {
-      updateSlot(index, { flavor: undefined, base: "ROSSA", mozzarellaStandard: false, ingredients: [] });
+      updateSlot(index, { flavor: undefined, base: "ROSSA", mozzarellaStandard: false, ingredients: [], removals: [] });
       return;
     }
     updateSlot(index, {
@@ -76,12 +77,14 @@ export default function PizzaBuilderConfigurator({
       base: flavor.base,
       mozzarellaStandard: flavor.mozzarellaStandard,
       ingredients: [],
+      removals: [],
     });
   }
 
   function toggleIngredient(slotIndex: number, name: string) {
     const slot = slots[slotIndex];
     updateSlot(slotIndex, {
+      removals: (slot.removals ?? []).filter(item => item !== name),
       ingredients: slot.ingredients.includes(name)
         ? slot.ingredients.filter((item) => item !== name)
         : [...slot.ingredients, name],
@@ -170,7 +173,7 @@ export default function PizzaBuilderConfigurator({
                         type="button"
                         key={base}
                         aria-pressed={slot.base === base}
-                        onClick={() => updateSlot(index, { base, mozzarellaStandard: base === "BIANCA" ? false : slot.mozzarellaStandard })}
+                        onClick={() => updateSlot(index, { base, removals: [], mozzarellaStandard: base === "BIANCA" ? false : slot.mozzarellaStandard })}
                         className={`flex-1 rounded-xl border p-2 text-xs font-bold ${slot.base === base ? "border-terracotta bg-terracotta/10" : "border-charcoal/10"}`}
                       >
                         {base === "ROSSA" ? "Base rossa" : "Base bianca"}<br />
@@ -180,13 +183,20 @@ export default function PizzaBuilderConfigurator({
                   </div>
                   {slot.base === "ROSSA" && (
                     <label className="mt-4 flex items-center gap-2 text-xs font-bold text-charcoal/70">
-                      <input type="checkbox" checked={Boolean(slot.mozzarellaStandard)} onChange={(event) => updateSlot(index, { mozzarellaStandard: event.target.checked })} />
+                      <input type="checkbox" checked={Boolean(slot.mozzarellaStandard)} onChange={(event) => updateSlot(index, { mozzarellaStandard: event.target.checked, removals: (slot.removals ?? []).filter(name => name !== "Mozzarella standard") })} />
                       Mozzarella standard <span className="text-terracotta">+{formatCurrency(PIZZA_BUILDER_CONFIG.mozzarellaStandard.prices[format][gusti - 1])}</span>
                     </label>
                   )}
                 </>
               )}
 
+              {pizzaRemovableIngredients(slot).length > 0 && <fieldset className="mt-4 rounded-2xl bg-charcoal/5 p-3">
+                <legend className="text-xs font-bold">Rimuovi ingredienti · Gusto {index + 1}</legend>
+                <div className="flex flex-wrap gap-2">{pizzaRemovableIngredients(slot).map(name => {
+                  const removed = slot.removals?.includes(name) ?? false;
+                  return <button key={name} type="button" aria-pressed={removed} onClick={() => updateSlot(index, { removals: removed ? slot.removals!.filter(item => item !== name) : [...(slot.removals ?? []), name], ingredients: slot.ingredients.filter(item => item !== name) })} className={`rounded-xl border px-3 py-2 text-xs font-bold ${removed ? "border-charcoal bg-charcoal text-white" : "border-charcoal/10 bg-white"}`}>{removed ? "Senza" : "Rimuovi"} {name}</button>;
+                })}</div>
+              </fieldset>}
               <div className="mt-4 border-t border-charcoal/5 pt-4">
                 <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-charcoal/45">Ingredienti extra</p>
                 <div className="grid grid-cols-2 gap-1.5">

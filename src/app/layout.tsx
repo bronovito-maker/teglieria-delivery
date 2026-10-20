@@ -1,3 +1,5 @@
+import MetaRegistration from '@/components/client/MetaRegistration';
+import {REGISTRATION_COOKIE,readRegistration} from '@/lib/meta-registration-server';
 import CookiePreferences from '@/components/client/CookiePreferences';
 import MetaAdditionalPageViews from '@/components/client/MetaAdditionalPageViews';
 import CustomerAssistant from "@/components/client/CustomerAssistant";
@@ -130,6 +132,7 @@ export default async function RootLayout({
   const requestHeaders = await headers();
   const jar = await cookies();
   const purchases = requestHeaders.get("x-meta-route") === "/acquisto-completato" ? await publicReceipts(jar.getAll(), parseConsent(jar.get(CONSENT_COOKIE)?.value)) : [];
+  const registration=await readRegistration(jar.get(REGISTRATION_COOKIE)?.value,parseConsent(jar.get(CONSENT_COOKIE)?.value));
   const nonce = requestHeaders.get("x-nonce") ?? ""; // Per-request CSP nonce.
   return (
     <html lang="it">
@@ -140,6 +143,7 @@ export default async function RootLayout({
         <CustomerAssistant />
         <CookiePreferences nonce={nonce} purchases={purchases} />
         <MetaAdditionalPageViews />
+        <MetaRegistration eventId={registration?.eventId} />
 
       </body>
     </html>

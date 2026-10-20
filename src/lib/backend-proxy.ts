@@ -34,7 +34,7 @@ export async function backendProxy(request: NextRequest, prefix: 'api'|'media', 
   if(body===null)return Response.json({error:'Richiesta troppo grande'},{status:413});
   const result=await fetch(target,{method:request.method,headers,body,redirect:'manual',cache:'no-store',signal:AbortSignal.timeout(45000)});
   const out=new Headers();
-  for(const name of ['content-type','location','cache-control','etag','content-disposition']) {const value=result.headers.get(name);if(value)out.set(name,value);}
+  for(const name of ['content-type','location','cache-control','etag','content-disposition','x-teglieria-registration']) {const value=result.headers.get(name);if(value)out.set(name,value);}
   for(const cookie of result.headers.getSetCookie())out.append('set-cookie',cookie);
   if(prefix==='api')out.set('cache-control','private, no-store');
   return new Response(result.body,{status:result.status,headers:out});
