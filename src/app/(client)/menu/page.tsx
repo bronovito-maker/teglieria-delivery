@@ -117,6 +117,7 @@ function MenuContent() {
         setPromotions(Array.isArray(data) ? [] : data.promotions ?? []);
         syncPrices(menuCategories.flatMap((category: CategoryWithProducts) => category.products).map((product: ProductWithRelations) => ({
           id: product.id,
+          menuPricing: product.menuPricing,
           price: Number(product.price),
           standardPrice: product.standardPrice == null ? null : Number(product.standardPrice),
           imageUrl: product.imageUrl,

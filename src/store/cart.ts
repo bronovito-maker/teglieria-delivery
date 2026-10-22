@@ -2,6 +2,7 @@
 import { trackAnalyticsCart } from '@/lib/ga4';
 import { trackCommittedCartAddition } from '@/lib/meta-add-to-cart';
 
+import {calculatePizzaConfiguration,parsePizzaBuilderSelection,isMenuSelection,type MenuPriceBook} from "@/lib/pizza-builder";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { safeLocalStorage } from "@/lib/browser-storage";
@@ -22,7 +23,7 @@ interface CartStore {
   getSubtotal: () => number;
   getClubSavings: () => number;
   getItemCount: () => number;
-  syncPrices: (products: Array<{ id: string; price: number | string; standardPrice?: number | string | null; imageUrl?: string | null; imageFit?: "cover" | "contain"; ingredients?: string[] | null }>) => void;
+  syncPrices: (products: Array<{ menuPricing?: MenuPriceBook; id: string; price: number | string; standardPrice?: number | string | null; imageUrl?: string | null; imageFit?: "cover" | "contain"; ingredients?: string[] | null }>) => void;
 }
 
 function normalizeText(value?: string): string {
@@ -196,6 +197,15 @@ export const useCartStore = create<CartStore>()(
             items: state.items.map((item) => {
               const product = prices.get(item.productId);
               if (!product) return item;
+              if (product.menuPricing && item.variant) {
+                try {
+                  const selection=parsePizzaBuilderSelection(item.variant);
+                  if (isMenuSelection(selection)) {
+                    const calculated=calculatePizzaConfiguration(selection,product.menuPricing);
+                    return {...item,unitPrice:0,variantPriceDelta:0,standardUnitPrice:calculated.total,additions:calculated.additions,totalPrice:fromCents(toCents(calculated.total)*item.quantity)};
+                  }
+                } catch { /* Keep invalid/unavailable saved selection visible; backend rejects checkout. */ }
+              }
               const unitPrice = Number(product.price);
               const standardUnitPrice = fromCents(
                 toCents(product.standardPrice ?? product.price)

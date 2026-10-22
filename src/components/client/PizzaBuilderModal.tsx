@@ -2,7 +2,7 @@
 import { createClientId } from '@/lib/client-id';
 
 import { pizzaAllergens, snapshot, type PublicRegistry } from "@/lib/allergens/core";
-import { calculatePizzaConfiguration, type PizzaBuilderSelection } from "@/lib/pizza-builder";
+import { calculatePizzaConfiguration, type PizzaBuilderSelection, type MenuPriceBook } from "@/lib/pizza-builder";
 import { formatCurrency } from "@/lib/utils";
 import { gaEvent, analyticsItem } from '@/lib/ga4';
 import { useState, useRef, useEffect } from "react";
@@ -16,7 +16,7 @@ import PizzaBuilderConfigurator, {
 export type { PizzaMenuFlavorOption } from "@/components/shared/PizzaBuilderConfigurator";
 
 export default function PizzaBuilderModal({ product, onClose, menuFlavors }: {
-  product: { id: string; name: string; imageUrl?: string | null; allergenRegistry?: PublicRegistry };
+  product: { id: string; name: string; imageUrl?: string | null; allergenRegistry?: PublicRegistry; menuPricing?: MenuPriceBook };
   onClose: () => void;
   menuFlavors: PizzaMenuFlavorOption[];
 }) {
@@ -25,7 +25,7 @@ export default function PizzaBuilderModal({ product, onClose, menuFlavors }: {
   const [selection, setSelection] = useState<PizzaBuilderSelection>(createInitialPizzaSelection);
   const [quantity, setQuantity] = useState(1);
   const adding=useRef(false),intent=useRef<string|null>(null);
-  const calculated = calculatePizzaConfiguration(selection);
+  const calculated = calculatePizzaConfiguration(selection, product.menuPricing);
 
   function handleAdd() {
     if(adding.current)return;
@@ -65,7 +65,7 @@ export default function PizzaBuilderModal({ product, onClose, menuFlavors }: {
             </div>
             <button type="button" onClick={onClose} aria-label="Chiudi" className="h-10 w-10 shrink-0 rounded-full bg-charcoal/5 text-2xl text-charcoal/50">×</button>
           </div>
-          <PizzaBuilderConfigurator value={selection} onChange={setSelection} menuFlavors={menuFlavors} allergenRegistry={product.allergenRegistry} />
+          <PizzaBuilderConfigurator value={selection} onChange={setSelection} menuFlavors={menuFlavors} allergenRegistry={product.allergenRegistry} menuPricing={product.menuPricing} />
         </div>
         <div className="shrink-0 border-t border-charcoal/8 bg-warm-light px-6 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-8">
           <div className="flex items-center gap-3">

@@ -108,7 +108,7 @@ export default function NuovoOrdinePage() {
 
   function addConfiguredPizza() {
     if (!configuringProduct) return;
-    const calculated = calculatePizzaConfiguration(pizzaSelection);
+    const calculated = calculatePizzaConfiguration(pizzaSelection, configuringProduct?.menuPricing);
     setLines((current) => [...current, {
       product: configuringProduct,
       quantity: 1,
@@ -501,13 +501,13 @@ export default function NuovoOrdinePage() {
               <PizzaBuilderConfigurator
                 value={pizzaSelection}
                 onChange={setPizzaSelection}
-                menuFlavors={pizzaMenuFlavors}
+                menuFlavors={pizzaMenuFlavors} menuPricing={configuringProduct?.menuPricing}
                 allergenRegistry={configuringProduct.allergenRegistry}
               />
             </div>
             <div className="shrink-0 border-t border-charcoal/8 bg-warm-light p-5 sm:px-8">
               <button type="button" onClick={addConfiguredPizza} className="w-full rounded-full bg-terracotta py-4 text-xs font-bold uppercase tracking-widest text-white shadow-xl">
-                Aggiungi configurazione · {formatCurrency(calculatePizzaConfiguration(pizzaSelection).total)}
+                Aggiungi configurazione · {formatCurrency(calculatePizzaConfiguration(pizzaSelection, configuringProduct?.menuPricing).total)}
               </button>
             </div>
           </div>

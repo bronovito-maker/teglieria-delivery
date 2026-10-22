@@ -13,7 +13,10 @@ import {
   AVAILABLE_PIZZA_INGREDIENTS,
   type PizzaBuilderSelection,
   type PizzaFormat,
+  type MenuPriceBook,
+  isMenuSelection,
 } from "@/lib/pizza-builder";
+import {fromCents,toCents} from "@/lib/money";
 import { formatCurrency } from "@/lib/utils";
 import { useMemo } from "react";
 
@@ -37,25 +40,28 @@ export default function PizzaBuilderConfigurator({
   onChange,
   menuFlavors,
   allergenRegistry,
+  menuPricing,
 }: {
   value: PizzaBuilderSelection;
   onChange: (selection: PizzaBuilderSelection) => void;
   menuFlavors: PizzaMenuFlavorOption[];
   allergenRegistry?: PublicRegistry;
+  menuPricing?: MenuPriceBook;
 }) {
   const { format, gusti, slots } = value;
   const allergenResult = allergenRegistry ? pizzaAllergens(allergenRegistry.graph, value) : undefined;
-  const calculated = useMemo(() => calculatePizzaConfiguration(value), [value]);
+  const calculated = useMemo(() => calculatePizzaConfiguration(value,menuPricing), [value,menuPricing]);
   const slotCalculations = useMemo(
-    () => slots.map((slot, index) => calculatePizzaSlot(slot, format, gusti, index)),
-    [format, gusti, slots],
+    () => slots.map((slot, index) => isMenuSelection(value) ? {total: fromCents(toCents(calculated.additions[index]?.price ?? 0)+slot.ingredients.filter(name=>!(getPizzaMenuFlavor(slot.flavor)?.ingredients??[]).includes(name)).reduce((sum,name)=>sum+toCents(pizzaIngredientData(name,format,gusti)!.price),0)),additions:[]} : calculatePizzaSlot(slot, format, gusti, index)),
+    [format, gusti, slots, value, calculated],
   );
 
   function setFormatAndGusti(nextFormat: PizzaFormat, nextGusti: number) {
     onChange({
+      mode: value.mode,
       format: nextFormat,
       gusti: nextGusti,
-      slots: Array.from({ length: nextGusti }, (_, index) => slots[index] ?? createEmptyPizzaSlot()),
+      slots: Array.from({ length: nextGusti }, (_, index) => slots[index] ?? (isMenuSelection(value) ? {base:"ROSSA",flavor:"Base rossa",ingredients:[]} : createEmptyPizzaSlot())),
     });
   }
 
@@ -69,16 +75,10 @@ export default function PizzaBuilderConfigurator({
   function selectFlavor(index: number, name: string) {
     const flavor = getPizzaMenuFlavor(name);
     if (!flavor) {
-      updateSlot(index, { flavor: undefined, base: "ROSSA", mozzarellaStandard: false, ingredients: [], removals: [] });
+      onChange({...value,mode:"FREE",slots:slots.map(s=>({...s,ingredients:[...new Set([...(getPizzaMenuFlavor(s.flavor)?.ingredients??[]),...s.ingredients])],mozzarellaStandard:getPizzaMenuFlavor(s.flavor)?.mozzarellaStandard??s.mozzarellaStandard,flavor:undefined}))});
       return;
     }
-    updateSlot(index, {
-      flavor: flavor.name,
-      base: flavor.base,
-      mozzarellaStandard: flavor.mozzarellaStandard,
-      ingredients: [],
-      removals: [],
-    });
+    onChange({...value,mode:"MENU",slots:slots.map((slot,i)=>i===index?{flavor:flavor.name,base:flavor.base,mozzarellaStandard:flavor.mozzarellaStandard,ingredients:[],removals:[]}:slot.flavor?slot:{base:slot.base,flavor:slot.base==="ROSSA"?"Base rossa":"Base bianca",ingredients:slot.ingredients,removals:[]})});
   }
 
   function toggleIngredient(slotIndex: number, name: string) {
@@ -101,6 +101,7 @@ export default function PizzaBuilderConfigurator({
               type="button"
               key={nextFormat}
               aria-pressed={format === nextFormat}
+              disabled={isMenuSelection(value) && !!menuPricing && slots.some(s=>!!s.flavor && !Number.isSafeInteger(menuPricing[nextFormat][s.flavor]))}
               onClick={() => setFormatAndGusti(nextFormat, 1)}
               className={`rounded-2xl border p-3 text-left ${format === nextFormat ? "border-terracotta bg-terracotta/10" : "border-charcoal/10 bg-white"}`}
             >
@@ -152,17 +153,17 @@ export default function PizzaBuilderConfigurator({
                 className="w-full rounded-2xl border border-charcoal/10 bg-warm-light px-4 py-3 text-sm font-semibold text-charcoal outline-none focus:border-terracotta"
               >
                 <option value="">Composizione personalizzata</option>
-                {menuFlavors.map((option) => <option key={option.name} value={option.name}>{option.name}</option>)}
+                {[...menuFlavors,...[{name:"Base rossa",description:null},{name:"Base bianca",description:null}]].map((option) => <option key={option.name} value={option.name} disabled={!menuPricing || !Number.isSafeInteger(menuPricing[format][option.name])}>{option.name}</option>)}
               </select>
 
               {flavor ? (
                 <div className="mt-3 rounded-2xl border border-terracotta/15 bg-terracotta/[.05] p-3">
                   <p className="text-sm font-bold text-terracotta">{flavor.name}</p>
-                  <AllergenIngredients registry={allergenRegistry} recipeId={allergenRegistry?.graph.flavors[flavor.name]} />
+                  <AllergenIngredients registry={allergenRegistry} recipeId={flavor.name.startsWith("Base ") ? allergenRegistry?.graph.bases[slot.base] : allergenRegistry?.graph.flavors[flavor.name]} />
                   {menuFlavors.find((option) => option.name === flavor.name)?.description && (
                     <p className="mt-1 text-xs italic leading-relaxed text-charcoal/55">{menuFlavors.find((option) => option.name === flavor.name)?.description}</p>
                   )}
-                  <p className="mt-2 text-[11px] text-charcoal/60">Ricetta inclusa: {flavor.ingredients.length > 0 ? flavor.ingredients.join(", ") : "mozzarella e basilico"}.</p>
+                  <p className="mt-2 text-[11px] text-charcoal/60">Ricetta inclusa: {flavor.name.startsWith("Base ") ? flavor.name : flavor.ingredients.length > 0 ? flavor.ingredients.join(", ") : "mozzarella e basilico"}.</p>
                   <button type="button" onClick={() => selectFlavor(index, "")} className="mt-2 text-[10px] font-bold uppercase tracking-widest text-terracotta underline underline-offset-2">Personalizza da zero</button>
                 </div>
               ) : (

@@ -9,7 +9,7 @@ describe("calculatePizzaConfiguration", () => {
       slots: [{ base: "ROSSA", flavor: "La Diavola", ingredients: [] }],
     });
 
-    expect(result.total).toBe(32);
+    expect(result.total).toBe(34);
     expect(result.additions.map((addition) => addition.name)).toEqual([
       "Gusto 1 · La Diavola",
       "Gusto 1 · Mozzarella standard",

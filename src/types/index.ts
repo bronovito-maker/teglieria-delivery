@@ -41,6 +41,7 @@ export type {
 
 // Product with relations
 export type ProductWithRelations = Product & {
+  menuPricing?: import("@/lib/pizza-builder").MenuPriceBook;
   ingredients?: string[] | null;
   allergenInfo?: AllergenSnapshot;
   allergenRegistry?: PublicRegistry;
