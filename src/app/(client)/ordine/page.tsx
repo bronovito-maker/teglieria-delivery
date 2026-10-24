@@ -1,4 +1,5 @@
 "use client";
+import { fetchSlotDays, resolveSlotDays, SLOT_VERIFICATION_ERROR } from "@/lib/slot-availability";
 import {trackCheckout,trackPaymentChoice,finishMetaCheckout} from '@/lib/meta-actions';
 import { safeSessionStorage, orderTrackingUrl } from "@/lib/browser-storage";
 import {useProviderAvailability} from "@/lib/use-provider-availability";
@@ -185,40 +186,52 @@ export default function OrdinePage() {
   const [unavailableDays, setUnavailableDays] = useState<Set<string>>(new Set());
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [availabilityRefresh, setAvailabilityRefresh] = useState(0);
+  const [availabilityError, setAvailabilityError] = useState("");
   const orderRequestKey = useRef(createClientId());
   const capacityItems = JSON.stringify(items.map(item => ({productId:item.productId,quantity:item.quantity,variant:item.variant})));
 
-  // Recheck the shared backend; availability depends on this cart, not the number of orders.
+  const availabilityContext = `${capacityItems}:${orderType}:${selectedDate}`;
+  const [verifiedAvailabilityContext, setVerifiedAvailabilityContext] = useState("");
+  const hasVerifiedSlot = verifiedAvailabilityContext === availabilityContext && !availabilityError &&
+    slots.some(slot => slot.available && slot.time === pickupTime);
+
+  // Recheck the shared backend without letting an unrelated date erase valid slots.
   useEffect(() => {
     let cancelled = false;
+    let running = false;
+    const controller = new AbortController();
     async function refresh() {
+      if (running || cancelled) return;
+      running = true;
       setSlotsLoading(true);
       try {
         const days = Array.from({length:7},(_,i)=>getRomeDateOffsetString(i));
-        const results = await Promise.all(days.map(async date => {
-          const response = await fetch(`/api/logistica/fasce?date=${date}&type=${orderType}&items=${encodeURIComponent(capacityItems)}`,{cache:"no-store"});
-          if (!response.ok) throw new Error("Non riesco a verificare gli orari per questo carrello.");
-          return response.json();
-        }));
+        const results = await fetchSlotDays(days, selectedDate, orderType, capacityItems, controller.signal);
         if (cancelled) return;
-        setAvailabilityMessage(results.find(r=>r.unavailableReason==="CART_EXCEEDS_SLOT_CAPACITY")?.message || (results.every(r=>!r.slots?.length)?results.find(r=>r.unavailableReason==="STOCK_UNAVAILABLE")?.message || "":""));
-        const unavailable = new Set<string>();
-        results.forEach((r,i)=>{if(r.closed===true) unavailable.add(days[i]);});
-        setClosedDays(unavailable);
-        setUnavailableDays(new Set(days.filter((_,i)=>!results[i].slots?.some((s:{available:boolean})=>s.available))));
-        let index = days.indexOf(selectedDate);
-        if(index<0 || !results[index].slots?.some((s:{available:boolean})=>s.available)) index=results.findIndex(r=>r.slots?.some((s:{available:boolean})=>s.available));
-        if(index<0) {setSlots([]);setDayClosed(true);setPickupTime("");return;}
-        const available = results[index].slots.filter((slot:{available:boolean})=>slot.available);
-        setSelectedDate(days[index]);setSlots(available);setDayClosed(false);
-        setPickupTime(current=>available.some((slot:{time:string})=>slot.time===current)?current:available[0]?.time??"");
-      } catch(err) {
-        if(!cancelled){setSlots([]);setPickupTime("");setError(err instanceof Error?err.message:"Orari non disponibili");}
-      } finally {if(!cancelled)setSlotsLoading(false);}
+        const resolved = resolveSlotDays(results, selectedDate);
+        setVerifiedAvailabilityContext(`${capacityItems}:${orderType}:${resolved.date}`);
+        setAvailabilityMessage(resolved.message);
+        setAvailabilityError(resolved.error);
+        setClosedDays(resolved.closedDays);
+        setUnavailableDays(resolved.unavailableDays);
+        setSelectedDate(resolved.date);
+        setSlots(resolved.slots);
+        setDayClosed(resolved.dayClosed);
+        setPickupTime(current => resolved.slots.some(slot => slot.time === current)
+          ? current : resolved.slots[0]?.time ?? "");
+      } catch {
+        if (!cancelled) {
+          setSlots([]); setPickupTime(""); setDayClosed(false);
+          setAvailabilityError(SLOT_VERIFICATION_ERROR);
+        }
+      } finally {
+        running = false;
+        if (!cancelled) setSlotsLoading(false);
+      }
     }
     void refresh();
     const timer=setInterval(()=>void refresh(),15000);
-    return ()=>{cancelled=true;clearInterval(timer);};
+    return ()=>{cancelled=true;controller.abort();clearInterval(timer);};
   },[capacityItems,orderType,selectedDate,availabilityRefresh]);
 
   // Scroll Reveal Logic
@@ -300,8 +313,8 @@ export default function OrdinePage() {
       setError(`Il minimo ordine è ${formatCurrency(MIN_ORDER_SUBTOTAL)}, esclusa la consegna.`);
       return;
     }
-    if (!pickupTime) {
-      setError("Per favore seleziona un orario.");
+    if (!hasVerifiedSlot) {
+      setError("Attendi la verifica degli orari e seleziona una fascia disponibile.");
       return;
     }
     setError("");
@@ -721,6 +734,10 @@ export default function OrdinePage() {
             </div>
           )}
 
+          {availabilityError && <div role="alert" className="mb-3 text-sm text-red-700">
+            <p>{availabilityError}</p>
+            <button type="button" disabled={slotsLoading} onClick={() => setAvailabilityRefresh(value => value + 1)} className="underline font-semibold disabled:opacity-50">Riprova a verificare gli orari</button>
+          </div>}
           {slotsLoading && (
             <p className="text-xs text-charcoal/40 text-center py-3 font-body italic">Aggiorniamo gli orari disponibili...</p>
           )}
@@ -730,7 +747,7 @@ export default function OrdinePage() {
               <button
                 key={slot.time}
                 type="button"
-                disabled={!slot.available}
+                disabled={!slot.available || verifiedAvailabilityContext !== availabilityContext}
                 onClick={() => setPickupTime(slot.time)}
                 className={`py-3 text-xs font-bold rounded-2xl border transition-all ${pickupTime === slot.time
                     ? "bg-terracotta border-terracotta text-white shadow-xl scale-105"
@@ -745,7 +762,7 @@ export default function OrdinePage() {
             ))}
           </div>
           {slots.find(s=>s.time===pickupTime)?.requiresCashierDecision && <p role="status" className="text-sm text-terracotta">Questa fascia richiede la nona teglia: la cassa potrà confermare l’orario oppure spostarlo. Controlla gli aggiornamenti nella pagina dell’ordine.</p>}
-          {!slotsLoading && slots.length === 0 && <p className="text-sm text-gray-400 text-center py-4">Nessun orario disponibile per questa data.</p>}
+          {!slotsLoading && !availabilityError && slots.length === 0 && <p className="text-sm text-gray-400 text-center py-4">Nessun orario disponibile per questa data.</p>}
         </div>
 
         {/* SECTION 5: PAGAMENTO */}
@@ -808,7 +825,7 @@ export default function OrdinePage() {
           <div className="md:hidden fixed bottom-0 inset-x-0 z-40 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 bg-[linear-gradient(180deg,rgba(250,246,240,0)_0%,rgba(250,246,240,0.88)_22%,rgba(250,246,240,0.98)_100%)] backdrop-blur-sm border-t border-charcoal/8">
             <button
               type="submit"
-              disabled={loading || !pricesReady || !pickupTime || pendingMatchesCart}
+              disabled={loading || !pricesReady || !hasVerifiedSlot || pendingMatchesCart}
               className="w-full py-4 bg-terracotta text-white rounded-full font-bold text-lg shadow-2xl hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
             >
             {loading ? "Elaborazione..." : paymentMethod === "STRIPE" ? `Paga con carta · ${formatCurrency(total)}` : `Conferma Ordine · ${formatCurrency(total)}`}
@@ -817,7 +834,7 @@ export default function OrdinePage() {
           <div className="hidden md:block">
             <button
               type="submit"
-              disabled={loading || !pricesReady || !pickupTime || pendingMatchesCart}
+              disabled={loading || !pricesReady || !hasVerifiedSlot || pendingMatchesCart}
               className="w-full py-5 bg-terracotta text-white rounded-full font-bold text-xl shadow-2xl hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
             >
             {loading ? "Elaborazione..." : paymentMethod === "STRIPE" ? "Vai al pagamento sicuro" : "Conferma e Invia Ordine"}
