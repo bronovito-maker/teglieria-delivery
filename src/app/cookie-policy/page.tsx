@@ -24,12 +24,13 @@ export default function CookiePolicyPage() {
             Cookie <span className="text-terracotta">Policy</span>
           </h1>
           <p className="text-sm text-charcoal/40 font-body">
-            Ultimo aggiornamento: <strong className="text-charcoal/60">20 ottobre 2026</strong>
+            Ultimo aggiornamento: <strong className="text-charcoal/60">26 ottobre 2026</strong>
           </p>
         </header>
 
         <div className="space-y-10 font-body text-charcoal/70 leading-relaxed">
 
+          <section className="space-y-3"><h2 className="text-xl font-display text-charcoal">Analisi interna degli acquisti</h2><p>Accetta tutti dichiara la maggiore età e comprende statistiche, pubblicità e analisi delle preferenze d’acquisto del proprio account, inclusi gli acquisti precedenti collegati degli ultimi 365 giorni. Personalizza consente di scegliere separatamente analisi e storico. Solo essenziali non attiva queste finalità. Le vecchie scelte non vengono estese automaticamente alla nuova finalità.</p><p>Il collegamento account–CRM è automatico dopo il consenso autenticato. Un ospite non viene profilato come cliente e deve confermare la scelta dopo l’accesso. Un cambio di account non trasferisce il consenso tra persone. Le vendite anonime non vengono attribuite a un cliente. Nessun invio automatico di offerte è attivato.</p></section>
           <section className="space-y-3">
             <h2 className="text-xl font-display text-charcoal">Cosa sono i cookie</h2>
             <p>
@@ -46,7 +47,7 @@ export default function CookiePolicyPage() {
               </div>
               <div className="divide-y divide-charcoal/5">
                 {[
-                  { nome: "lt_cookie_preferences", scopo: "Scelta cookie tecnici/pubblicitari, versione, identificativo e data della scelta; non autorizza newsletter o profilazione CRM", durata: "12 mesi su questo browser" },
+                  { nome: "lt_cookie_preferences", scopo: "Scelta cookie tecnici/pubblicitari, versione, identificativo e data della scelta; non autorizza newsletter; contiene anche la scelta separata per l’analisi interna degli acquisti, inclusa in Accetta tutti solo con il banner aggiornato", durata: "12 mesi su questo browser" },
                   { nome: "lt_cookie_consent_changed", scopo: "Segnale tecnico locale per aggiornare le preferenze nelle altre schede aperte; non contiene contatti o scelte pubblicitarie", durata: "Fino alla rimozione dal browser" },
                   { nome: "lt_web_session", scopo: "Sessione di autenticazione protetta HttpOnly", durata: "7 giorni" },
                   { nome: "lt_order_…", scopo: "Accesso allo stato del proprio ordine", durata: "7 giorni" },

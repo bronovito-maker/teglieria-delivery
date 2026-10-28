@@ -1,6 +1,6 @@
 import { isCatalogLandingPath } from './meta-catalog';
 export const CONSENT_COOKIE = 'lt_cookie_preferences';
-export const CONSENT_VERSION = '2026-10-20-meta-funnel-v6';
+export const CONSENT_VERSION = '2026-10-26-growth-unified-v7';
 export const CONSENT_SECONDS = 365 * 24 * 60 * 60;
 export const META_PIXEL_ID = '955909697258843';
 export type CookieConsent = {
@@ -11,6 +11,11 @@ export type CookieConsent = {
   analytics: boolean;
   marketing: boolean;
   adult: boolean;
+  personalization?: boolean;
+  history?: boolean;
+  profileAccountId?: string;
+  growthReceiptId?: string;
+  growthWithdrawalPending?: boolean;
 };
 export function parseConsent(raw: string | undefined, now = Date.now()): CookieConsent | null {
   try {
@@ -19,6 +24,12 @@ export function parseConsent(raw: string | undefined, now = Date.now()): CookieC
       || !Number.isFinite(v.recordedAt) || !Number.isFinite(v.expiresAt) || v.recordedAt > now + 60000
       || v.expiresAt <= now || v.expiresAt - v.recordedAt !== CONSENT_SECONDS * 1000
       || typeof v.analytics !== 'boolean' || typeof v.marketing !== 'boolean' || typeof v.adult !== 'boolean' || ((v.marketing || v.analytics) && !v.adult)) return null;
+    if ((v.growthWithdrawalPending !== undefined && typeof v.growthWithdrawalPending !== 'boolean')) return null;
+    if ((v.personalization !== undefined && typeof v.personalization !== 'boolean') ||
+        (v.history !== undefined && typeof v.history !== 'boolean') ||
+        (v.personalization && !v.adult) || (v.history && !v.personalization) ||
+        (v.profileAccountId !== undefined && (typeof v.profileAccountId !== 'string' || !/^[A-Za-z0-9_.:-]{1,120}$/.test(v.profileAccountId))) ||
+        (v.growthReceiptId !== undefined && (typeof v.growthReceiptId !== 'string' || v.growthReceiptId.length > 120))) return null;
     return v as CookieConsent;
   } catch { return null; }
 }

@@ -59,7 +59,8 @@ export default function OrdinePage() {
     }
     void refresh();const timer=setInterval(()=>void refresh(),12000);return()=>{cancelled=true;clearInterval(timer);};
   },[]);
-  const priceContext = `${user?.id ?? "guest"}:${orderType}`;
+  const [selectedDate, setSelectedDate] = useState(() => getRomeDateString());
+  const priceContext = `${user?.id ?? "guest"}:${orderType}:${selectedDate}`;
   const [loadedPriceContext, setLoadedPriceContext] = useState<string | null>(null);
   const pricesReady = !authLoading && loadedPriceContext === priceContext;
   const [error, setError] = useState("");
@@ -139,7 +140,7 @@ export default function OrdinePage() {
   useEffect(() => {
     if (authLoading) return;
     let cancelled = false;
-    void fetch(`/api/menu?type=${orderType}`, {cache:"no-store"}).then(async response => {
+    void fetch(`/api/menu?type=${orderType}&date=${encodeURIComponent(selectedDate)}`, {cache:"no-store"}).then(async response => {
       if (!response.ok) throw new Error("Prezzi non disponibili");
       const data = await response.json();
       const categories = Array.isArray(data) ? data : data.categories;
@@ -154,7 +155,7 @@ export default function OrdinePage() {
       setLoadedPriceContext(priceContext);
     }).catch(() => { if (!cancelled) setError("Non riesco ad aggiornare i prezzi. Riprova tra poco."); });
     return () => {cancelled = true;};
-  }, [authLoading, user, orderType, priceContext, syncPrices]);
+  }, [authLoading, user, orderType, selectedDate, priceContext, syncPrices]);
 
   async function handleGoogleLogin() {
     // Account access has a separate adult declaration; a guest-order acknowledgment cannot supply it.
@@ -163,7 +164,6 @@ export default function OrdinePage() {
   const [address, setAddress] = useState("");
   const [addressDetail, setAddressDetail] = useState("");
   const [deliveryZone, setDeliveryZone] = useState("");
-  const [selectedDate, setSelectedDate] = useState(() => getRomeDateString());
   const [pickupTime, setPickupTime] = useState("");
   // Return from either password or Google login without resetting the booking
   // date. Availability is still revalidated by the canonical slots endpoint.

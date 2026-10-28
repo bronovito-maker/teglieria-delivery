@@ -36,6 +36,7 @@ function MenuContent() {
   useEffect(()=>{const open=()=>setCartOpen(true);window.addEventListener("lt:open-cart",open);if(safeSessionStorage.getItem("lt_open_cart")==="1"){open();}return()=>window.removeEventListener("lt:open-cart",open);},[]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isClubMember, setIsClubMember] = useState<boolean | null>(initialMenu?.isClubMember ?? null);
+  const [clubPickupPromotion, setClubPickupPromotion] = useState(false);
   const authChecked = !authLoading;
   useEffect(()=>{const send=()=>{const items=categories.flatMap(c=>c.products).flatMap(p=>p.variants.length?p.variants.map(v=>analyticsItem({productId:p.id,variant:v.name})): [analyticsItem({productId:p.id})]).filter((v):v is NonNullable<typeof v>=>v!==null);trackAnalyticsList(items);};send();window.addEventListener('lt:analytics-ready',send);return()=>window.removeEventListener('lt:analytics-ready',send);},[categories]);
   const navRef = useRef<HTMLDivElement>(null);
@@ -113,6 +114,7 @@ function MenuContent() {
         const menuCategories = Array.isArray(data) ? data : data.categories;
         if (!Array.isArray(menuCategories)) throw new Error("Invalid menu response");
         setIsClubMember(!Array.isArray(data) && data.isClubMember === true);
+        setClubPickupPromotion(!Array.isArray(data) && data.clubDeliveryOnly === false);
         setCategories(menuCategories);
         setPromotions(Array.isArray(data) ? [] : data.promotions ?? []);
         syncPrices(menuCategories.flatMap((category: CategoryWithProducts) => category.products).map((product: ProductWithRelations) => ({
@@ -218,12 +220,12 @@ function MenuContent() {
         </p>
         {authChecked && isClubMember !== null && (isClubMember ? (
           <div data-testid="club-banner-active" className="mt-7 rounded-full border border-green-200 bg-green-50 px-5 py-3 text-center">
-            <p className="font-brand text-[11px] font-bold uppercase tracking-[0.14em] text-green-700">Sei membro del Club. Prezzi riservati solo per delivery dal sito</p>
+            <p className="font-brand text-[11px] font-bold uppercase tracking-[0.14em] text-green-700">{clubPickupPromotion ? "Sei membro del Club. Fino al 1 novembre prezzi Club anche per asporto dal sito, su mezze e intere. Zucca esclusa da ulteriori sconti." : "Sei membro del Club. Prezzi riservati solo per delivery dal sito"}</p>
           </div>
         ) : (
           <div data-testid="club-banner-login" className="mt-7 max-w-md rounded-[1.25rem] border border-marigold/30 bg-marigold/10 px-5 py-4 text-left">
-            <p className="font-brand text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal/70">Prezzi Club per delivery</p>
-            <p className="mt-1 text-sm leading-relaxed text-charcoal/65">Registrati o accedi: prezzi Club su mezze teglie e teglie intere, solo con consegna a domicilio ordinata dal sito.</p>
+            <p className="font-brand text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal/70">{clubPickupPromotion ? "Prezzi Club anche per asporto dal sito fino al 1 novembre" : "Prezzi Club per delivery"}</p>
+            <p className="mt-1 text-sm leading-relaxed text-charcoal/65">{clubPickupPromotion ? "Registrati o accedi: fino al 1 novembre prezzi Club su mezze e intere anche per asporto dal sito. Zucca esclusa da ulteriori sconti." : "Registrati o accedi: prezzi Club su mezze teglie e teglie intere, solo con consegna a domicilio ordinata dal sito."}</p>
             <Link href="/registrati" className="mt-2 inline-block text-xs font-bold text-terracotta underline underline-offset-2">Registrati e risparmia</Link>
           </div>
         ))}
@@ -328,7 +330,7 @@ function MenuContent() {
                     </div>
                     {authChecked && isClubMember === false && !Boolean(product.configuration) && product.clubPrice != null && Number(product.clubPrice) < Number(product.price) && (
                       <p data-testid="club-price-offer" className="mt-1 text-[10px] font-brand font-semibold leading-tight tracking-[0.04em] text-terracotta/80">
-                        Prezzo Club: {formatCurrency(Number(product.clubPrice))} · solo delivery dal sito
+                        Prezzo Club: {formatCurrency(Number(product.clubPrice))} · {clubPickupPromotion ? "delivery e asporto dal sito fino al 1 novembre" : "solo delivery dal sito"}
                       </p>
                     )}
                   </div>

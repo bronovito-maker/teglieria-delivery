@@ -462,5 +462,21 @@
     "eligible": false,
     "reason": "VERIFICA_AMMISSIBILITA_META_COMMERCE_ALCOLICI: esclusione prudenziale dal file da caricare, prodotto preservato nell’export completo",
     "configurable": false
+  },
+  {
+    "id": "web-pizza-zucca-mt",
+    "productId": "web-pizza-zucca-mt",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
+  },
+  {
+    "id": "web-pizza-zucca-ti",
+    "productId": "web-pizza-zucca-ti",
+    "variant": null,
+    "eligible": true,
+    "reason": null,
+    "configurable": false
   }
 ]

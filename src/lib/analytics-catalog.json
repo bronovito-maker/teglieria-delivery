@@ -230,5 +230,13 @@
   "cmthanlyq00023chk3anzy4c0": {
     "name": "Crea la tua pizza",
     "category": "Crea la tua pizza"
+  },
+  "web-pizza-zucca-mt": {
+    "name": "Pizza Zucca — Mezza teglia",
+    "category": "Mezze teglie"
+  },
+  "web-pizza-zucca-ti": {
+    "name": "Pizza Zucca — Teglia intera",
+    "category": "Teglie"
   }
 }
