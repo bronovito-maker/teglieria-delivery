@@ -27,7 +27,7 @@ describe("canonical catalog", () => {
       (product) => ["whole-pizzas", "half-pizzas", "slices"].includes(product.categoryKey),
     );
     expect(pizzaProducts).toHaveLength(pizzaNames.size * 3);
-    expect(new Set(PIZZA_MENU_FLAVORS.map((flavor) => flavor.name))).toEqual(pizzaNames);
+    expect(new Set(PIZZA_MENU_FLAVORS.map((flavor) => flavor.name))).toEqual(new Set([...pizzaNames, "Pizza Zucca"]));
   });
 
   it.each([

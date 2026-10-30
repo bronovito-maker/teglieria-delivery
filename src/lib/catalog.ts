@@ -94,9 +94,9 @@ export const PIZZA_CATALOG: readonly PizzaCatalogDefinition[] = [
   { name: "La Carbonara", description: "Fiordilatte, crema carbonara (Carbo Crema), guanciale croccante e pepe nero.", prices: { whole: 42, wholeClub: 36, wholePromo: 31, half: 23, halfClub: 21, halfPromo: 19, slice: 4.5 }, images: { pizza: "/menu/pizza_lacarbonara.jpg", slice: "/menu/tranci/carbonara.webp" }, recipe: { base: "BIANCA", ingredients: ["Pecorino", "Guanciale"] } },
 ];
 
-export const PIZZA_MENU_FLAVORS: readonly PizzaMenuFlavor[] = PIZZA_CATALOG.map(
+export const PIZZA_MENU_FLAVORS: readonly PizzaMenuFlavor[] = [...PIZZA_CATALOG.map(
   ({ name, recipe }) => ({ name, ...recipe }),
-);
+), {name:"Pizza Zucca",base:"BIANCA",mozzarellaStandard:false,ingredients:[]}];
 
 export type CatalogCategoryKey =
   | "custom-pizza"

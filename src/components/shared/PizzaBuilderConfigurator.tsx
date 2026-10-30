@@ -159,11 +159,11 @@ export default function PizzaBuilderConfigurator({
               {flavor ? (
                 <div className="mt-3 rounded-2xl border border-terracotta/15 bg-terracotta/[.05] p-3">
                   <p className="text-sm font-bold text-terracotta">{flavor.name}</p>
-                  <AllergenIngredients registry={allergenRegistry} recipeId={flavor.name.startsWith("Base ") ? allergenRegistry?.graph.bases[slot.base] : allergenRegistry?.graph.flavors[flavor.name]} />
+                  <AllergenIngredients registry={allergenRegistry} recipeId={flavor.name.startsWith("Base ") ? allergenRegistry?.graph.bases[slot.base] : (allergenRegistry?.graph.flavors[flavor.name] ?? flavor.name)} />
                   {menuFlavors.find((option) => option.name === flavor.name)?.description && (
                     <p className="mt-1 text-xs italic leading-relaxed text-charcoal/55">{menuFlavors.find((option) => option.name === flavor.name)?.description}</p>
                   )}
-                  <p className="mt-2 text-[11px] text-charcoal/60">Ricetta inclusa: {flavor.name.startsWith("Base ") ? flavor.name : flavor.ingredients.length > 0 ? flavor.ingredients.join(", ") : "mozzarella e basilico"}.</p>
+                  <p className="mt-2 text-[11px] text-charcoal/60">Ricetta inclusa: {flavor.name === "Pizza Zucca" ? "crema di zucca, porro stufato, speck e stracciatella; senza pomodoro e senza mozzarella" : flavor.name.startsWith("Base ") ? flavor.name : flavor.ingredients.length > 0 ? flavor.ingredients.join(", ") : "mozzarella e basilico"}.</p>
                   <button type="button" onClick={() => selectFlavor(index, "")} className="mt-2 text-[10px] font-bold uppercase tracking-widest text-terracotta underline underline-offset-2">Personalizza da zero</button>
                 </div>
               ) : (

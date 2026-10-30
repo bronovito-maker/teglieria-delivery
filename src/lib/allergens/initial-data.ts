@@ -28,10 +28,12 @@ export function initialGraph(products: Array<{ id: string; name: string; categor
   add("Torta di Ceci", [], "CONFIRMED", ["Olio di arachidi"]);
   add("Pane Fritto della Teglieria", [], "CONFIRMED", ["Impasto", "Olio/friggitrice"]);
   add("Fritto Teglieria", [], "CONFIRMED", ["Patatine Fritte", "Nuggets di Pollo", "Anelli di Cipolla", "Pane Fritto della Teglieria"]);
+  add("Crema di zucca");
+  add("Porro stufato");
   for (const flavor of PIZZA_MENU_FLAVORS) {
     const id = `pizza:${flavor.name}`;
     // Explicit components keep ingredient labels and removals tied to the recipe.
-    const components = ["Impasto", ...(flavor.base === "ROSSA" ? ["Pomodoro"] : ["Fiordilatte"]), ...(flavor.mozzarellaStandard ? ["Fiordilatte"] : []), ...flavor.ingredients];
+    const components = flavor.name === "Pizza Zucca" ? ["Impasto","Crema di zucca","Porro stufato","Speck","Stracciatella","Olio extravergine"] : ["Impasto", ...(flavor.base === "ROSSA" ? ["Pomodoro"] : ["Fiordilatte"]), ...(flavor.mozzarellaStandard ? ["Fiordilatte"] : []), ...flavor.ingredients];
     if (flavor.name === "La Carbonara") components.push("Uova/tuorli");
     add(id, [], flavor.name === "La Carbonara" ? "TO_VERIFY" : "CONFIRMED", components, flavor.name);
     graph.flavors[flavor.name] = id;

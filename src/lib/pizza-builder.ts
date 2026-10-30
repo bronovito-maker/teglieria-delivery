@@ -21,8 +21,8 @@ export type PizzaIngredient = { name: string; grams: number; prices: Record<stri
 export type MenuPriceBook = Record<PizzaFormat, Record<string, number>>;
 // Fallback is for saved/offline previews only. Live screens receive the backend's book.
 export const previewMenuPrices: MenuPriceBook = {
- INTERA: Object.fromEntries([...PIZZA_CATALOG.map(p => [p.name, toCents(p.prices.whole)]), ["Base rossa",2030],["Base bianca",2600]]),
- MEZZA: Object.fromEntries([...PIZZA_CATALOG.map(p => [p.name, toCents(p.prices.half)]), ["Base rossa",1425],["Base bianca",2030]]),
+ INTERA: Object.fromEntries([...PIZZA_CATALOG.map(p => [p.name, toCents(p.prices.whole)]), ["Pizza Zucca",3900], ["Base rossa",2030],["Base bianca",2600]]),
+ MEZZA: Object.fromEntries([...PIZZA_CATALOG.map(p => [p.name, toCents(p.prices.half)]), ["Pizza Zucca",2200], ["Base rossa",1425],["Base bianca",2030]]),
 };
 export function menuPizzaCents(prices: number[], format: PizzaFormat) {
  if (!prices.length || prices.length > (format === "MEZZA" ? 2 : 4) || prices.some(p => !Number.isSafeInteger(p) || p < 0 || p > 100_000_000)) throw new Error("INVALID_MENU_PRICE");
@@ -67,7 +67,7 @@ export type PizzaBuilderSelection = {
 export function pizzaRemovableIngredients(slot: PizzaBuilderSelection["slots"][number]): string[] {
   const flavor = getPizzaMenuFlavor(slot.flavor);
   return [...new Set([
-    ...(slot.base === "ROSSA" ? ["Pomodoro"] : ["Fiordilatte"]),
+    ...(slot.flavor === "Pizza Zucca" ? [] : slot.base === "ROSSA" ? ["Pomodoro"] : ["Fiordilatte"]),
     ...((flavor?.mozzarellaStandard ?? slot.mozzarellaStandard) ? ["Mozzarella standard"] : []),
     ...(flavor?.ingredients ?? []),
   ])];
@@ -107,6 +107,7 @@ export function parsePizzaBuilderSelection(value: unknown): PizzaBuilderSelectio
       }
     }
   }
+  if(candidate.slots.some(s=>s.flavor==="Pizza Zucca") && (candidate.mode==="FREE" || candidate.slots.some(s=>!s.flavor))) throw new Error("INVALID_PIZZA_CONFIGURATION");
   return candidate as PizzaBuilderSelection;
 }
 
@@ -125,6 +126,7 @@ export function calculatePizzaSlot(
   const flavor = getPizzaMenuFlavor(slot.flavor);
   if (slot.flavor && !flavor) throw new Error("INVALID_PIZZA_CONFIGURATION");
 
+  if (slot.flavor === "Pizza Zucca") return {total: 0, additions: [] as Array<{name:string;price:number;grams?:number;available?:boolean}>};
   const baseType = flavor?.base ?? slot.base;
   const base = pizzaBaseData(baseType, format, gusti);
   const additions: Array<{ name: string; price: number; grams?: number; available?: boolean }> = [];
@@ -155,9 +157,15 @@ export function calculatePizzaConfiguration(selection: PizzaBuilderSelection, bo
   const slotCalculations = validated.slots.map((slot, index) => calculatePizzaSlot(slot, validated.format, validated.gusti, index));
   if (isMenuSelection(validated)) {
     const prices = validated.slots.map(s=>book[validated.format][s.flavor!]);
-    const baseCents=menuPizzaCents(prices,validated.format);
+    const hasZucca=validated.slots.some(s=>s.flavor==="Pizza Zucca");
+    const wholePrices=validated.slots.map(s=>book.INTERA[s.flavor!]);
+    if(hasZucca && wholePrices.some(p=>!Number.isSafeInteger(p)||p<0||p>100_000_000)) throw new Error("INVALID_MENU_PRICE");
+    const baseCents=hasZucca ? Math.round(wholePrices.reduce((a,b)=>a+b,0)/(validated.gusti*(validated.format==="MEZZA"?2:1))) : menuPizzaCents(prices,validated.format);
     const extras=validated.slots.flatMap(s=>s.ingredients.filter(name=>!(getPizzaMenuFlavor(s.flavor)?.ingredients ?? []).includes(name)).map(name=>({name,price:pizzaIngredientData(name,validated.format,validated.gusti)!.price})));
-    const additions=validated.slots.map((slot,i)=>({name:`Gusto ${i+1} · ${slot.flavor}`,price:fromCents(Math.floor(baseCents/validated.gusti)+(i<baseCents%validated.gusti?1:0))}));
+    const divisor=validated.gusti*(validated.format==="MEZZA"?2:1);
+    const parts=hasZucca ? wholePrices.map(p=>Math.floor(p/divisor)) : prices.map(()=>Math.floor(baseCents/validated.gusti));
+    const remaining=baseCents-parts.reduce((a,b)=>a+b,0);
+    const additions=validated.slots.map((slot,i)=>({name:`Gusto ${i+1} · ${slot.flavor}`,price:fromCents(parts[i]+(i<remaining?1:0))}));
     return {total:fromCents(baseCents+extras.reduce((sum,x)=>sum+toCents(x.price),0)),additions:[...additions,...slotCalculations.flatMap(s=>s.additions.filter(a=>!a.name.includes("Senza ") && !a.name.match(/^Gusto \d+ · (La |L'|Base |Capricciosa)/)).map(a=>({...a,price:0}))),...extras,...validated.slots.flatMap((slot,i)=>(slot.removals??[]).map(name=>({name:`Gusto ${i+1} · Senza ${name}`,price:0})))]};
   }
   return {
